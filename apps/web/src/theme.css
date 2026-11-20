@@ -1890,16 +1890,6 @@ input:focus {
   }
 }
 
-/* O mapa mantém o visual original, só passa a ficar centralizado no painel */
-.shell-main > .legacy-map-content {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-.shell-main > .legacy-map-content > h1 {
-  align-self: flex-start;
-}
-
 /* Cenário da aldeia: viewport em tela cheia, arrastável, com zoom */
 .scene-viewport {
   position: relative;
@@ -2004,6 +1994,235 @@ input:focus {
   opacity: 0.35;
 }
 
+/* ---- Mapa em tela cheia ---- */
+.map-stage {
+  position: relative;
+  flex: 1;
+  min-height: calc(100dvh - var(--topbar-h) - var(--subbar-h));
+  overflow: hidden;
+  background: #214b18;
+}
+.map-stage .world-map-viewport.map-full {
+  position: absolute;
+  inset: 0;
+  width: auto;
+  height: auto;
+}
+.map-stage .world-map-region {
+  cursor: grab;
+}
+.map-stage .world-map-region:active {
+  cursor: grabbing;
+}
+.map-stage::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  pointer-events: none;
+  background: radial-gradient(ellipse at center, transparent 60%, rgb(8 5 2 / 0.45) 100%);
+}
+.map-stage .map-y-axis {
+  position: absolute;
+  inset: 0 auto 0 0;
+  z-index: 6;
+  width: 34px;
+  height: auto;
+  overflow: hidden;
+  pointer-events: none;
+  background: linear-gradient(90deg, rgb(8 5 2 / 0.6), transparent);
+}
+.map-stage .map-y-axis span {
+  width: 34px;
+  padding-left: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  color: rgb(255 244 214 / 0.9);
+  text-shadow: 0 1px 3px #000;
+}
+.map-stage .map-x-axis {
+  position: absolute;
+  inset: auto 0 0;
+  z-index: 6;
+  width: auto;
+  height: 24px;
+  overflow: hidden;
+  pointer-events: none;
+  background: linear-gradient(0deg, rgb(8 5 2 / 0.6), transparent);
+}
+.map-stage .map-x-axis span {
+  top: auto;
+  bottom: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  color: rgb(255 244 214 / 0.9);
+  text-shadow: 0 1px 3px #000;
+}
+.map-hud-top {
+  position: absolute;
+  inset: 16px 16px auto;
+  z-index: 8;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  pointer-events: none;
+}
+.map-hud-top > * {
+  pointer-events: auto;
+}
+.map-card {
+  background-color: rgb(16 11 7 / 0.8);
+  background-image: var(--noise);
+  background-blend-mode: soft-light;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius);
+  box-shadow: 0 12px 30px rgb(0 0 0 / 0.5);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+}
+.map-title {
+  display: grid;
+  gap: 8px;
+  padding: 10px 14px;
+}
+.map-title h1 {
+  margin: 0;
+  font-size: 14px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+.map-title h1 span {
+  color: var(--text);
+}
+.map-title .world-map-coordinates {
+  position: static;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0;
+}
+.map-title .world-map-coordinates label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--muted);
+}
+.map-title .world-map-coordinates input {
+  width: 58px;
+  padding: 5px 8px;
+  text-align: center;
+}
+.map-title .world-map-coordinates button {
+  padding: 5px 12px;
+}
+.map-toolbar {
+  display: grid;
+  overflow: hidden;
+  background: rgb(16 11 7 / 0.8);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius);
+  box-shadow: 0 12px 30px rgb(0 0 0 / 0.5);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+}
+.map-toolbar button {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  color: var(--text);
+  background: transparent;
+  border: 0;
+  border-bottom: 1px solid var(--line-soft);
+  border-radius: 0;
+  box-shadow: none;
+}
+.map-toolbar button:last-child {
+  border-bottom: 0;
+}
+.map-toolbar button:hover:not(:disabled) {
+  color: var(--gold-bright);
+  background: rgb(232 190 106 / 0.12);
+  filter: none;
+}
+.map-toolbar button[aria-pressed='true'] {
+  color: var(--gold-bright);
+  background: rgb(232 190 106 / 0.2);
+  box-shadow: inset 3px 0 0 var(--gold);
+}
+.map-minimap-card {
+  position: absolute;
+  right: 16px;
+  bottom: 36px;
+  z-index: 8;
+  padding: 6px;
+}
+.map-minimap-card .world-minimap {
+  position: relative;
+  inset: auto;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+}
+.map-panel {
+  position: absolute;
+  top: 16px;
+  right: 72px;
+  z-index: 9;
+  width: min(560px, calc(100% - 100px));
+  max-height: calc(100% - 80px);
+  padding: 34px 18px 18px;
+  overflow: auto;
+}
+.map-panel .map-options-layout {
+  margin: 0;
+}
+.map-panel .world-map-legend {
+  width: 100%;
+  margin: 0;
+  white-space: normal;
+  border: 0;
+}
+.map-panel .world-map-legend td {
+  padding: 7px 8px;
+}
+.map-panel .world-map-legend .map-legend-swatch {
+  min-width: 18px;
+  width: 18px;
+  padding: 0;
+  border-radius: 4px;
+  box-shadow: 0 0 0 1px rgb(0 0 0 / 0.5) inset;
+}
+.map-panel-close {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  color: var(--muted);
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+}
+.map-panel-close:hover:not(:disabled) {
+  color: var(--gold-bright);
+  filter: none;
+}
+.map-error {
+  position: absolute;
+  bottom: 36px;
+  left: 50%;
+  z-index: 10;
+  margin: 0;
+  transform: translateX(-50%);
+}
+
 @media (max-width: 1180px) {
   .shell-meta {
     display: none;
@@ -2066,8 +2285,12 @@ input:focus {
     margin: 10px auto 24px;
     padding: 18px 14px;
   }
-  .scene-viewport {
+  .scene-viewport,
+  .map-stage {
     min-height: 64dvh;
+  }
+  .map-minimap-card {
+    display: none;
   }
   .scene-viewport .hud-card,
   .scene-viewport .legacy-production {

@@ -67,7 +67,8 @@ export function useMapNavigation(
       id: event.pointerId,
       client: { x: event.clientX, y: event.clientY },
       start: position,
-      scale: minimap ? 1 / 5 : 2 / 60,
+      // Mapa em tela cheia: o conteúdo acompanha o cursor 1:1 (60px por tile).
+      scale: minimap ? 1 / 5 : 1 / 60,
       moved: false,
     };
     event.currentTarget.setPointerCapture(event.pointerId);

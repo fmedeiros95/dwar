@@ -1,5 +1,6 @@
 import { useGameSearchParams as useSearchParams } from '../../../routing.js';
-import { useState, type FormEvent, type PointerEvent } from 'react';
+import { useEffect, useRef, useState, type FormEvent, type PointerEvent } from 'react';
+import { Layers, LocateFixed, SlidersHorizontal, X } from 'lucide-react';
 import { keepPreviousData, useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 
 import {
@@ -36,7 +37,22 @@ function MapCanvas({ snapshot, options }: { snapshot: VillageSnapshot; options: 
   const client = useQueryClient();
   const [resizeDraft, setResizeDraft] = useState<MapSettings | null>(null);
   const settings = resizeDraft ?? options.settings;
-  const { width, height, minimapSize, contextMenu, popup } = settings;
+  const { minimapSize, contextMenu, popup } = settings;
+  const stageRef = useRef<HTMLDivElement>(null);
+  const [stage, setStage] = useState({ w: 960, h: 640 });
+  const [panel, setPanel] = useState<'legend' | 'options' | null>(null);
+  useEffect(() => {
+    const node = stageRef.current;
+    if (!node) return;
+    const observer = new ResizeObserver(([entry]) => {
+      if (entry) setStage({ w: entry.contentRect.width, h: entry.contentRect.height });
+    });
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, []);
+  // O mapa ocupa a tela toda: quantos tiles de 60px cabem na área disponível.
+  const width = Math.min(60, Math.max(4, Math.ceil(stage.w / 60))),
+    height = Math.min(60, Math.max(4, Math.ceil(stage.h / 60)));
   const resizeAction = useMutation({
     mutationFn: (next: MapSettings) =>
       api.mapAction(snapshot.world.id, snapshot.village.id, { type: 'settings', settings: next }),
@@ -55,9 +71,7 @@ function MapCanvas({ snapshot, options }: { snapshot: VillageSnapshot; options: 
     onSave: (next: MapSettings) => resizeAction.mutate(next),
     onCancel: () => setResizeDraft(null),
   };
-  const pixelWidth = width * 60,
-    pixelHeight = height * 60,
-    miniPixels = minimapSize * 5;
+  const miniPixels = minimapSize * 5;
 
   const [params, setParams] = useSearchParams(),
     [selectedId, setSelectedId] = useState<number | null>(null);
@@ -117,20 +131,6 @@ function MapCanvas({ snapshot, options }: { snapshot: VillageSnapshot; options: 
     const form = new FormData(event.currentTarget);
     closeMenus();
     nav.focus(Number(form.get('x')), Number(form.get('y')));
-  }
-  function arrow(direction: string, label: string, dx: number, dy: number) {
-    return (
-      <button
-        className="map-arrow"
-        aria-label={label}
-        onClick={() => {
-          closeMenus();
-          nav.block(dx, dy);
-        }}
-      >
-        <img src={`/legacy/map/map_${direction}.png`} alt="" />
-      </button>
-    );
   }
   const contextActions = selected
     ? [
@@ -205,383 +205,328 @@ function MapCanvas({ snapshot, options }: { snapshot: VillageSnapshot; options: 
     : [];
   return (
     <div
-      className="legacy-content legacy-map-content"
-      style={
-        {
-          '--map-width': `${pixelWidth}px`,
-          '--map-height': `${pixelHeight}px`,
-          '--mini-size': `${miniPixels}px`,
-        } as import('react').CSSProperties
-      }
+      className="map-stage"
+      ref={stageRef}
+      style={{ '--mini-size': `${miniPixels}px` } as import('react').CSSProperties}
     >
-      <h1>
-        Continente{' '}
-        <span>
-          {Math.floor(center.y / 100)}
-          {Math.floor(center.x / 100)}
-        </span>
-      </h1>
+      <div className="world-map-viewport map-full">
+        <div
+          className="world-map-region"
+          role="region"
+          aria-label="Mapa da região"
+          tabIndex={0}
+          onKeyDown={(event) => {
+            if (event.key === 'Escape') closeMenus();
+            const delta: Record<string, [number, number]> = {
+              ArrowLeft: [-1, 0],
+              ArrowRight: [1, 0],
+              ArrowUp: [0, -1],
+              ArrowDown: [0, 1],
+            };
+            const step = delta[event.key];
+            if (step) {
+              event.preventDefault();
+              closeMenus();
+              nav.focus(center.x + step[0], center.y + step[1]);
+            }
+          }}
+          onPointerDown={(event) => {
+            setHover(null);
+            nav.pointerDown(event);
+          }}
+          onPointerMove={(event) => {
+            if (nav.pointerMove(event)) {
+              closeMenus();
+              return;
+            }
+            const village = villageAt(event);
+            if (village && village.id !== selectedId) {
+              setSelectedId(null);
+              setHover({ village, x: event.clientX, y: event.clientY });
+            } else setHover(null);
+          }}
+          onPointerUp={(event) => {
+            const moved = nav.pointerUp(event);
+            if (moved === false) select(villageAt(event));
+          }}
+          onPointerCancel={nav.pointerCancel}
+          onPointerLeave={() => setHover(null)}
+        >
+          <div
+            className="world-map-grid"
+            style={{
+              gridTemplateColumns: `repeat(${width + 1}, 60px)`,
+              gridTemplateRows: `repeat(${height + 1}, 60px)`,
+              width: (width + 1) * 60,
+              height: (height + 1) * 60,
+              left: (left - position.x) * 60,
+              top: (top - position.y) * 60,
+            }}
+          >
+            {Array.from({ length: (width + 1) * (height + 1) }, (_, index) => {
+              const x = left + (index % (width + 1)),
+                y = top + Math.floor(index / (width + 1)),
+                village = known.get(`${x}|${y}`),
+                grass = (Math.abs((x * 73856093) ^ (y * 19349663)) % 8) + 1;
+              return (
+                <div
+                  className="world-map-tile"
+                  key={`${x}|${y}`}
+                  style={{
+                    backgroundImage: `url(/legacy/map/new/grass${grass}.png)`,
+                  }}
+                >
+                  {village ? (
+                    <button
+                      className="world-map-village"
+                      aria-label={`${village.name} (${x}|${y})`}
+                      style={{
+                        backgroundColor: ownerColor(village, snapshot.village.id, options.marks),
+                      }}
+                      onClick={(event) => {
+                        if (event.detail === 0) select(village);
+                      }}
+                      onFocus={(event) => {
+                        const r = event.currentTarget.getBoundingClientRect();
+                        setHover({ village, x: r.right, y: r.bottom });
+                      }}
+                      onBlur={() => setHover(null)}
+                    >
+                      <img
+                        src={`/legacy/map/new/vil_${villageGraphic(village.points)}n.png`}
+                        alt=""
+                        draggable={false}
+                      />
+                    </button>
+                  ) : null}
+                  {x % 5 === 0 ? (
+                    <span
+                      className="map-sector-line vertical"
+                      style={{
+                        backgroundColor: x % 100 === 0 ? '#000' : '#214b18',
+                      }}
+                    />
+                  ) : null}
+                  {y % 5 === 0 ? (
+                    <span
+                      className="map-sector-line horizontal"
+                      style={{
+                        backgroundColor: y % 100 === 0 ? '#000' : '#214b18',
+                      }}
+                    />
+                  ) : null}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+        <div className="map-y-axis" aria-hidden="true">
+          {Array.from({ length: height + 1 }, (_, index) => (
+            <span key={top + index} style={{ top: (top + index - position.y) * 60 }}>
+              {top + index}
+            </span>
+          ))}
+        </div>
+        <div className="map-x-axis" aria-hidden="true">
+          {Array.from({ length: width + 1 }, (_, index) => (
+            <span key={left + index} style={{ left: (left + index - position.x) * 60 }}>
+              {left + index}
+            </span>
+          ))}
+        </div>
+        {selected ? (
+          <div className="world-map-context" role="group" aria-label={`Ações de ${selected.name}`}>
+            {contextActions.map((item) => (
+              <button
+                key={item.code}
+                className="map-context-action"
+                title={item.title}
+                aria-label={item.title}
+                disabled={!item.action}
+                style={{
+                  left: (selected.x - position.x) * 60 + 30 + item.x,
+                  top: (selected.y - position.y) * 60 + 30 + item.y,
+                  backgroundPositionX: -item.offset,
+                }}
+                onClick={item.action}
+              />
+            ))}
+          </div>
+        ) : null}
+      </div>
+      <div className="map-hud-top" onPointerDown={(event) => event.stopPropagation()}>
+        <div className="map-card map-title">
+          <h1>
+            Continente{' '}
+            <span>
+              {Math.floor(center.y / 100)}
+              {Math.floor(center.x / 100)}
+            </span>
+          </h1>
+          <form
+            key={`${center.x}|${center.y}`}
+            className="world-map-coordinates"
+            onSubmit={submit}
+            aria-label="Centralizar mapa"
+          >
+            <label>
+              X:{' '}
+              <input
+                name="x"
+                aria-label="Coordenada X do mapa"
+                size={3}
+                maxLength={3}
+                pattern="[0-9]+"
+                inputMode="numeric"
+                required
+                defaultValue={center.x}
+              />
+            </label>{' '}
+            <label>
+              Y:{' '}
+              <input
+                name="y"
+                aria-label="Coordenada Y do mapa"
+                size={3}
+                maxLength={3}
+                pattern="[0-9]+"
+                inputMode="numeric"
+                required
+                defaultValue={center.y}
+              />
+            </label>{' '}
+            <button>OK</button>
+          </form>
+        </div>
+        <div className="map-toolbar" role="group" aria-label="Painéis do mapa">
+          <button
+            type="button"
+            aria-pressed={panel === 'legend'}
+            title="Legenda"
+            onClick={() => setPanel(panel === 'legend' ? null : 'legend')}
+          >
+            <Layers size={18} />
+          </button>
+          <button
+            type="button"
+            aria-pressed={panel === 'options'}
+            title="Opções do mapa"
+            onClick={() => setPanel(panel === 'options' ? null : 'options')}
+          >
+            <SlidersHorizontal size={18} />
+          </button>
+          <button
+            type="button"
+            title="Centralizar na minha aldeia"
+            onClick={() => {
+              closeMenus();
+              nav.focus(snapshot.village.x, snapshot.village.y);
+            }}
+          >
+            <LocateFixed size={18} />
+          </button>
+        </div>
+      </div>
+      <div className="map-card map-minimap-card" onPointerDown={(event) => event.stopPropagation()}>
+        <div className="world-minimap">
+          <div
+            className="world-minimap-surface"
+            role="button"
+            aria-label="Centralizar usando o minimapa"
+            tabIndex={0}
+            onKeyDown={(event) => {
+              if (event.key === 'Enter' || event.key === ' ') {
+                event.preventDefault();
+                closeMenus();
+                nav.focus(snapshot.village.x, snapshot.village.y);
+              }
+            }}
+            onPointerDown={(event) => {
+              closeMenus();
+              nav.pointerDown(event, true);
+            }}
+            onPointerMove={nav.pointerMove}
+            onPointerCancel={nav.pointerCancel}
+            onPointerUp={(event) => {
+              const moved = nav.pointerUp(event);
+              if (moved === false) {
+                const rect = event.currentTarget.getBoundingClientRect();
+                nav.focus(
+                  Math.floor(miniLeft + (event.clientX - rect.left) / 5),
+                  Math.floor(miniTop + (event.clientY - rect.top) / 5),
+                );
+              }
+            }}
+          >
+            <svg
+              viewBox={`0 0 ${miniPixels} ${miniPixels}`}
+              aria-hidden="true"
+              shapeRendering="crispEdges"
+            >
+              <rect width={miniPixels} height={miniPixels} fill="#57751a" />
+              {map.data?.villages.map((row) => (
+                <rect
+                  key={row.id}
+                  x={(row.x - miniLeft) * 5}
+                  y={(row.y - miniTop) * 5}
+                  width="6"
+                  height="6"
+                  fill={ownerColor(row, snapshot.village.id, options.marks)}
+                />
+              ))}
+              {Array.from({ length: minimapSize + 1 }, (_, index) => {
+                const x = Math.ceil(miniLeft) + index,
+                  y = Math.ceil(miniTop) + index;
+                return (
+                  <g key={index}>
+                    <path
+                      d={`M ${(x - miniLeft) * 5} 0 V ${miniPixels}`}
+                      stroke={x % 100 === 0 ? '#000' : x % 5 === 0 ? '#2f480d' : '#426112'}
+                    />
+                    <path
+                      d={`M 0 ${(y - miniTop) * 5} H ${miniPixels}`}
+                      stroke={y % 100 === 0 ? '#000' : y % 5 === 0 ? '#2f480d' : '#426112'}
+                    />
+                  </g>
+                );
+              })}
+            </svg>
+            <span
+              className="minimap-viewport"
+              style={{
+                left: (position.x - miniLeft) * 5,
+                top: (position.y - miniTop) * 5,
+                width: width * 5,
+                height: height * 5,
+              }}
+            />
+          </div>
+          <MapResize mode="minimap" {...resizeProps} />
+        </div>
+      </div>
+      {panel ? (
+        <div className="map-card map-panel" onPointerDown={(event) => event.stopPropagation()}>
+          <button
+            type="button"
+            className="map-panel-close"
+            aria-label="Fechar"
+            onClick={() => setPanel(null)}
+          >
+            <X size={16} />
+          </button>
+          {panel === 'legend' ? <MapLegend /> : <MapOptions snapshot={snapshot} map={options} />}
+        </div>
+      ) : null}
       {map.error ? (
-        <p className="error" role="alert">
+        <p className="error map-error" role="alert">
           {map.error.message} <button onClick={() => void map.refetch()}>Atualizar</button>
         </p>
       ) : null}
-      <div className="table-scroll">
-        <table className="world-map-layout">
-          <tbody>
-            <tr>
-              <td className="world-map-big">
-                <table className="world-map-shell">
-                  <tbody>
-                    <tr>
-                      <td />
-                      <td className="map-arrow-cell">
-                        {arrow('n', 'Mover mapa para o norte', 0, -1)}
-                      </td>
-                      <td />
-                    </tr>
-                    <tr>
-                      <td className="map-arrow-cell">
-                        {arrow('w', 'Mover mapa para o oeste', -1, 0)}
-                      </td>
-                      <td>
-                        <table className="world-map-coordinate-frame">
-                          <tbody>
-                            <tr>
-                              <td>
-                                <div className="map-y-axis">
-                                  {Array.from({ length: height + 1 }, (_, index) => (
-                                    <span
-                                      key={top + index}
-                                      style={{ top: (top + index - position.y) * 60 }}
-                                    >
-                                      {top + index}
-                                    </span>
-                                  ))}
-                                </div>
-                              </td>
-                              <td>
-                                <div className="world-map-viewport">
-                                  <div
-                                    className="world-map-region"
-                                    role="region"
-                                    aria-label="Mapa da região"
-                                    tabIndex={0}
-                                    onKeyDown={(event) => {
-                                      if (event.key === 'Escape') closeMenus();
-                                      const delta: Record<string, [number, number]> = {
-                                        ArrowLeft: [-1, 0],
-                                        ArrowRight: [1, 0],
-                                        ArrowUp: [0, -1],
-                                        ArrowDown: [0, 1],
-                                      };
-                                      const step = delta[event.key];
-                                      if (step) {
-                                        event.preventDefault();
-                                        closeMenus();
-                                        nav.focus(center.x + step[0], center.y + step[1]);
-                                      }
-                                    }}
-                                    onPointerDown={(event) => {
-                                      setHover(null);
-                                      nav.pointerDown(event);
-                                    }}
-                                    onPointerMove={(event) => {
-                                      if (nav.pointerMove(event)) {
-                                        closeMenus();
-                                        return;
-                                      }
-                                      const village = villageAt(event);
-                                      if (village && village.id !== selectedId) {
-                                        setSelectedId(null);
-                                        setHover({ village, x: event.clientX, y: event.clientY });
-                                      } else setHover(null);
-                                    }}
-                                    onPointerUp={(event) => {
-                                      const moved = nav.pointerUp(event);
-                                      if (moved === false) select(villageAt(event));
-                                    }}
-                                    onPointerCancel={nav.pointerCancel}
-                                    onPointerLeave={() => setHover(null)}
-                                  >
-                                    <div
-                                      className="world-map-grid"
-                                      style={{
-                                        gridTemplateColumns: `repeat(${width + 1}, 60px)`,
-                                        gridTemplateRows: `repeat(${height + 1}, 60px)`,
-                                        width: (width + 1) * 60,
-                                        height: (height + 1) * 60,
-                                        left: (left - position.x) * 60,
-                                        top: (top - position.y) * 60,
-                                      }}
-                                    >
-                                      {Array.from(
-                                        { length: (width + 1) * (height + 1) },
-                                        (_, index) => {
-                                          const x = left + (index % (width + 1)),
-                                            y = top + Math.floor(index / (width + 1)),
-                                            village = known.get(`${x}|${y}`),
-                                            grass =
-                                              (Math.abs((x * 73856093) ^ (y * 19349663)) % 8) + 1;
-                                          return (
-                                            <div
-                                              className="world-map-tile"
-                                              key={`${x}|${y}`}
-                                              style={{
-                                                backgroundImage: `url(/legacy/map/new/grass${grass}.png)`,
-                                              }}
-                                            >
-                                              {village ? (
-                                                <button
-                                                  className="world-map-village"
-                                                  aria-label={`${village.name} (${x}|${y})`}
-                                                  style={{
-                                                    backgroundColor: ownerColor(
-                                                      village,
-                                                      snapshot.village.id,
-                                                      options.marks,
-                                                    ),
-                                                  }}
-                                                  onClick={(event) => {
-                                                    if (event.detail === 0) select(village);
-                                                  }}
-                                                  onFocus={(event) => {
-                                                    const r =
-                                                      event.currentTarget.getBoundingClientRect();
-                                                    setHover({ village, x: r.right, y: r.bottom });
-                                                  }}
-                                                  onBlur={() => setHover(null)}
-                                                >
-                                                  <img
-                                                    src={`/legacy/map/new/vil_${villageGraphic(village.points)}n.png`}
-                                                    alt=""
-                                                    draggable={false}
-                                                  />
-                                                </button>
-                                              ) : null}
-                                              {x % 5 === 0 ? (
-                                                <span
-                                                  className="map-sector-line vertical"
-                                                  style={{
-                                                    backgroundColor:
-                                                      x % 100 === 0 ? '#000' : '#214b18',
-                                                  }}
-                                                />
-                                              ) : null}
-                                              {y % 5 === 0 ? (
-                                                <span
-                                                  className="map-sector-line horizontal"
-                                                  style={{
-                                                    backgroundColor:
-                                                      y % 100 === 0 ? '#000' : '#214b18',
-                                                  }}
-                                                />
-                                              ) : null}
-                                            </div>
-                                          );
-                                        },
-                                      )}
-                                    </div>
-                                  </div>
-                                  <MapResize mode="map" {...resizeProps} />
-                                  <div className="world-minimap">
-                                    <div
-                                      className="world-minimap-surface"
-                                      role="button"
-                                      aria-label="Centralizar usando o minimapa"
-                                      tabIndex={0}
-                                      onKeyDown={(event) => {
-                                        if (event.key === 'Enter' || event.key === ' ') {
-                                          event.preventDefault();
-                                          closeMenus();
-                                          nav.focus(snapshot.village.x, snapshot.village.y);
-                                        }
-                                      }}
-                                      onPointerDown={(event) => {
-                                        closeMenus();
-                                        nav.pointerDown(event, true);
-                                      }}
-                                      onPointerMove={nav.pointerMove}
-                                      onPointerCancel={nav.pointerCancel}
-                                      onPointerUp={(event) => {
-                                        const moved = nav.pointerUp(event);
-                                        if (moved === false) {
-                                          const rect = event.currentTarget.getBoundingClientRect();
-                                          nav.focus(
-                                            Math.floor(miniLeft + (event.clientX - rect.left) / 5),
-                                            Math.floor(miniTop + (event.clientY - rect.top) / 5),
-                                          );
-                                        }
-                                      }}
-                                    >
-                                      <svg
-                                        viewBox={`0 0 ${miniPixels} ${miniPixels}`}
-                                        aria-hidden="true"
-                                        shapeRendering="crispEdges"
-                                      >
-                                        <rect
-                                          width={miniPixels}
-                                          height={miniPixels}
-                                          fill="#57751a"
-                                        />
-                                        {map.data?.villages.map((row) => (
-                                          <rect
-                                            key={row.id}
-                                            x={(row.x - miniLeft) * 5}
-                                            y={(row.y - miniTop) * 5}
-                                            width="6"
-                                            height="6"
-                                            fill={ownerColor(
-                                              row,
-                                              snapshot.village.id,
-                                              options.marks,
-                                            )}
-                                          />
-                                        ))}
-                                        {Array.from({ length: minimapSize + 1 }, (_, index) => {
-                                          const x = Math.ceil(miniLeft) + index,
-                                            y = Math.ceil(miniTop) + index;
-                                          return (
-                                            <g key={index}>
-                                              <path
-                                                d={`M ${(x - miniLeft) * 5} 0 V ${miniPixels}`}
-                                                stroke={
-                                                  x % 100 === 0
-                                                    ? '#000'
-                                                    : x % 5 === 0
-                                                      ? '#2f480d'
-                                                      : '#426112'
-                                                }
-                                              />
-                                              <path
-                                                d={`M 0 ${(y - miniTop) * 5} H ${miniPixels}`}
-                                                stroke={
-                                                  y % 100 === 0
-                                                    ? '#000'
-                                                    : y % 5 === 0
-                                                      ? '#2f480d'
-                                                      : '#426112'
-                                                }
-                                              />
-                                            </g>
-                                          );
-                                        })}
-                                      </svg>
-                                      <span
-                                        className="minimap-viewport"
-                                        style={{
-                                          left: (position.x - miniLeft) * 5,
-                                          top: (position.y - miniTop) * 5,
-                                          width: width * 5,
-                                          height: height * 5,
-                                        }}
-                                      />
-                                    </div>
-                                    <MapResize mode="minimap" {...resizeProps} />
-                                  </div>
-                                  <form
-                                    key={`${center.x}|${center.y}`}
-                                    className="world-map-coordinates"
-                                    onSubmit={submit}
-                                    aria-label="Centralizar mapa"
-                                  >
-                                    <label>
-                                      X:{' '}
-                                      <input
-                                        name="x"
-                                        aria-label="Coordenada X do mapa"
-                                        size={3}
-                                        maxLength={3}
-                                        pattern="[0-9]+"
-                                        inputMode="numeric"
-                                        required
-                                        defaultValue={center.x}
-                                      />
-                                    </label>{' '}
-                                    <label>
-                                      Y:{' '}
-                                      <input
-                                        name="y"
-                                        aria-label="Coordenada Y do mapa"
-                                        size={3}
-                                        maxLength={3}
-                                        pattern="[0-9]+"
-                                        inputMode="numeric"
-                                        required
-                                        defaultValue={center.y}
-                                      />
-                                    </label>{' '}
-                                    <button>OK</button>
-                                  </form>
-                                  {selected ? (
-                                    <div
-                                      className="world-map-context"
-                                      role="group"
-                                      aria-label={`Ações de ${selected.name}`}
-                                    >
-                                      {contextActions.map((item) => (
-                                        <button
-                                          key={item.code}
-                                          className="map-context-action"
-                                          title={item.title}
-                                          aria-label={item.title}
-                                          disabled={!item.action}
-                                          style={{
-                                            left: (selected.x - position.x) * 60 + 30 + item.x,
-                                            top: (selected.y - position.y) * 60 + 30 + item.y,
-                                            backgroundPositionX: -item.offset,
-                                          }}
-                                          onClick={item.action}
-                                        />
-                                      ))}
-                                    </div>
-                                  ) : null}
-                                </div>
-                              </td>
-                            </tr>
-                            <tr>
-                              <td />
-                              <td>
-                                <div className="map-x-axis">
-                                  {Array.from({ length: width + 1 }, (_, index) => (
-                                    <span
-                                      key={left + index}
-                                      style={{ left: (left + index - position.x) * 60 }}
-                                    >
-                                      {left + index}
-                                    </span>
-                                  ))}
-                                </div>
-                              </td>
-                            </tr>
-                          </tbody>
-                        </table>
-                      </td>
-                      <td className="map-arrow-cell">
-                        {arrow('e', 'Mover mapa para o leste', 1, 0)}
-                      </td>
-                    </tr>
-                    <tr>
-                      <td />
-                      <td className="map-arrow-cell">
-                        {arrow('s', 'Mover mapa para o sul', 0, 1)}
-                      </td>
-                      <td />
-                    </tr>
-                  </tbody>
-                </table>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-        <MapLegend />
-      </div>
       {resizeAction.error ? (
-        <p className="error" role="alert">
+        <p className="error map-error" role="alert">
           {resizeAction.error.message}
         </p>
       ) : null}
-      <MapOptions snapshot={snapshot} map={options} />
       {hover && popup ? <VillagePopup village={hover.village} x={hover.x} y={hover.y} /> : null}
     </div>
   );
