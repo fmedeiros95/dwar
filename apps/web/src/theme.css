@@ -83,7 +83,7 @@ button {
   color: #2b1708;
   font-weight: 700;
   font-size: 12px;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.01em;
   background: linear-gradient(180deg, #f0cd85 0%, #d4a24d 100%);
   border: 1px solid #f6d89a;
   border-radius: var(--radius-sm);
@@ -529,8 +529,8 @@ input:focus {
   padding: 9px 12px;
   font-size: 11px;
   font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+  letter-spacing: 0.01em;
+  text-transform: none;
   color: var(--gold);
   background: rgb(232 190 106 / 0.1);
   border-bottom: 1px solid var(--line);
@@ -655,7 +655,7 @@ input:focus {
   font-size: 11px;
   font-weight: 600;
   letter-spacing: 0.07em;
-  text-transform: uppercase;
+  text-transform: none;
 }
 .legacy-topnav > span {
   min-width: 0;
@@ -713,8 +713,8 @@ input:focus {
   font-family: var(--font-display);
   font-size: 12px;
   font-weight: 700;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
+  letter-spacing: 0.01em;
+  text-transform: none;
   color: var(--gold-bright);
 }
 .hud-card h2 {
@@ -839,8 +839,8 @@ input:focus {
   margin-bottom: 6px;
   font-size: 11px;
   font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+  letter-spacing: 0.01em;
+  text-transform: none;
   color: var(--gold);
 }
 .hud-cost {
@@ -1154,8 +1154,8 @@ input:focus {
   justify-content: space-between;
   margin-bottom: 10px;
   font-size: 12px;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
+  letter-spacing: 0.01em;
+  text-transform: none;
 }
 .queue h2 small {
   font-family: var(--font-ui);
@@ -1530,8 +1530,8 @@ input:focus {
 .landing-features strong {
   font-family: var(--font-display);
   font-size: 13px;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
+  letter-spacing: 0.01em;
+  text-transform: none;
   color: var(--gold-bright);
 }
 .landing-features span {
@@ -1560,8 +1560,8 @@ input:focus {
   padding: 18px 8px 14px;
   font-family: var(--font-display);
   font-size: 13px;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
+  letter-spacing: 0.01em;
+  text-transform: none;
   color: var(--muted);
   background: transparent;
   border: 0;
@@ -2089,8 +2089,8 @@ input:focus {
 .map-title h1 {
   margin: 0;
   font-size: 14px;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
+  letter-spacing: 0.01em;
+  text-transform: none;
 }
 .map-title h1 span {
   color: var(--text);
@@ -2232,8 +2232,8 @@ input:focus {
 .build-prompt-block h2 {
   margin: 0 0 10px;
   font-size: 12px;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
+  letter-spacing: 0.01em;
+  text-transform: none;
 }
 .build-prompt-action {
   justify-self: start;
@@ -2282,8 +2282,8 @@ input:focus {
   margin: 0 0 12px;
   padding-bottom: 8px;
   font-size: 12px;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
+  letter-spacing: 0.01em;
+  text-transform: none;
   border-bottom: 1px solid var(--line);
 }
 .tech-list {
@@ -2344,8 +2344,8 @@ input:focus {
 }
 .stat-tile dt {
   font-size: 11px;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
+  letter-spacing: 0.01em;
+  text-transform: none;
   color: var(--muted);
 }
 .stat-tile dd {
@@ -2927,8 +2927,8 @@ input:focus {
 .rank-you {
   font-size: 11px;
   font-style: normal;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
+  letter-spacing: 0.01em;
+  text-transform: none;
   color: var(--gold-bright);
 }
 .pager {
@@ -3064,8 +3064,8 @@ input:focus {
 }
 .report-parties dt {
   font-size: 11px;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
+  letter-spacing: 0.01em;
+  text-transform: none;
   color: var(--muted);
 }
 .report-parties dd {
@@ -3081,8 +3081,8 @@ input:focus {
   gap: 8px;
   margin: 0 0 8px;
   font-size: 12px;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
+  letter-spacing: 0.01em;
+  text-transform: none;
 }
 .report-side.attack h2 {
   color: var(--warn);
@@ -3336,8 +3336,8 @@ input:focus {
   display: grid;
   gap: 6px;
   font-size: 12px;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
+  letter-spacing: 0.01em;
+  text-transform: none;
   color: var(--muted);
 }
 .mail-compose-actions {
@@ -3442,7 +3442,7 @@ input:focus {
   overflow: hidden;
   font-family: var(--font-display);
   font-size: 15px;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.01em;
   text-overflow: ellipsis;
   white-space: nowrap;
   color: var(--muted);
@@ -3627,7 +3627,7 @@ input:focus {
   padding: 0;
   font-size: 13px;
   font-weight: 700;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.01em;
   line-height: 30px;
   text-align: center;
   color: #3a2406;

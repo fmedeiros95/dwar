@@ -1,0 +1,390 @@
+/*
+ * Pele "chancelaria": a interface como objetos sobre a paisagem.
+ * Janelas são folhas de pergaminho com tinta, presas a uma barra de carvalho; o vermelho de
+ * lacre de cera é a cor de ação e o latão aparece só como detalhe. Carregado depois do theme.css.
+ *
+ * Paleta: pergaminho #e8dbb8 · pergaminho velho #d5c293 · tinta #2a2017
+ *         lacre #7d2b22 · carvalho #34231a · ferro #1f1c1a · latão #b98b3d
+ */
+:root {
+  --font-ui: 'Alegreya Variable', 'Iowan Old Style', Georgia, serif;
+  --font-display: 'IM Fell English', 'Iowan Old Style', Georgia, serif;
+  --font-caps: 'IM Fell English SC', 'IM Fell English', Georgia, serif;
+
+  --parch: #e8dbb8;
+  --parch-deep: #d5c293;
+  --ink: #2a2017;
+  --seal: #7d2b22;
+  --seal-deep: #5a1b15;
+  --oak: #34231a;
+  --iron: #1f1c1a;
+  --brass: #b98b3d;
+
+  --radius-sm: 3px;
+  --radius: 4px;
+  --radius-lg: 6px;
+  --paper: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='p'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.035' numOctaves='3' seed='4'/%3E%3CfeColorMatrix values='0 0 0 0 .45 0 0 0 0 .3 0 0 0 0 .1 0 0 0 .5 0'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23p)'/%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' seed='9'/%3E%3CfeColorMatrix values='0 0 0 0 .35 0 0 0 0 .22 0 0 0 0 .08 0 0 0 .22 0'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23g)'/%3E%3C/svg%3E");
+  font-size: 16px;
+}
+body {
+  font-size-adjust: 0.5;
+  font-variant-numeric: lining-nums;
+}
+h1,
+h2,
+h3 {
+  font-weight: 400;
+  letter-spacing: 0;
+}
+h1 {
+  font-size: 28px;
+}
+h2 {
+  font-size: 19px;
+}
+
+/* ---- Botões: lacre de cera, com sombra dura que cede ao clique ---- */
+button,
+.button {
+  font-family: var(--font-ui);
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  color: #f6e8c8;
+  background: linear-gradient(180deg, #a03a2f 0%, var(--seal) 55%, var(--seal-deep) 100%);
+  border: 1px solid #3a0f0b;
+  border-radius: var(--radius-sm);
+  padding: 7px 16px;
+  box-shadow:
+    inset 0 1px 0 rgb(255 205 175 / 0.4),
+    0 2px 0 #2c0a07,
+    0 4px 8px rgb(0 0 0 / 0.35);
+  text-shadow: 0 1px 1px rgb(0 0 0 / 0.5);
+}
+button:hover:not(:disabled) {
+  filter: brightness(1.12);
+}
+button:active:not(:disabled) {
+  transform: translateY(2px);
+  box-shadow:
+    inset 0 1px 0 rgb(255 205 175 / 0.25),
+    0 0 0 #2c0a07;
+}
+button:disabled {
+  color: rgb(246 232 200 / 0.55);
+  filter: grayscale(0.7) brightness(0.8);
+  cursor: not-allowed;
+}
+button.green,
+.bcard-action.green {
+  color: #f6e8c8;
+  background: linear-gradient(180deg, #a03a2f 0%, var(--seal) 55%, var(--seal-deep) 100%);
+  border-color: #3a0f0b;
+}
+.text-button,
+.text-button:hover:not(:disabled),
+.text-button:active:not(:disabled) {
+  font-family: inherit;
+  font-size: inherit;
+  text-shadow: none;
+  background: none;
+  border: 0;
+  box-shadow: none;
+}
+.pager .button.active,
+.mail-tabs button.active {
+  color: var(--parch);
+  background: var(--ink);
+  border-color: var(--ink);
+  text-shadow: none;
+}
+.mail-tabs button,
+.mail-tabs button:hover:not(:disabled) {
+  box-shadow: none;
+}
+.dock-chip[data-active='true'] {
+  color: #f6e8c8;
+  background: linear-gradient(180deg, #a03a2f, var(--seal-deep));
+}
+
+/* ---- Barra superior: tábua de carvalho com recursos entalhados ---- */
+.shell-topbar {
+  background:
+    linear-gradient(180deg, rgb(0 0 0 / 0.1), rgb(0 0 0 / 0.5)),
+    url('/game/ui/wood-bar.webp') center / 100% 100% no-repeat,
+    var(--oak);
+  border-bottom: 2px solid var(--brass);
+  box-shadow: 0 4px 14px rgb(0 0 0 / 0.55);
+}
+.legacy-resources .resource-amount {
+  font-family: var(--font-ui);
+  font-size: 17px;
+  font-weight: 700;
+  font-variant-numeric: lining-nums tabular-nums;
+  color: #f1e2bd;
+  background: rgb(10 6 3 / 0.45);
+  border: 1px solid rgb(0 0 0 / 0.6);
+  border-radius: var(--radius-sm);
+  box-shadow:
+    inset 0 2px 5px rgb(0 0 0 / 0.7),
+    0 1px 0 rgb(255 220 160 / 0.18);
+}
+.village-name {
+  font-family: var(--font-display);
+  font-size: 22px;
+  font-weight: 400;
+  color: #f4dfae;
+  text-shadow: 0 2px 2px #000;
+}
+.shell-clock,
+.shell-player {
+  font-size: 15px;
+}
+
+/* ---- Trilho: ferro e latão ---- */
+.shell-rail {
+  background:
+    var(--noise),
+    linear-gradient(90deg, #171412, var(--iron));
+  background-blend-mode: soft-light, normal;
+  border-right: 2px solid #0b0908;
+  box-shadow: 1px 0 0 rgb(185 139 61 / 0.35);
+}
+.rail-item {
+  position: relative;
+  font-family: var(--font-ui);
+  color: #b7a888;
+  background: none;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  text-shadow: none;
+}
+.rail-item:hover:not(:disabled) {
+  color: #f1e2bd;
+  background: rgb(185 139 61 / 0.1);
+  filter: none;
+}
+.rail-item[aria-current='page'] {
+  color: #ffe2a0;
+  background: linear-gradient(90deg, rgb(185 139 61 / 0.28), rgb(185 139 61 / 0.04));
+  border: 0;
+  box-shadow: none;
+}
+.rail-item[aria-current='page']::before {
+  content: '';
+  position: absolute;
+  inset: 8px auto 8px 0;
+  width: 3px;
+  background: var(--brass);
+  border-radius: 0 2px 2px 0;
+}
+.rail-label {
+  font-family: var(--font-ui);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+/* ---- Janelas: folha de pergaminho ---- */
+.game-window {
+  background-color: var(--parch);
+  background-image:
+    radial-gradient(ellipse at 50% 40%, transparent 55%, rgb(110 70 25 / 0.28) 100%),
+    var(--paper);
+  background-blend-mode: normal, multiply;
+  border: 2px solid #1b120c;
+  border-radius: var(--radius-lg);
+  box-shadow:
+    0 14px 38px rgb(0 0 0 / 0.6),
+    0 0 0 1px rgb(185 139 61 / 0.5);
+}
+.game-window[data-focused='true'] {
+  box-shadow:
+    0 20px 50px rgb(0 0 0 / 0.7),
+    0 0 0 1px var(--brass),
+    0 0 0 4px rgb(185 139 61 / 0.22);
+}
+.game-window::after {
+  content: '';
+  position: absolute;
+  inset: 6px;
+  z-index: 1;
+  pointer-events: none;
+  border: 1px solid rgb(90 55 20 / 0.4);
+  border-top: 0;
+}
+.gw-bar {
+  border-bottom: 2px solid #1b120c;
+}
+.gw-title {
+  font-family: var(--font-caps);
+  font-size: 19px;
+  letter-spacing: 0.04em;
+  color: #e8d5a6;
+}
+.game-window[data-focused='true'] .gw-title {
+  color: #ffe6ad;
+}
+.gw-actions button,
+.gw-actions button:hover:not(:disabled) {
+  box-shadow: none;
+  text-shadow: none;
+  filter: none;
+}
+.gw-actions button {
+  color: #cdb98c;
+}
+.gw-actions button:hover {
+  color: #fff3d2;
+  background: rgb(0 0 0 / 0.35);
+}
+.gw-actions .gw-close:hover {
+  background: var(--seal);
+}
+.gw-resize {
+  opacity: 0.55;
+}
+.gw-body {
+  /* Dentro da folha, as fichas de cor viram tinta sobre papel. */
+  --surface: transparent;
+  --surface-raised: rgb(255 250 232 / 0.4);
+  --surface-sunken: rgb(92 62 24 / 0.09);
+  --line: rgb(70 45 18 / 0.38);
+  --line-soft: rgb(70 45 18 / 0.2);
+  --line-strong: rgb(70 45 18 / 0.7);
+  --text: var(--ink);
+  --muted: #65533a;
+  --gold: var(--seal);
+  --gold-bright: var(--seal-deep);
+  --green: #3f6a2a;
+  --warn: #9a5410;
+  --danger: #a3261c;
+  color: var(--ink);
+  color-scheme: light;
+  font-size: 16px;
+}
+.gw-body h1,
+.gw-body h2,
+.gw-body h3 {
+  color: var(--seal-deep);
+  text-shadow: 0 1px 0 rgb(255 250 232 / 0.6);
+}
+.gw-body input,
+.gw-body textarea {
+  color: var(--ink);
+  background: rgb(255 250 232 / 0.55);
+  border: 1px solid var(--line);
+  box-shadow: inset 0 1px 3px rgb(70 45 18 / 0.25);
+}
+.gw-body .legacy-table th {
+  color: var(--parch);
+  background: linear-gradient(180deg, #4a3322, var(--oak));
+}
+.gw-body .legacy-table td {
+  border-color: var(--line-soft);
+}
+.gw-body .bcard-cost li,
+.gw-body .stat-tile,
+.gw-body .report-parties > div,
+.gw-body .report-chips li {
+  background: rgb(255 250 232 / 0.45);
+  border-color: var(--line);
+}
+.gw-body .tech-heading {
+  color: #3a2406;
+}
+.gw-body .error {
+  color: var(--danger);
+}
+.gw-body img[src*='/game/resources/'] {
+  filter: drop-shadow(0 1px 1px rgb(60 35 10 / 0.5));
+}
+
+/* ---- Acabamento ---- */
+body,
+input,
+textarea,
+button,
+select {
+  font-feature-settings: 'lnum' 1;
+  font-variant-numeric: lining-nums;
+}
+input,
+textarea,
+select {
+  font-family: var(--font-ui);
+  font-size: 16px;
+}
+.gw-body {
+  --muted: #55442c;
+}
+.bcard-cost li,
+.report-chips li,
+.bunavail-req {
+  border-radius: var(--radius-sm);
+}
+.bcard-cost li.short {
+  color: #8e1d14;
+  background: rgb(163 38 28 / 0.12);
+  border-color: rgb(163 38 28 / 0.55);
+}
+.gw-body .recruit-bar {
+  --muted: #cdb98c;
+  --gold-bright: #ffe2a0;
+  --line: rgb(185 139 61 / 0.45);
+  color: #f1e2bd;
+  background: linear-gradient(180deg, #3c2b1e, #271b12);
+  border-color: #1b120c;
+  box-shadow: 0 -6px 14px rgb(60 35 10 / 0.25);
+}
+.gw-body .recruit-bar > button:disabled {
+  color: rgb(246 232 200 / 0.5);
+}
+.legacy-production,
+.legacy-production .legacy-table td,
+.legacy-production .legacy-table th {
+  font-size: 15px;
+}
+
+/* ---- Acabamento 2 ---- */
+button,
+.button,
+th {
+  text-transform: none;
+}
+.legacy-table th {
+  font-family: var(--font-caps);
+  font-size: 15px;
+  font-weight: 400;
+  letter-spacing: 0.03em;
+}
+.legacy-table td {
+  font-size: 15px;
+}
+.gw-body .ucard[data-state='locked'] {
+  opacity: 1;
+}
+.gw-body .ucard[data-state='locked'] .ucard-title,
+.gw-body .ucard[data-state='locked'] .bunavail-req {
+  opacity: 0.85;
+}
+.gw-body .ucard[data-state='locked'] .ucard-portrait {
+  filter: grayscale(0.8) brightness(0.9);
+}
+.gw-body .bunavail-req {
+  color: #7a3a0a;
+  background: rgb(154 84 16 / 0.1);
+  border-color: rgb(154 84 16 / 0.45);
+}
+.legacy-production,
+.legacy-production .legacy-table td,
+.legacy-production .legacy-table th {
+  font-size: 15px;
+}
+.legacy-production .legacy-table th {
+  font-family: var(--font-caps);
+  font-size: 16px;
+}
+.legacy-production > :first-child {
+  font-size: 13px;
+}
