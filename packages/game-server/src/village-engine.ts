@@ -293,6 +293,8 @@ export async function snapshot(
       unitCode: event.unitCode,
       name: units[event.unitCode as UnitCode].name,
       quantity: event.quantity,
+      delivered: event.deliveredQuantity,
+      unitSeconds: event.unitSeconds,
       startsAt: event.startsAt.toISOString(),
       endsAt: event.endsAt.toISOString(),
     })),

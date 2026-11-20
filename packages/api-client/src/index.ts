@@ -73,6 +73,10 @@ export type Recruitment = {
   unitCode: string;
   name: string;
   quantity: number;
+  /** Unidades do lote que já saíram (o lote é entregue aos poucos). */
+  delivered: number;
+  /** Tempo de cada unidade, em segundos. */
+  unitSeconds: number;
   startsAt: string;
   endsAt: string;
 };

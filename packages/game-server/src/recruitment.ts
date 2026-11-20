@@ -16,7 +16,13 @@ import {
   type UnitCode,
   type RecruitmentBuilding,
 } from '@dwar/game-config';
-import { capacity, populationCapacity, recruitmentDuration, resourceCodes } from '@dwar/game-core';
+import {
+  capacity,
+  populationCapacity,
+  recruitmentDuration,
+  deliveredUnits,
+  resourceCodes,
+} from '@dwar/game-core';
 import type { UnitView, AcademyView, VillageSnapshot } from '@dwar/api-client';
 import { GameError } from './errors.js';
 import { lockWorld, ownedVillage, settleVillage, snapshot } from './village-engine.js';
@@ -103,18 +109,27 @@ export async function settleRecruitment(
   village: Village,
   now: Date,
 ): Promise<void> {
-  const due = await tx
+  // Cada lote sai aos poucos: a unidade k fica pronta em startsAt + k × unitSeconds.
+  const active = await tx
     .select()
     .from(recruitmentEvents)
     .where(
       and(
         eq(recruitmentEvents.villageId, village.id),
         ...pending,
-        lte(recruitmentEvents.endsAt, now),
+        lte(recruitmentEvents.startsAt, now),
       ),
     )
     .orderBy(asc(recruitmentEvents.endsAt), asc(recruitmentEvents.id));
-  for (const event of due) {
+  for (const event of active) {
+    const ready = deliveredUnits(
+      event.startsAt.getTime(),
+      event.unitSeconds,
+      event.quantity,
+      now.getTime(),
+    );
+    const fresh = ready - event.deliveredQuantity;
+    if (fresh <= 0) continue;
     await tx
       .insert(unitPlacements)
       .values({
@@ -122,7 +137,7 @@ export async function settleRecruitment(
         originVillageId: village.id,
         locationVillageId: village.id,
         unitCode: event.unitCode,
-        quantity: event.quantity,
+        quantity: fresh,
       })
       .onConflictDoUpdate({
         target: [
@@ -130,18 +145,20 @@ export async function settleRecruitment(
           unitPlacements.locationVillageId,
           unitPlacements.unitCode,
         ],
-        set: { quantity: sql`${unitPlacements.quantity} + ${event.quantity}` },
+        set: { quantity: sql`${unitPlacements.quantity} + ${fresh}` },
       });
+    const finished = ready >= event.quantity;
     await tx
       .update(recruitmentEvents)
-      .set({ completedAt: now })
+      .set({ deliveredQuantity: ready, ...(finished ? { completedAt: now } : {}) })
       .where(eq(recruitmentEvents.id, event.id));
-    await tx.insert(activity).values({
-      worldId: village.worldId,
-      villageId: village.id,
-      message: `Recrutamento concluído: ${event.quantity} × ${units[event.unitCode as UnitCode].name}.`,
-      occurredAt: event.endsAt,
-    });
+    if (finished)
+      await tx.insert(activity).values({
+        worldId: village.worldId,
+        villageId: village.id,
+        message: `Recrutamento concluído: ${event.quantity} × ${units[event.unitCode as UnitCode].name}.`,
+        occurredAt: event.endsAt,
+      });
   }
 }
 
@@ -309,13 +326,16 @@ export async function cancelRecruit(
       .where(eq(recruitmentEvents.id, item.id));
     cursor = endsAt;
   }
+  // Só o que ainda não saiu volta: as unidades já entregues foram pagas e existem na aldeia.
+  const remaining = event.quantity - event.deliveredQuantity;
+  const definition = units[event.unitCode as UnitCode];
   const maximum = capacity(village.buildings);
   const updated = {
     ...village,
-    wood: Math.min(maximum, village.wood + event.cost.wood),
-    stone: Math.min(maximum, village.stone + event.cost.stone),
-    iron: Math.min(maximum, village.iron + event.cost.iron),
-    populationUsed: village.populationUsed - event.population,
+    wood: Math.min(maximum, village.wood + definition.cost.wood * remaining),
+    stone: Math.min(maximum, village.stone + definition.cost.stone * remaining),
+    iron: Math.min(maximum, village.iron + definition.cost.iron * remaining),
+    populationUsed: village.populationUsed - definition.population * remaining,
   };
   await tx
     .update(villages)

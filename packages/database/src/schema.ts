@@ -246,6 +246,8 @@ export const recruitmentEvents = pgTable(
     buildingCode: text('building_code').notNull(),
     unitCode: text('unit_code').notNull(),
     quantity: integer('quantity').notNull(),
+    /** Unidades já entregues: o lote sai aos poucos, uma a cada `unitSeconds`. */
+    deliveredQuantity: integer('delivered_quantity').notNull().default(0),
     unitSeconds: integer('unit_seconds').notNull(),
     startsAt: time('starts_at'),
     endsAt: time('ends_at'),

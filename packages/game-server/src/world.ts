@@ -1,4 +1,4 @@
-import { and, asc, eq, isNull, lte } from 'drizzle-orm';
+import { and, asc, eq, isNull, lte, sql } from 'drizzle-orm';
 import {
   db,
   worlds,
@@ -108,10 +108,11 @@ export async function processWorldEvents(): Promise<number> {
             eq(recruitmentEvents.worldId, world.id),
             isNull(recruitmentEvents.completedAt),
             isNull(recruitmentEvents.cancelledAt),
-            lte(recruitmentEvents.endsAt, now),
+            // a próxima unidade do lote (a de número delivered + 1) já ficou pronta
+            sql`${recruitmentEvents.startsAt} + (${recruitmentEvents.unitSeconds} * (${recruitmentEvents.deliveredQuantity} + 1)) * interval '1 second' <= ${now}`,
           ),
         )
-        .orderBy(asc(recruitmentEvents.endsAt), asc(recruitmentEvents.id))
+        .orderBy(asc(recruitmentEvents.startsAt), asc(recruitmentEvents.id))
         .limit(200);
       for (const villageId of new Set(
         [...due, ...dueResearch, ...dueRecruitment].map((event) => event.villageId),

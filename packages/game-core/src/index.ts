@@ -126,7 +126,7 @@ export {
   type UnitCode,
   type RecruitmentBuilding,
 } from '@dwar/game-config';
-export { recruitmentDuration } from './recruitment.js';
+export { recruitmentDuration, deliveredUnits } from './recruitment.js';
 
 export { requiredNobleCoins } from './academy.js';
 

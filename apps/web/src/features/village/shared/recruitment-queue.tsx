@@ -32,7 +32,19 @@ export function RecruitmentQueue({
             ? Math.min(1, Math.max(0, (clock - start) / Math.max(1, end - start)))
             : 0;
           const seconds = (end - (active ? clock : start)) / 1000;
-          const label = academy ? '1 Nobre' : `${event.name} (${numbers.format(event.quantity)})`;
+          // O lote sai aos poucos: a unidade k fica pronta em início + k × tempo da unidade.
+          const unitMs = Math.max(1, event.unitSeconds * 1000);
+          const delivered = Math.min(
+            event.quantity,
+            Math.max(event.delivered, active ? Math.floor((clock - start) / unitMs) : 0),
+          );
+          const remaining = event.quantity - delivered;
+          const nextSeconds = Math.max(0, (start + (delivered + 1) * unitMs - clock) / 1000);
+          const label = academy
+            ? '1 Nobre'
+            : delivered > 0
+              ? `${event.name} (${numbers.format(remaining)} de ${numbers.format(event.quantity)} restantes)`
+              : `${event.name} (${numbers.format(event.quantity)})`;
           return (
             <li
               key={event.id}
@@ -46,7 +58,12 @@ export function RecruitmentQueue({
               />
               <div className="queue-info">
                 <strong>{label}</strong>
-                <span>Conclui {completionDate(event.endsAt, clock)}</span>
+                <span>
+                  {!academy && event.quantity > 1 && active && remaining > 0
+                    ? `Próxima em ${duration(nextSeconds)} · `
+                    : ''}
+                  Conclui {completionDate(event.endsAt, clock)}
+                </span>
                 <span className="queue-bar" aria-hidden="true" />
               </div>
               <time className="queue-time">{duration(seconds)}</time>

@@ -69,7 +69,7 @@ export async function academyView(
   const orders = await tx
     .select({
       villageId: recruitmentEvents.villageId,
-      quantity: sql<number>`coalesce(sum(${recruitmentEvents.quantity}),0)::float8`,
+      quantity: sql<number>`coalesce(sum(${recruitmentEvents.quantity} - ${recruitmentEvents.deliveredQuantity}),0)::float8`,
     })
     .from(recruitmentEvents)
     .innerJoin(villages, eq(villages.id, recruitmentEvents.villageId))
