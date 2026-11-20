@@ -1664,6 +1664,232 @@ input:focus {
   }
 }
 
+/* ---- Antes do jogo: mundos e fundação da aldeia ---- */
+.pregame {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-height: 100dvh;
+  overflow: hidden;
+}
+.pregame > * {
+  position: relative;
+  z-index: 1;
+}
+.pregame > .landing-bg {
+  position: absolute;
+  z-index: 0;
+}
+.pregame-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px clamp(16px, 4vw, 48px);
+  background: rgb(13 9 6 / 0.7);
+  border-bottom: 1px solid var(--line);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+}
+.pregame-bar img {
+  display: block;
+  width: auto;
+  mix-blend-mode: screen;
+}
+.pregame-user {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  font-size: 13px;
+  font-weight: 600;
+}
+.pregame-user span,
+.pregame-user button {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+.pregame-user button {
+  padding: 6px 12px;
+  color: var(--text);
+  background: transparent;
+  border: 1px solid var(--line);
+  box-shadow: none;
+}
+.pregame-user button:hover:not(:disabled) {
+  color: var(--gold-bright);
+  background: rgb(232 190 106 / 0.1);
+  filter: none;
+}
+.pregame-main {
+  display: grid;
+  flex: 1;
+  place-items: center;
+  padding: clamp(24px, 5vw, 64px) clamp(16px, 4vw, 48px);
+}
+.pregame-section {
+  width: min(960px, 100%);
+}
+.pregame-heading {
+  margin-bottom: 32px;
+  text-align: center;
+}
+.pregame-heading h1 {
+  margin-bottom: 8px;
+  font-size: clamp(26px, 4vw, 38px);
+  text-shadow: 0 4px 30px rgb(0 0 0 / 0.7);
+}
+.pregame-heading p,
+.pregame-empty {
+  color: var(--muted);
+}
+.world-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 340px));
+  justify-content: center;
+  gap: 18px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.world-card {
+  position: relative;
+  display: grid;
+  gap: 14px;
+  padding: 26px 24px 24px;
+  background-color: rgb(20 14 9 / 0.86);
+  background-image: var(--noise);
+  background-blend-mode: soft-light;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 24px 60px rgb(0 0 0 / 0.55);
+  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(14px);
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+.world-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 30px 70px rgb(0 0 0 / 0.65);
+}
+.world-card-icon {
+  width: 38px;
+  height: 38px;
+  padding: 8px;
+  color: var(--gold-bright);
+  background: rgb(232 190 106 / 0.12);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  stroke-width: 1.6;
+}
+.world-card h2 {
+  font-size: 20px;
+}
+.world-stats {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.world-stats li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--muted);
+}
+.world-stats strong {
+  margin-left: auto;
+  color: var(--gold-bright);
+}
+.world-card-enter {
+  margin-top: 6px;
+  padding: 11px 16px;
+}
+.skeleton {
+  min-height: 210px;
+  background-image: linear-gradient(
+    100deg,
+    rgb(255 255 255 / 0.02) 30%,
+    rgb(232 190 106 / 0.1) 50%,
+    rgb(255 255 255 / 0.02) 70%
+  );
+  background-size: 220% 100%;
+  animation: shimmer 1.4s linear infinite;
+}
+@keyframes shimmer {
+  from {
+    background-position: 120% 0;
+  }
+  to {
+    background-position: -120% 0;
+  }
+}
+.foundation-card {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  gap: 14px;
+  width: min(480px, 100%);
+  padding: 38px 32px 30px;
+  text-align: center;
+  background-color: rgb(20 14 9 / 0.88);
+  background-image: var(--noise);
+  background-blend-mode: soft-light;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 30px 80px rgb(0 0 0 / 0.7);
+  -webkit-backdrop-filter: blur(16px);
+  backdrop-filter: blur(16px);
+}
+.foundation-card h1 {
+  margin: 0;
+  font-size: 24px;
+}
+.foundation-card p {
+  color: var(--muted);
+}
+.foundation-icon {
+  width: 64px;
+  height: 64px;
+  padding: 15px;
+  color: var(--gold-bright);
+  background: rgb(232 190 106 / 0.12);
+  border: 1px solid var(--line-strong);
+  border-radius: 18px;
+  stroke-width: 1.5;
+}
+.foundation-card form {
+  width: 100%;
+}
+.foundation-submit {
+  width: 100%;
+  padding: 13px 16px;
+}
+.foundation-actions {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+.foundation-back {
+  font-size: 13px;
+  color: var(--muted);
+}
+.spinner {
+  width: 38px;
+  height: 38px;
+  border: 3px solid rgb(232 190 106 / 0.2);
+  border-top-color: var(--gold-bright);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 /* O mapa mantém o visual original, só passa a ficar centralizado no painel */
 .shell-main > .legacy-map-content {
   display: flex;
