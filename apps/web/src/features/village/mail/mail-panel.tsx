@@ -1,6 +1,7 @@
 import { useGameSearchParams as useSearchParams } from '../../../routing.js';
 import { newRequestKey } from '@dwar/api-client';
 import { useRef, useState } from 'react';
+import { Mail } from 'lucide-react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { api, ApiError, type MailAction, type VillageSnapshot } from '@dwar/api-client';
@@ -117,38 +118,32 @@ export function MailPanel({ snapshot, clock }: { snapshot: VillageSnapshot; cloc
     (mode === 'view' ? thread.error : null) ??
     (mode === 'new' ? target.error : null);
   return (
-    <div className="market-layout">
-      <aside>
-        <table className="legacy-table market-menu">
-          <thead>
-            <tr>
-              <th>Submenus</th>
-            </tr>
-          </thead>
-          <tbody>
-            {modes.map((item) => (
-              <tr key={item.code}>
-                <td>
-                  <button
-                    className="text-button"
-                    disabled={pending}
-                    onClick={() => {
-                      action.reset();
-                      previewAction.reset();
-                      setNotice('');
-                      navigate(item.code);
-                    }}
-                  >
-                    {mode === item.code || (item.code === 'in' && mode === 'view') ? '» ' : ''}
-                    {item.label}
-                  </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </aside>
-      <section className="market-content mail-content">
+    <div className="legacy-content page-card mail-page">
+      <header className="page-head">
+        <h1>
+          <Mail size={22} aria-hidden="true" /> Mensagens
+        </h1>
+        <nav className="mail-tabs" aria-label="Submenus">
+          {modes.map((item) => (
+            <button
+              key={item.code}
+              className={
+                mode === item.code || (item.code === 'in' && mode === 'view') ? 'active' : undefined
+              }
+              disabled={pending}
+              onClick={() => {
+                action.reset();
+                previewAction.reset();
+                setNotice('');
+                navigate(item.code);
+              }}
+            >
+              {item.label}
+            </button>
+          ))}
+        </nav>
+      </header>
+      <section className="mail-content">
         {error ? (
           <p className="error" role="alert">
             {error.message}
@@ -165,7 +160,11 @@ export function MailPanel({ snapshot, clock }: { snapshot: VillageSnapshot; cloc
             ) : null}
           </p>
         ) : null}
-        {notice ? <p role="status">{notice}</p> : null}
+        {notice ? (
+          <p className="notice" role="status">
+            {notice}
+          </p>
+        ) : null}
         {mode === 'in' ? (
           mailbox.data ? (
             <MailList
@@ -179,12 +178,12 @@ export function MailPanel({ snapshot, clock }: { snapshot: VillageSnapshot; cloc
               onPage={(page) => navigate('in', { page: String(page) })}
             />
           ) : (
-            <p>Carregando mensagens…</p>
+            <p className="muted">Carregando mensagens…</p>
           )
         ) : null}
         {mode === 'new' ? (
           recipientId && !target.data && !target.isError ? (
-            <p>Carregando destinatário…</p>
+            <p className="muted">Carregando destinatário…</p>
           ) : (
             <ComposeMail
               key={recipientId}
@@ -208,64 +207,55 @@ export function MailPanel({ snapshot, clock }: { snapshot: VillageSnapshot; cloc
               onTarget={onTarget}
             />
           ) : (
-            <p>{threadId ? 'Carregando conversa…' : 'Mensagem não encontrada.'}</p>
+            <p className="muted">{threadId ? 'Carregando conversa…' : 'Mensagem não encontrada.'}</p>
           )
         ) : null}
         {mode === 'block' ? (
-          <>
-            <h2>Bloqueios</h2>
-            <table className="legacy-table mail-blocks">
-              <thead>
-                <tr>
-                  <th colSpan={2}>Jogadores bloqueados:</th>
-                </tr>
-              </thead>
-              <tbody>
-                {mailbox.data?.blocked.map((person) => (
-                  <tr key={person.id}>
-                    <td>
-                      <button
-                        className="text-button"
-                        aria-label={`Desbloquear ${person.username}`}
-                        disabled={pending}
-                        onClick={() => perform({ type: 'unblock', playerId: person.id })}
-                      >
-                        <img src="/legacy/icons/delete.png" alt="" />
-                      </button>
-                    </td>
-                    <td>
-                      <button className="text-button" onClick={() => onTarget('player', person.id)}>
-                        {person.username}
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-                <tr>
-                  <td colSpan={2}>
-                    <form
-                      onSubmit={(event) => {
-                        event.preventDefault();
-                        perform({ type: 'block', username: blockName });
-                      }}
+          <div className="mail-blocks">
+            <h2 className="tech-heading">Jogadores bloqueados</h2>
+            {mailbox.data?.blocked.length ? (
+              <ul className="mail-block-list">
+                {mailbox.data.blocked.map((person) => (
+                  <li key={person.id}>
+                    <button className="text-button" onClick={() => onTarget('player', person.id)}>
+                      {person.username}
+                    </button>
+                    <button
+                      className="button"
+                      aria-label={`Desbloquear ${person.username}`}
+                      disabled={pending}
+                      onClick={() => perform({ type: 'unblock', playerId: person.id })}
                     >
-                      <label>
-                        Nome:{' '}
-                        <input
-                          value={blockName}
-                          onChange={(event) => setBlockName(event.target.value)}
-                          maxLength={24}
-                          size={15}
-                          required
-                          disabled={pending}
-                        />
-                      </label>{' '}
-                      <button disabled={pending}>OK</button>
-                    </form>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </>
+                      Desbloquear
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="muted">Você não bloqueou ninguém.</p>
+            )}
+            <form
+              className="mail-block-form"
+              onSubmit={(event) => {
+                event.preventDefault();
+                perform({ type: 'block', username: blockName });
+              }}
+            >
+              <label>
+                Bloquear jogador
+                <input
+                  value={blockName}
+                  onChange={(event) => setBlockName(event.target.value)}
+                  maxLength={24}
+                  required
+                  disabled={pending}
+                />
+              </label>
+              <button className="button" disabled={pending}>
+                Bloquear
+              </button>
+            </form>
+          </div>
         ) : null}
       </section>
     </div>

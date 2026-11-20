@@ -22,82 +22,56 @@ export function ComposeMail({
     onSend({ type: 'send', recipient: to, title: subject, text });
   }
   return (
-    <form onSubmit={submit} aria-label="Nova mensagem">
-      <table className="legacy-table mail-compose">
-        <tbody>
-          {preview !== null ? (
-            <>
-              <tr>
-                <th colSpan={2}>Prévia:</th>
-              </tr>
-              <tr>
-                <td colSpan={2} className="mail-text mail-center">
-                  {preview}
-                </td>
-              </tr>
-            </>
-          ) : null}
-          <tr>
-            <th colSpan={2}>Nova mensagem:</th>
-          </tr>
-          <tr>
-            <td>
-              <label htmlFor="mail-recipient">Para:</label>
-            </td>
-            <td>
-              <input
-                id="mail-recipient"
-                value={to}
-                onChange={(event) => setTo(event.target.value)}
-                maxLength={24}
-                size={30}
-                required
-                disabled={pending}
-              />
-            </td>
-          </tr>
-          <tr>
-            <td>
-              <label htmlFor="mail-subject">Assunto:</label>
-            </td>
-            <td>
-              <input
-                id="mail-subject"
-                value={subject}
-                onChange={(event) => setSubject(event.target.value)}
-                minLength={3}
-                maxLength={120}
-                size={30}
-                required
-                disabled={pending}
-              />
-            </td>
-          </tr>
-          <tr>
-            <td colSpan={2}>
-              <textarea
-                aria-label="Texto da mensagem"
-                value={text}
-                onChange={(event) => setText(event.target.value)}
-                cols={70}
-                rows={16}
-                minLength={3}
-                maxLength={16000}
-                required
-                disabled={pending}
-              />
-            </td>
-          </tr>
-          <tr>
-            <th colSpan={2}>
-              <button type="button" onClick={() => onPreview(text)} disabled={pending}>
-                Prévia
-              </button>{' '}
-              <button disabled={pending}>Enviar</button>
-            </th>
-          </tr>
-        </tbody>
-      </table>
+    <form className="mail-compose" onSubmit={submit} aria-label="Nova mensagem">
+      {preview !== null ? (
+        <section className="mail-preview" aria-label="Prévia">
+          <h2 className="tech-heading">Prévia</h2>
+          <div className="mail-text">{preview}</div>
+        </section>
+      ) : null}
+      <div className="mail-fields">
+        <label htmlFor="mail-recipient">
+          Para
+          <input
+            id="mail-recipient"
+            value={to}
+            onChange={(event) => setTo(event.target.value)}
+            maxLength={24}
+            required
+            disabled={pending}
+          />
+        </label>
+        <label htmlFor="mail-subject">
+          Assunto
+          <input
+            id="mail-subject"
+            value={subject}
+            onChange={(event) => setSubject(event.target.value)}
+            minLength={3}
+            maxLength={120}
+            required
+            disabled={pending}
+          />
+        </label>
+      </div>
+      <textarea
+        aria-label="Texto da mensagem"
+        value={text}
+        onChange={(event) => setText(event.target.value)}
+        rows={12}
+        minLength={3}
+        maxLength={16000}
+        required
+        disabled={pending}
+      />
+      <div className="mail-compose-actions">
+        <button className="button" type="button" onClick={() => onPreview(text)} disabled={pending}>
+          Prévia
+        </button>
+        <button className="bcard-action green" disabled={pending}>
+          Enviar
+        </button>
+      </div>
     </form>
   );
 }

@@ -25,76 +25,58 @@ export function Conversation({
     onReply(text);
   }
   return (
-    <table className="legacy-table mail-conversation">
-      <tbody>
-        <tr>
-          <th>Assunto:</th>
-          <th>{data.title}</th>
-        </tr>
-        <tr>
-          <td>Participante:</td>
-          <td>
-            <img src={`/legacy/icons/${data.partnerStatus}_mail.png`} alt="" />{' '}
+    <div className="mail-conversation">
+      <div className="mail-thread-head">
+        <div>
+          <h2>{data.title}</h2>
+          <span className="muted">
+            Com{' '}
             <button className="text-button" onClick={() => onTarget('player', data.partner.id)}>
               {data.partner.username}
             </button>
-          </td>
-        </tr>
-        {replying ? (
-          <tr>
-            <td colSpan={2}>
-              <form onSubmit={submit} aria-label="Responder mensagem">
-                <textarea
-                  aria-label="Texto da resposta"
-                  cols={70}
-                  rows={10}
-                  value={text}
-                  onChange={(event) => setText(event.target.value)}
-                  minLength={3}
-                  maxLength={16000}
-                  required
-                  disabled={pending}
-                />
-                <p>
-                  <button disabled={pending}>Enviar resposta</button>
-                </p>
-              </form>
-            </td>
-          </tr>
-        ) : null}
+          </span>
+        </div>
+        <div className="mail-thread-actions">
+          <button className="button" disabled={pending} onClick={() => setReplying(true)}>
+            Responder
+          </button>
+          <button className="button" disabled={pending} onClick={onDelete}>
+            Excluir
+          </button>
+        </div>
+      </div>
+      {replying ? (
+        <form className="mail-reply" onSubmit={submit} aria-label="Responder mensagem">
+          <textarea
+            aria-label="Texto da resposta"
+            rows={7}
+            value={text}
+            onChange={(event) => setText(event.target.value)}
+            minLength={3}
+            maxLength={16000}
+            required
+            disabled={pending}
+          />
+          <button className="bcard-action green" disabled={pending}>
+            Enviar resposta
+          </button>
+        </form>
+      ) : null}
+      <ul className="mail-posts">
         {data.posts.map((post) => (
-          <tr key={post.id}>
-            <td colSpan={2}>
-              <div className="mail-post">
-                <div className="mail-post-heading">
-                  <button
-                    className="text-button"
-                    onClick={() => onTarget('player', post.author.id)}
-                  >
-                    {post.author.username}
-                  </button>
-                  <time dateTime={post.createdAt}>{completionDate(post.createdAt, clock)}</time>
-                </div>
-                <div className="mail-text">
-                  <MailContent nodes={post.content} onTarget={onTarget} />
-                </div>
-              </div>
-            </td>
-          </tr>
+          <li key={post.id} className="mail-post">
+            <div className="mail-post-heading">
+              <button className="text-button" onClick={() => onTarget('player', post.author.id)}>
+                {post.author.username}
+              </button>
+              <time dateTime={post.createdAt}>{completionDate(post.createdAt, clock)}</time>
+            </div>
+            <div className="mail-text">
+              <MailContent nodes={post.content} onTarget={onTarget} />
+            </div>
+          </li>
         ))}
-        <tr>
-          <td className="mail-center">
-            <button className="text-button" disabled={pending} onClick={() => setReplying(true)}>
-              Responder
-            </button>
-          </td>
-          <td className="mail-center">
-            <button className="text-button" disabled={pending} onClick={onDelete}>
-              Excluir
-            </button>
-          </td>
-        </tr>
-      </tbody>
-    </table>
+      </ul>
+    </div>
   );
 }
