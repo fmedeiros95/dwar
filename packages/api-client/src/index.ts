@@ -16,6 +16,8 @@ export type World = {
   productionSpeed: number;
   maxBuildQueue: number;
   rulesVersion: string;
+  /** Aldeias bárbaras criadas a cada jogador novo. */
+  barbarianVillagesPerPlayer: number;
 };
 export type WorldEntry = { world: World; villageId: number | null };
 export type Construction = {

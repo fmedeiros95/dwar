@@ -67,6 +67,27 @@ export async function updateWorldSpeed(
   });
 }
 
+export async function updateWorldBarbarians(
+  worldId: number,
+  barbarianVillagesPerPlayer: number,
+): Promise<WorldRow> {
+  if (
+    !Number.isInteger(barbarianVillagesPerPlayer) ||
+    barbarianVillagesPerPlayer < 0 ||
+    barbarianVillagesPerPlayer > 20
+  )
+    throw new GameError('Use de 0 a 20 aldeias bárbaras por jogador.');
+  return db.transaction(async (tx) => {
+    await lockWorld(tx, worldId);
+    const [updated] = await tx
+      .update(worlds)
+      .set({ barbarianVillagesPerPlayer })
+      .where(eq(worlds.id, worldId))
+      .returning();
+    return updated!;
+  });
+}
+
 export async function processWorldEvents(): Promise<number> {
   const available = await listWorlds();
   let processed = 0;

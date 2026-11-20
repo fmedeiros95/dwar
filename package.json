@@ -15,6 +15,7 @@
     "lint": "eslint apps packages scripts",
     "db:migrate": "pnpm --filter @dwar/database migrate",
     "db:barbarians": "node --env-file=.env scripts/populate-barbarians.mjs",
+    "db:world": "node --env-file=.env scripts/world-settings.mjs",
     "db:seed": "pnpm --filter @dwar/database seed",
     "db:up": "docker compose -f compose.modern.yml up -d",
     "start:api": "pnpm --filter @dwar/api start",

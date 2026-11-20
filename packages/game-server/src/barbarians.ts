@@ -1,18 +1,13 @@
-import { randomInt } from 'node:crypto';
 import { eq, sql } from 'drizzle-orm';
-import { db, villages, type Transaction } from '@dwar/database';
+import { db, villages, worlds, type Transaction } from '@dwar/database';
 import { initialBuildings, initialResources } from '@dwar/game-config';
-import { initialPoints, initialPopulation, startingCoordinates } from '@dwar/game-core';
+import { initialPoints, initialPopulation } from '@dwar/game-core';
 import { lockWorld } from './village-engine.js';
+import { nextVillagePosition } from './placement.js';
 
-// v0.15.1 sws/lib/functions.php::create_village: count_create_left=1;
-// abandoned villages use the same starting state as ordinary foundations.
+// Posição pela espiral do Speed Wars (fluxo próprio das bárbaras); mesmo estado inicial de uma fundação.
 export async function createBarbarian(tx: Transaction, worldId: number, now: Date) {
-  const occupied = await tx
-    .select({ x: villages.x, y: villages.y })
-    .from(villages)
-    .where(eq(villages.worldId, worldId));
-  const coordinates = startingCoordinates(occupied, (min, max) => randomInt(min, max + 1));
+  const coordinates = await nextVillagePosition(tx, worldId, 'barbarian');
   const [village] = await tx
     .insert(villages)
     .values({
@@ -51,11 +46,12 @@ export async function fillBarbarianFoundations(tx: Transaction, worldId: number,
     })
     .from(villages)
     .where(eq(villages.worldId, worldId));
+  const [world] = await tx.select().from(worlds).where(eq(worlds.id, worldId));
   return createBarbarianVillages(
     tx,
     worldId,
     now,
-    Math.max(0, counts!.foundations - counts!.barbarians),
+    Math.max(0, counts!.foundations * world!.barbarianVillagesPerPlayer - counts!.barbarians),
   );
 }
 

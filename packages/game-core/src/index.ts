@@ -13,7 +13,16 @@ import {
 
 export { buildingCodes, resourceCodes };
 export type { BuildingCode, BuildingLevels, Resources };
-export { startingCoordinates } from './starting-coordinates.js';
+export {
+  placeVillage,
+  initialPlacement,
+  quadrantOf,
+  quadrants,
+  worldCenter,
+  type Placement,
+  type PlacementStream,
+  type Quadrant,
+} from './placement.js';
 export { technologyCodes, type TechnologyCode } from '@dwar/game-config';
 
 export function buildingCost(code: BuildingCode, currentLevel: number): Resources {

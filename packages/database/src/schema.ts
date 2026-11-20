@@ -82,6 +82,8 @@ export const worlds = pgTable(
     buildSpeed: integer('build_speed').notNull(),
     productionSpeed: integer('production_speed').notNull(),
     maxBuildQueue: integer('max_build_queue').notNull(),
+    /** Aldeias bárbaras criadas a cada jogador novo. */
+    barbarianVillagesPerPlayer: integer('barbarian_villages_per_player').notNull().default(1),
   },
   (table) => [
     check(
@@ -695,4 +697,20 @@ export const battleReportRecipients = pgTable(
     foreignKey({ columns: [t.playerId, t.worldId], foreignColumns: [players.id, players.worldId] }),
     index('battle_report_recipients_player_idx').on(t.playerId, t.worldId),
   ],
+);
+
+/** Estado do posicionamento em espiral das aldeias, por mundo, fluxo e quadrante. */
+export const worldPlacement = pgTable(
+  'world_placement',
+  {
+    worldId: integer('world_id')
+      .notNull()
+      .references(() => worlds.id, { onDelete: 'cascade' }),
+    stream: text('stream').$type<'player' | 'barbarian'>().notNull(),
+    quadrant: text('quadrant').$type<'nw' | 'ne' | 'se' | 'sw'>().notNull(),
+    count: integer('count').notNull().default(0),
+    ring: integer('ring').notNull().default(1),
+    alpha: integer('alpha').notNull().default(0),
+  },
+  (table) => [primaryKey({ columns: [table.worldId, table.stream, table.quadrant] })],
 );

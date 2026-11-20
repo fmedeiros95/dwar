@@ -1,11 +1,11 @@
-import { randomInt } from 'node:crypto';
 import { and, asc, eq } from 'drizzle-orm';
 import { db, players, villages, activity } from '@dwar/database';
 import { initialBuildings, initialResources, combatRules } from '@dwar/game-config';
-import { initialPoints, initialPopulation, startingCoordinates } from '@dwar/game-core';
+import { initialPoints, initialPopulation } from '@dwar/game-core';
 import type { VillageSnapshot } from '@dwar/api-client';
 import { GameError } from './errors.js';
-import { createBarbarian } from './barbarians.js';
+import { createBarbarianVillages } from './barbarians.js';
+import { nextVillagePosition } from './placement.js';
 import { lockWorld, ownedVillage, settleVillage, snapshot } from './village-engine.js';
 
 export async function createVillage(
@@ -28,13 +28,7 @@ export async function createVillage(
       .orderBy(asc(villages.id))
       .limit(1);
     if (existing) return snapshot(tx, await settleVillage(tx, existing, world, now), world, now);
-    const occupied = await tx
-      .select({ x: villages.x, y: villages.y })
-      .from(villages)
-      .where(eq(villages.worldId, worldId));
-    const { x, y } = startingCoordinates(occupied, (minimum, maximum) =>
-      randomInt(minimum, maximum + 1),
-    );
+    const { x, y } = await nextVillagePosition(tx, worldId, 'player');
     const [village] = await tx
       .insert(villages)
       .values({
@@ -57,7 +51,7 @@ export async function createVillage(
       message: 'Sua aldeia foi fundada. Um novo domínio começa aqui.',
       occurredAt: now,
     });
-    await createBarbarian(tx, worldId, now);
+    await createBarbarianVillages(tx, worldId, now, world.barbarianVillagesPerPlayer);
     await tx
       .update(players)
       .set({

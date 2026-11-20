@@ -8,6 +8,7 @@ export {
   readWorldBySlug,
   enterWorld,
   updateWorldSpeed,
+  updateWorldBarbarians,
   processWorldEvents,
 } from './world.js';
 export { populateBarbarianVillages } from './barbarians.js';
