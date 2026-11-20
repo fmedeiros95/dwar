@@ -220,43 +220,48 @@ export function Overview({
     );
   const hoveredBuilding = snapshot.buildings.find((building) => building.code === hovered);
   return (
-    <div className="legacy-landscape">
-      <VillageScene
-        buildings={snapshot.buildings}
-        selected=""
-        onSelect={onSelect}
-        onHover={setHovered}
-        queue={snapshot.queue}
-        clock={clock}
-      />
-      <ConstructionCard
-        queue={snapshot.queue}
-        clock={clock}
-        maxQueue={snapshot.world.maxBuildQueue}
-      />
-      {hoveredBuilding ? <BuildingCard building={hoveredBuilding} /> : null}
-      <aside className="legacy-production" aria-label="Produção da aldeia">
-        {!collapsed ? (
-          <>
-            <button
-              className="classic-view-link"
-              disabled={preferencePending}
-              onClick={() => onPreference(false)}
-            >
-              » Visão clássica
-            </button>
-            <Production snapshot={snapshot} />
-            <Troops snapshot={snapshot} />
-          </>
-        ) : null}
-        <button
-          className="production-collapse"
-          onClick={toggle}
-          aria-label={collapsed ? 'Mostrar informações da aldeia' : 'Ocultar informações da aldeia'}
-        >
-          <img src={`/legacy/layout/grip_${collapsed ? 'down' : 'up'}.png`} alt="" />
-        </button>
-      </aside>
+    <div className="scene-stage">
+      <div className="scene-ambient" aria-hidden="true" />
+      <div className="legacy-landscape">
+        <VillageScene
+          buildings={snapshot.buildings}
+          selected=""
+          onSelect={onSelect}
+          onHover={setHovered}
+          queue={snapshot.queue}
+          clock={clock}
+        />
+        <ConstructionCard
+          queue={snapshot.queue}
+          clock={clock}
+          maxQueue={snapshot.world.maxBuildQueue}
+        />
+        {hoveredBuilding ? <BuildingCard building={hoveredBuilding} /> : null}
+        <aside className="legacy-production" aria-label="Produção da aldeia">
+          {!collapsed ? (
+            <>
+              <button
+                className="classic-view-link"
+                disabled={preferencePending}
+                onClick={() => onPreference(false)}
+              >
+                » Visão clássica
+              </button>
+              <Production snapshot={snapshot} />
+              <Troops snapshot={snapshot} />
+            </>
+          ) : null}
+          <button
+            className="production-collapse"
+            onClick={toggle}
+            aria-label={
+              collapsed ? 'Mostrar informações da aldeia' : 'Ocultar informações da aldeia'
+            }
+          >
+            <img src={`/legacy/layout/grip_${collapsed ? 'down' : 'up'}.png`} alt="" />
+          </button>
+        </aside>
+      </div>
     </div>
   );
 }

@@ -3,7 +3,23 @@ import { useEffect, useState, type CSSProperties, type FormEvent } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { api, ApiError, type Account, type World } from '@dwar/api-client';
+import {
+  Castle,
+  Clock,
+  Globe,
+  Hammer,
+  History,
+  LogOut,
+  Mail,
+  Map as MapIcon,
+  Pencil,
+  ScrollText,
+  Settings,
+  Trophy,
+  UserRound,
+} from 'lucide-react';
 import { LegacyFrame, ResourceIcon } from '../../components/legacy-frame.js';
+import { GameShell } from '../../components/game-shell.js';
 import { BuildingScreen } from './building-screen.js';
 import { Overview } from './overview/index.js';
 import { WorldMap } from './map/index.js';
@@ -163,86 +179,84 @@ export function VillagePage({
     preference.error ??
     logout.error;
   return (
-    <LegacyFrame
-      navigation={
+    <GameShell
+      primary={[
+        {
+          key: 'overview',
+          label: 'Aldeia',
+          icon: <Castle />,
+          active: section === 'overview',
+          onClick: () => setScreen('overview'),
+        },
+        {
+          key: 'buildings',
+          label: 'Construir',
+          icon: <Hammer />,
+          active: section === 'buildings',
+          onClick: () => setScreen('main'),
+        },
+        {
+          key: 'map',
+          label: 'Mapa',
+          icon: <MapIcon />,
+          active: section === 'map',
+          onClick: () => setScreen('map'),
+        },
+        {
+          key: 'reports',
+          label: 'Relatórios',
+          icon: <ScrollText />,
+          active: section === 'reports',
+          badge: reports.data?.unread,
+          onClick: () => setScreen('reports'),
+        },
+        {
+          key: 'mail',
+          label: 'Mensagens',
+          icon: <Mail />,
+          active: section === 'mail',
+          badge: mail.data?.unread,
+          onClick: () => setScreen('mail'),
+        },
+        {
+          key: 'activity',
+          label: 'Atividade',
+          icon: <History />,
+          active: section === 'activity',
+          onClick: () => setScreen('activity'),
+        },
+        {
+          key: 'ranking',
+          label: 'Ranking',
+          icon: <Trophy />,
+          active: section === 'ranking',
+          onClick: () => setScreen('ranking'),
+        },
+      ]}
+      secondary={[
+        {
+          key: 'settings',
+          label: 'Ajustes',
+          icon: <Settings />,
+          active: section === 'settings',
+          onClick: () => setScreen('settings'),
+        },
+        {
+          key: 'worlds',
+          label: 'Mundos',
+          icon: <Globe />,
+          onClick: () => navigate('/worlds'),
+        },
+        {
+          key: 'logout',
+          label: 'Sair',
+          icon: <LogOut />,
+          disabled: logout.isPending,
+          onClick: () => logout.mutate(),
+        },
+      ]}
+      topbar={
         <>
-          <button onClick={() => logout.mutate()} disabled={logout.isPending}>
-            Sair
-          </button>
-          <Link to="/worlds">Mundos</Link>
-          <button
-            aria-current={section === 'overview' ? 'page' : undefined}
-            onClick={() => setScreen('overview')}
-          >
-            Visão da aldeia
-          </button>
-          <button
-            aria-current={section === 'buildings' ? 'page' : undefined}
-            onClick={() => setScreen('main')}
-          >
-            Construções
-          </button>
-          <button
-            aria-current={section === 'map' ? 'page' : undefined}
-            onClick={() => setScreen('map')}
-          >
-            Mapa
-          </button>
-          <button
-            aria-current={section === 'reports' ? 'page' : undefined}
-            onClick={() => setScreen('reports')}
-          >
-            Relatórios{reports.data?.unread ? ` (${reports.data.unread})` : ''}
-          </button>
-          <button
-            aria-current={section === 'mail' ? 'page' : undefined}
-            onClick={() => setScreen('mail')}
-          >
-            Mensagens{mail.data?.unread ? ` (${mail.data.unread})` : ''}
-          </button>
-          <button
-            aria-current={section === 'activity' ? 'page' : undefined}
-            onClick={() => setScreen('activity')}
-          >
-            Atividade
-          </button>
-          <button
-            aria-current={section === 'ranking' ? 'page' : undefined}
-            onClick={() => setScreen('ranking')}
-          >
-            Ranking
-          </button>
-          <button
-            aria-current={section === 'settings' ? 'page' : undefined}
-            onClick={() => setScreen('settings')}
-          >
-            Configurações
-          </button>
-          <span>
-            {account.username} ({numbers.format(data.village.points)} pontos)
-          </span>
-        </>
-      }
-      footer={
-        <>
-          <span>
-            Horário do servidor: <time>{timeFormat.format(new Date(clock))}</time>
-          </span>
-          <span>{data.world.name}</span>
-        </>
-      }
-    >
-      <div className="legacy-statusbar">
-        <div className="legacy-overview-links">
-          <button className="text-button" onClick={() => setScreen('overview')}>
-            Visão geral
-          </button>
-          <span> | </span>
-          <button className="text-button" onClick={() => setScreen('main')}>
-            Construções
-          </button>
-        </div>
-        <div className="legacy-village-status">
           {editingName ? (
             <form className="rename-village" onSubmit={submitName}>
               <input
@@ -265,13 +279,13 @@ export function VillagePage({
               </button>
             </form>
           ) : (
-            <div className="village-name-controls">
+            <div className="shell-village">
               <button
                 className="text-button village-name"
                 title={data.village.name}
                 onClick={() => setScreen('overview')}
               >
-                {data.village.name}{' '}
+                {data.village.name}
                 <span>
                   ({data.village.x}|{data.village.y}) K{Math.floor(data.village.y / 100)}
                   {Math.floor(data.village.x / 100)}
@@ -280,13 +294,14 @@ export function VillagePage({
               <button
                 className="rename-village-icon"
                 aria-label="Renomear aldeia"
+                title="Renomear aldeia"
                 onClick={() => {
                   setName(data.village.name);
                   rename.reset();
                   setEditingName(true);
                 }}
               >
-                <img src="/legacy/icons/edit.png" alt="" />
+                <Pencil size={14} />
               </button>
             </div>
           )}
@@ -316,41 +331,63 @@ export function VillagePage({
                 </span>
               );
             })}
-            <span className="resource-amount">
+            <span className="resource-amount" title="Capacidade do armazém">
               <ResourceIcon code="storage" label="Armazém" />
               {numbers.format(data.village.capacity)}
             </span>
-            <span className="resource-separator">|</span>
-            {data.village.loyalty < 100 ? <span>Lealdade: {data.village.loyalty}% | </span> : null}
-            <span className="resource-amount">
+            {data.village.loyalty < 100 ? (
+              <span className="resource-amount" title="Lealdade da aldeia">
+                Lealdade {data.village.loyalty}%
+              </span>
+            ) : null}
+            <span className="resource-amount" title="População">
               <ResourceIcon code="peasants" label="População" />
               {data.village.populationUsed}/{data.village.populationCapacity}
             </span>
           </div>
-        </div>
-      </div>
-      <div className="legacy-quickbar">
-        <Link to="/worlds">{data.world.name}</Link>
-        <div>
-          {['main', 'noble', 'barracks', 'stable', 'workshop', 'market', 'place']
-            .flatMap((code) => {
-              const building = data.buildings.find((item) => item.code === code && item.level > 0);
-              return building
-                ? [
-                    <button className="text-button" key={code} onClick={() => setScreen(code)}>
-                      {building.name}
-                    </button>,
-                  ]
-                : [];
-            })
-            .map((button, index) => (
-              <span key={button.key}>
-                {index > 0 ? ' | ' : ''}
-                {button}
-              </span>
-            ))}
-        </div>
-      </div>
+          <div className="shell-meta">
+            <span className="shell-clock" title={`Horário do servidor · ${data.world.name}`}>
+              <Clock size={14} aria-hidden="true" />
+              <time>{timeFormat.format(new Date(clock))}</time>
+            </span>
+            <span className="shell-player" title={`${numbers.format(data.village.points)} pontos`}>
+              <UserRound size={14} aria-hidden="true" />
+              {account.username}
+              <small>{numbers.format(data.village.points)} pts</small>
+            </span>
+          </div>
+        </>
+      }
+      subbar={
+        <>
+          <Link to="/worlds" className="subbar-world">
+            {data.world.name}
+          </Link>
+          <div className="subbar-links">
+            {['main', 'noble', 'barracks', 'stable', 'workshop', 'market', 'place'].flatMap(
+              (code) => {
+                const building = data.buildings.find(
+                  (item) => item.code === code && item.level > 0,
+                );
+                return building
+                  ? [
+                      <button
+                        className="subbar-link"
+                        key={code}
+                        aria-current={screen === code ? 'page' : undefined}
+                        onClick={() => setScreen(code)}
+                      >
+                        {building.name}
+                        <small>{building.level}</small>
+                      </button>,
+                    ]
+                  : [];
+              },
+            )}
+          </div>
+        </>
+      }
+    >
       {error ? (
         <p className="error" role="alert">
           {error.message}
@@ -462,6 +499,6 @@ export function VillagePage({
           </div>
         </div>
       ) : null}
-    </LegacyFrame>
+    </GameShell>
   );
 }

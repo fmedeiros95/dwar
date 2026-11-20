@@ -875,6 +875,402 @@ input:focus {
   color: var(--warn);
 }
 
+/* ---- Estrutura do jogo: barra superior + trilho lateral + palco em tela cheia ---- */
+.shell {
+  --topbar-h: 68px;
+  --subbar-h: 46px;
+  --rail-w: 92px;
+  display: grid;
+  grid-template-columns: var(--rail-w) minmax(0, 1fr);
+  grid-template-rows: var(--topbar-h) minmax(0, 1fr);
+  min-height: 100dvh;
+}
+.shell-topbar {
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  gap: 22px;
+  height: var(--topbar-h);
+  padding: 0 22px 0 0;
+  background-color: rgb(13 9 6 / 0.9);
+  background-image: var(--noise);
+  background-blend-mode: soft-light;
+  border-bottom: 1px solid var(--line-strong);
+  box-shadow: 0 10px 28px rgb(0 0 0 / 0.5);
+  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(14px);
+}
+.shell-topbar::after {
+  content: '';
+  position: absolute;
+  inset: auto 0 -1px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--gold) 20%, var(--gold) 80%, transparent);
+  opacity: 0.55;
+  pointer-events: none;
+}
+.shell-logo {
+  display: flex;
+  flex: 0 0 var(--rail-w);
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+}
+.shell-logo img {
+  width: auto;
+  height: 50px;
+  mix-blend-mode: screen;
+}
+.shell-village {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+.shell-topbar .village-name {
+  max-width: 280px;
+  line-height: 1.15;
+}
+.shell-topbar .rename-village {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+.shell-topbar .legacy-resources {
+  margin-left: auto;
+  flex-wrap: wrap;
+  flex-shrink: 1;
+  justify-content: flex-end;
+}
+.shell-meta {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding-left: 18px;
+  border-left: 1px solid var(--line);
+  font-size: 12px;
+  color: var(--muted);
+  white-space: nowrap;
+}
+.shell-clock,
+.shell-player {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.shell-clock time {
+  font-variant-numeric: tabular-nums;
+  color: var(--text);
+  font-weight: 600;
+}
+.shell-player {
+  color: var(--text);
+  font-weight: 600;
+}
+.shell-player small {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--muted);
+}
+
+.shell-rail {
+  position: sticky;
+  top: var(--topbar-h);
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 16px;
+  height: calc(100dvh - var(--topbar-h));
+  padding: 14px 8px;
+  overflow-y: auto;
+  background-color: rgb(18 12 8 / 0.78);
+  background-image: var(--noise);
+  background-blend-mode: soft-light;
+  border-right: 1px solid var(--line);
+}
+.rail-group {
+  display: grid;
+  gap: 4px;
+}
+.rail-item {
+  display: grid;
+  justify-items: center;
+  gap: 5px;
+  padding: 10px 2px 8px;
+  font-family: var(--font-ui);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--muted);
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--radius);
+  box-shadow: none;
+}
+.rail-item:hover:not(:disabled) {
+  color: var(--gold-bright);
+  background: rgb(232 190 106 / 0.08);
+  filter: none;
+}
+.rail-item[aria-current='page'] {
+  color: var(--gold-bright);
+  background: linear-gradient(90deg, rgb(232 190 106 / 0.2), rgb(232 190 106 / 0.04));
+  border-color: var(--line);
+  box-shadow: inset 3px 0 0 var(--gold);
+}
+.rail-icon {
+  position: relative;
+  display: grid;
+  place-items: center;
+}
+.rail-icon svg {
+  width: 23px;
+  height: 23px;
+  stroke-width: 1.6;
+}
+.rail-badge {
+  position: absolute;
+  top: -7px;
+  right: -12px;
+  display: grid;
+  place-items: center;
+  min-width: 17px;
+  height: 17px;
+  padding: 0 4px;
+  font-size: 10px;
+  font-weight: 700;
+  color: #fff;
+  background: var(--danger);
+  border: 1px solid rgb(13 9 6 / 0.8);
+  border-radius: 999px;
+}
+
+.shell-main {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: calc(100dvh - var(--topbar-h));
+}
+.shell-subbar {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-height: var(--subbar-h);
+  padding: 8px 24px;
+  overflow-x: auto;
+  font-size: 12px;
+  background: var(--surface-sunken);
+  border-bottom: 1px solid var(--line-soft);
+}
+.subbar-world {
+  flex-shrink: 0;
+  color: var(--muted);
+}
+.subbar-links {
+  display: flex;
+  gap: 6px;
+  margin-left: auto;
+}
+.subbar-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 4px 11px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0;
+  text-transform: none;
+  white-space: nowrap;
+  color: var(--text);
+  background: transparent;
+  border: 1px solid var(--line-soft);
+  border-radius: 999px;
+  box-shadow: none;
+}
+.subbar-link small {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--gold);
+}
+.subbar-link:hover:not(:disabled) {
+  color: var(--gold-bright);
+  background: rgb(232 190 106 / 0.1);
+  border-color: var(--line);
+  filter: none;
+}
+.subbar-link[aria-current='page'] {
+  color: var(--gold-bright);
+  background: rgb(232 190 106 / 0.16);
+  border-color: var(--line-strong);
+}
+
+/* Telas de conteúdo ganham um painel centralizado, com largura confortável */
+.shell-main > .legacy-content {
+  position: relative;
+  width: min(1180px, calc(100% - 48px));
+  margin: 24px auto 40px;
+  padding: 28px 32px;
+  background-color: var(--surface);
+  background-image: var(--noise);
+  background-blend-mode: soft-light;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow);
+}
+.shell-main > .error {
+  width: min(1180px, calc(100% - 48px));
+  margin: 16px auto 0;
+}
+
+/* O mapa mantém o visual original, só passa a ficar centralizado no painel */
+.shell-main > .legacy-map-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.shell-main > .legacy-map-content > h1 {
+  align-self: flex-start;
+}
+
+/* Palco do cenário: a arte centralizada, com o próprio fundo desfocado ao redor */
+.scene-stage {
+  position: relative;
+  display: grid;
+  flex: 1;
+  place-items: center;
+  padding: 20px;
+  overflow: hidden;
+}
+.scene-ambient {
+  position: absolute;
+  inset: -60px;
+  background: url('/legacy/layout/back.jpg') center / cover no-repeat;
+  filter: blur(40px) saturate(1.4) brightness(0.62);
+  transform: scale(1.15);
+}
+.scene-stage::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(ellipse at center, transparent 45%, rgb(8 5 2 / 0.55) 100%);
+}
+/* Produção e tropas no canto inferior esquerdo, onde não há edifícios clicáveis */
+.shell .legacy-production {
+  top: auto;
+  right: auto;
+  bottom: 18px;
+  left: 18px;
+}
+.rename-village-icon {
+  opacity: 0.9;
+  color: var(--gold);
+}
+.shell .legacy-landscape {
+  z-index: 1;
+  width: min(100%, calc((100dvh - var(--topbar-h) - var(--subbar-h) - 40px) * 942 / 430));
+  margin: 0;
+  overflow: hidden;
+  background: #16200c;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-lg);
+  box-shadow:
+    0 34px 90px rgb(0 0 0 / 0.7),
+    0 0 0 7px rgb(13 9 6 / 0.55);
+}
+.shell .legacy-landscape::before {
+  content: '';
+  position: absolute;
+  inset: 7px;
+  z-index: 3;
+  pointer-events: none;
+  border: 1px solid rgb(232 190 106 / 0.28);
+  border-radius: calc(var(--radius-lg) - 7px);
+}
+
+@media (max-width: 1180px) {
+  .shell-meta {
+    display: none;
+  }
+}
+@media (max-width: 900px) {
+  .shell {
+    --rail-w: 0px;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto minmax(0, 1fr);
+    padding-bottom: 74px;
+  }
+  .shell-topbar {
+    flex-wrap: wrap;
+    gap: 8px 14px;
+    height: auto;
+    min-height: var(--topbar-h);
+    padding: 8px 14px;
+  }
+  .shell-logo {
+    display: none;
+  }
+  .shell-topbar .legacy-resources {
+    margin-left: 0;
+    justify-content: flex-start;
+  }
+  .shell-rail {
+    position: fixed;
+    inset: auto 0 0;
+    z-index: 40;
+    flex-direction: row;
+    justify-content: flex-start;
+    gap: 4px;
+    height: auto;
+    padding: 6px 8px;
+    overflow: auto hidden;
+    border-top: 1px solid var(--line-strong);
+    border-right: 0;
+  }
+  .rail-group {
+    display: flex;
+    gap: 2px;
+  }
+  .rail-group-end {
+    margin-left: auto;
+  }
+  .rail-item {
+    flex: 0 0 auto;
+    min-width: 62px;
+    padding: 6px 6px 5px;
+  }
+  .rail-item[aria-current='page'] {
+    box-shadow: inset 0 -3px 0 var(--gold);
+  }
+  .shell-main {
+    min-height: 0;
+  }
+  .shell-main > .legacy-content {
+    width: calc(100% - 20px);
+    margin: 10px auto 24px;
+    padding: 18px 14px;
+  }
+  .scene-stage {
+    padding: 0;
+  }
+  .scene-stage::after,
+  .shell .legacy-landscape::before {
+    display: none;
+  }
+  .shell .legacy-landscape {
+    width: 100%;
+    overflow: auto;
+    border-radius: 0;
+    border-inline: 0;
+    box-shadow: none;
+  }
+}
+
 @media (max-width: 980px) {
   .legacy-statusbar {
     grid-template-columns: 1fr;
