@@ -1,34 +1,51 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { ChevronLeft, ChevronRight, Shield, Swords } from 'lucide-react';
 import { api, type VillageSnapshot, type BattleReportView } from '@dwar/api-client';
 import { useGameSearchParams } from '../../../routing.js';
 import { ResourceIcon } from '../../../components/legacy-frame.js';
 import { numbers, completionDate } from '../shared/index.js';
 import { unitIconSrc } from '../../../components/unit-icon.js';
+
 const outcome = {
   attacker: 'Vitória do atacante',
   defender: 'Vitória do defensor',
   draw: 'Empate',
 };
+const lootCodes = [
+  { code: 'wood', label: 'Madeira' },
+  { code: 'stone', label: 'Argila' },
+  { code: 'iron', label: 'Ferro' },
+] as const;
+
 function Troops({
   data,
   label,
+  icon,
   counts,
   losses,
 }: {
   data: BattleReportView;
   label: string;
+  icon: 'attack' | 'defense';
   counts: Record<string, number> | null;
   losses: Record<string, number> | null;
 }) {
   return (
-    <>
-      <h2>{label}</h2>
+    <section className={`report-side ${icon}`} aria-label={label}>
+      <h2>
+        {icon === 'attack' ? (
+          <Swords size={16} aria-hidden="true" />
+        ) : (
+          <Shield size={16} aria-hidden="true" />
+        )}
+        {label}
+      </h2>
       {counts && losses ? (
         <div className="table-scroll">
           <table className="legacy-table rally-units">
             <thead>
               <tr>
-                <th>Unidades</th>
+                <th></th>
                 {data.unitTypes.map((u) => (
                   <th key={u.code}>
                     <img src={unitIconSrc(u.code)} alt={u.name} title={u.name} />
@@ -38,26 +55,31 @@ function Troops({
             </thead>
             <tbody>
               <tr>
-                <td>Quantidade:</td>
+                <td>Quantidade</td>
                 {data.unitTypes.map((u) => (
-                  <td key={u.code}>{numbers.format(counts[u.code] ?? 0)}</td>
+                  <td key={u.code} className="num">
+                    {numbers.format(counts[u.code] ?? 0)}
+                  </td>
                 ))}
               </tr>
-              <tr>
-                <td>Perdas:</td>
+              <tr className="loss-row">
+                <td>Perdas</td>
                 {data.unitTypes.map((u) => (
-                  <td key={u.code}>{numbers.format(losses[u.code] ?? 0)}</td>
+                  <td key={u.code} className="num">
+                    {numbers.format(losses[u.code] ?? 0)}
+                  </td>
                 ))}
               </tr>
             </tbody>
           </table>
         </div>
       ) : (
-        <p>Nenhuma informação disponível.</p>
+        <p className="muted">Nenhuma informação disponível.</p>
       )}
-    </>
+    </section>
   );
 }
+
 export function ReportsPanel({ snapshot, clock }: { snapshot: VillageSnapshot; clock: number }) {
   const [params, setParams] = useGameSearchParams(),
     client = useQueryClient();
@@ -82,224 +104,224 @@ export function ReportsPanel({ snapshot, clock }: { snapshot: VillageSnapshot; c
   }
   const data = report.data,
     error = report.error ?? list.error;
+  const buildingName = (code: string) => snapshot.buildings.find((b) => b.code === code)?.name ?? code;
   return (
-    <div className="legacy-content">
-      <h1>Relatórios</h1>
+    <div className="legacy-content page-card">
+      <header className="page-head">
+        <h1>
+          <Swords size={22} aria-hidden="true" /> Relatórios
+        </h1>
+        {id > 0 ? (
+          <button className="button" onClick={() => go()}>
+            <ChevronLeft size={15} aria-hidden="true" /> Todos os relatórios
+          </button>
+        ) : null}
+      </header>
       {error ? (
         <p className="error" role="alert">
           {error.message}
         </p>
       ) : null}
       {id > 0 ? (
-        <>
-          <p>
-            <button className="text-button" onClick={() => go()}>
-              » Todos os relatórios
-            </button>
-          </p>
-          {data ? (
-            <>
-              <h2>{data.title}</h2>
-              <p>
-                {completionDate(data.occurredAt, clock)} · {outcome[data.winner]}
-              </p>
-              <table className="legacy-table">
-                <tbody>
-                  <tr>
-                    <th>Atacante:</th>
-                    <td>
-                      {data.from.username} — {data.from.name} ({data.from.x}|{data.from.y})
-                    </td>
-                  </tr>
-                  <tr>
-                    <th>Defensor:</th>
-                    <td>
-                      {data.to.username} — {data.to.name} ({data.to.x}|{data.to.y})
-                    </td>
-                  </tr>
-                  {data.morale !== null ? (
-                    <tr>
-                      <td>Moral do atacante:</td>
-                      <td>{data.morale}%</td>
-                    </tr>
-                  ) : null}
-                  {data.luck !== null ? (
-                    <tr>
-                      <td>Sorte:</td>
-                      <td>{data.luck}%</td>
-                    </tr>
-                  ) : null}
-                </tbody>
-              </table>
-              {data.role === 'support' ? (
+        data ? (
+          <div className="report-detail">
+            <div className={`report-banner ${data.winner}`}>
+              <strong>{data.title}</strong>
+              <span>
+                {outcome[data.winner]} · {completionDate(data.occurredAt, clock)}
+              </span>
+            </div>
+            <dl className="report-parties">
+              <div>
+                <dt>Atacante</dt>
+                <dd>
+                  {data.from.username}
+                  <small>
+                    {data.from.name} ({data.from.x}|{data.from.y})
+                  </small>
+                </dd>
+              </div>
+              <div>
+                <dt>Defensor</dt>
+                <dd>
+                  {data.to.username}
+                  <small>
+                    {data.to.name} ({data.to.x}|{data.to.y})
+                  </small>
+                </dd>
+              </div>
+              {data.morale !== null ? (
+                <div>
+                  <dt>Moral do atacante</dt>
+                  <dd>{data.morale}%</dd>
+                </div>
+              ) : null}
+              {data.luck !== null ? (
+                <div>
+                  <dt>Sorte</dt>
+                  <dd>{data.luck}%</dd>
+                </div>
+              ) : null}
+            </dl>
+            {data.role === 'support' ? (
+              <Troops
+                data={data}
+                label="Suas tropas de apoio"
+                icon="defense"
+                counts={data.supportTroops}
+                losses={data.supportLosses}
+              />
+            ) : (
+              <>
                 <Troops
                   data={data}
-                  label="Suas tropas de apoio"
-                  counts={data.supportTroops}
-                  losses={data.supportLosses}
+                  label="Atacante"
+                  icon="attack"
+                  counts={data.attacker}
+                  losses={data.attackerLosses}
                 />
-              ) : (
-                <>
-                  <Troops
-                    data={data}
-                    label="Atacante"
-                    counts={data.attacker}
-                    losses={data.attackerLosses}
-                  />
-                  <Troops
-                    data={data}
-                    label="Defensor"
-                    counts={data.defender}
-                    losses={data.defenderLosses}
-                  />
-                </>
-              )}
-              {data.loot ? (
-                <table className="legacy-table">
-                  <tbody>
-                    <tr>
-                      <th>Saque:</th>
-                      <td>
-                        {(['wood', 'stone', 'iron'] as const).map((c) => (
-                          <span className="resource-amount" key={c}>
-                            <ResourceIcon
-                              code={c}
-                              label={c === 'wood' ? 'Madeira' : c === 'stone' ? 'Argila' : 'Ferro'}
-                            />
-                            {numbers.format(data.loot![c])}
-                          </span>
-                        ))}
-                      </td>
-                      <td>
-                        {numbers.format(Object.values(data.loot).reduce((a, b) => a + b, 0))}/
-                        {numbers.format(data.lootCapacity ?? 0)}
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              ) : null}
-              {data.wall && data.wall.before !== data.wall.after ? (
-                <p>
-                  Muralha: nível {data.wall.before} → {data.wall.after}.
-                </p>
-              ) : null}
-              {data.demolition ? (
-                <p>
-                  {snapshot.buildings.find((b) => b.code === data.demolition!.code)?.name}: nível{' '}
-                  {data.demolition.before} → {data.demolition.after}.
-                </p>
-              ) : null}
-              {data.loyalty ? (
-                <p>
-                  Lealdade: {data.loyalty.before} → {Math.max(0, data.loyalty.after)}.{' '}
-                  {data.loyalty.conquered
-                    ? 'A aldeia foi conquistada; lealdade reiniciada em 25. O saque permanece na aldeia conquistada.'
-                    : ''}
-                </p>
-              ) : null}
-              {data.intel?.resources ? (
-                <>
-                  <h2>Recursos espionados</h2>
-                  <table className="legacy-table">
-                    <tbody>
-                      <tr>
-                        {(['wood', 'stone', 'iron'] as const).map((c) => (
-                          <td key={c}>
-                            <ResourceIcon
-                              code={c}
-                              label={c === 'wood' ? 'Madeira' : c === 'stone' ? 'Argila' : 'Ferro'}
-                            />
-                            {numbers.format(data.intel!.resources![c])}
-                          </td>
-                        ))}
-                      </tr>
-                    </tbody>
-                  </table>
-                </>
-              ) : null}
-              {data.intel?.buildings ? (
-                <>
-                  <h2>Edifícios espionados</h2>
-                  <table className="legacy-table">
-                    <tbody>
-                      {Object.entries(data.intel.buildings).map(([code, level]) => (
-                        <tr key={code}>
-                          <td>{snapshot.buildings.find((b) => b.code === code)?.name ?? code}</td>
-                          <td>{level}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </>
-              ) : null}
-              {data.intel?.outsideTroops ? (
-                <>
-                  <h2>Tropas fora da aldeia</h2>
-                  <table className="legacy-table">
-                    <tbody>
-                      {data.unitTypes.map((u) => (
-                        <tr key={u.code}>
-                          <td>{u.name}</td>
-                          <td>{numbers.format(data.intel!.outsideTroops![u.code] ?? 0)}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </>
-              ) : null}
-            </>
-          ) : (
-            <p>Carregando relatório…</p>
-          )}
-        </>
+                <Troops
+                  data={data}
+                  label="Defensor"
+                  icon="defense"
+                  counts={data.defender}
+                  losses={data.defenderLosses}
+                />
+              </>
+            )}
+            {data.loot ? (
+              <section className="report-side" aria-label="Saque">
+                <h2>Saque</h2>
+                <ul className="bcard-cost">
+                  {lootCodes.map(({ code, label }) => (
+                    <li key={code}>
+                      <ResourceIcon code={code} label={label} />
+                      {numbers.format(data.loot![code])}
+                    </li>
+                  ))}
+                  <li className="bcard-time">
+                    {numbers.format(Object.values(data.loot).reduce((a, b) => a + b, 0))}/
+                    {numbers.format(data.lootCapacity ?? 0)}
+                  </li>
+                </ul>
+              </section>
+            ) : null}
+            {(data.wall && data.wall.before !== data.wall.after) ||
+            data.demolition ||
+            data.loyalty ? (
+              <ul className="report-effects">
+                {data.wall && data.wall.before !== data.wall.after ? (
+                  <li>
+                    Muralha: nível {data.wall.before} → {data.wall.after}
+                  </li>
+                ) : null}
+                {data.demolition ? (
+                  <li>
+                    {buildingName(data.demolition.code)}: nível {data.demolition.before} →{' '}
+                    {data.demolition.after}
+                  </li>
+                ) : null}
+                {data.loyalty ? (
+                  <li>
+                    Lealdade: {data.loyalty.before} → {Math.max(0, data.loyalty.after)}
+                    {data.loyalty.conquered
+                      ? '. A aldeia foi conquistada; lealdade reiniciada em 25. O saque permanece na aldeia conquistada.'
+                      : ''}
+                  </li>
+                ) : null}
+              </ul>
+            ) : null}
+            {data.intel?.resources ? (
+              <section className="report-side" aria-label="Recursos espionados">
+                <h2>Recursos espionados</h2>
+                <ul className="bcard-cost">
+                  {lootCodes.map(({ code, label }) => (
+                    <li key={code}>
+                      <ResourceIcon code={code} label={label} />
+                      {numbers.format(data.intel!.resources![code])}
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            ) : null}
+            {data.intel?.buildings ? (
+              <section className="report-side" aria-label="Edifícios espionados">
+                <h2>Edifícios espionados</h2>
+                <ul className="report-chips">
+                  {Object.entries(data.intel.buildings).map(([code, level]) => (
+                    <li key={code}>
+                      {buildingName(code)} <strong>{level}</strong>
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            ) : null}
+            {data.intel?.outsideTroops ? (
+              <section className="report-side" aria-label="Tropas fora da aldeia">
+                <h2>Tropas fora da aldeia</h2>
+                <ul className="report-chips">
+                  {data.unitTypes.map((u) => (
+                    <li key={u.code}>
+                      {u.name} <strong>{numbers.format(data.intel!.outsideTroops![u.code] ?? 0)}</strong>
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            ) : null}
+          </div>
+        ) : (
+          <p className="muted">Carregando relatório…</p>
+        )
       ) : list.data ? (
         <>
-          <table className="legacy-table">
-            <thead>
-              <tr>
-                <th>Assunto</th>
-                <th>Resultado</th>
-                <th>Data</th>
-              </tr>
-            </thead>
-            <tbody>
+          {list.data.reports.length ? (
+            <ul className="report-list">
               {list.data.reports.map((r) => (
-                <tr key={r.id}>
-                  <td>
-                    <button className="text-button" onClick={() => go({ id: r.id })}>
-                      {r.read ? '' : '● '}
-                      {r.title}
-                    </button>
-                  </td>
-                  <td>{outcome[r.winner]}</td>
-                  <td>{completionDate(r.occurredAt, clock)}</td>
-                </tr>
+                <li key={r.id}>
+                  <button
+                    className={`report-row ${r.winner}${r.read ? '' : ' unread'}`}
+                    onClick={() => go({ id: r.id })}
+                  >
+                    <span className="report-dot" aria-label={r.read ? 'Lido' : 'Não lido'} />
+                    <span className="report-title">{r.title}</span>
+                    <span className="report-badge">{outcome[r.winner]}</span>
+                    <time dateTime={r.occurredAt}>{completionDate(r.occurredAt, clock)}</time>
+                  </button>
+                </li>
               ))}
-              {!list.data.reports.length ? (
-                <tr>
-                  <td colSpan={3}>Nenhum relatório.</td>
-                </tr>
-              ) : null}
-            </tbody>
-          </table>
-          <p>
-            <button
-              disabled={list.data.page <= 1}
-              onClick={() => go({ page: list.data!.page - 1 })}
-            >
-              Anterior
-            </button>{' '}
-            {list.data.page}/{list.data.pageCount}{' '}
-            <button
-              disabled={list.data.page >= list.data.pageCount}
-              onClick={() => go({ page: list.data!.page + 1 })}
-            >
-              Próxima
-            </button>
-          </p>
+            </ul>
+          ) : (
+            <p className="empty-state">
+              <Swords size={28} aria-hidden="true" />
+              Nenhum relatório ainda. Batalhas e espionagens aparecem aqui.
+            </p>
+          )}
+          {list.data.pageCount > 1 ? (
+            <nav className="pager" aria-label="Páginas de relatórios">
+              <button
+                className="button"
+                disabled={list.data.page <= 1}
+                onClick={() => go({ page: list.data!.page - 1 })}
+                aria-label="Página anterior"
+              >
+                <ChevronLeft size={16} aria-hidden="true" />
+              </button>
+              <span>
+                {list.data.page} / {list.data.pageCount}
+              </span>
+              <button
+                className="button"
+                disabled={list.data.page >= list.data.pageCount}
+                onClick={() => go({ page: list.data!.page + 1 })}
+                aria-label="Próxima página"
+              >
+                <ChevronRight size={16} aria-hidden="true" />
+              </button>
+            </nav>
+          ) : null}
         </>
       ) : (
-        <p>Carregando relatórios…</p>
+        <p className="muted">Carregando relatórios…</p>
       )}
     </div>
   );
