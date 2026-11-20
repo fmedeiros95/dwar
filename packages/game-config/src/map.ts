@@ -4,6 +4,10 @@ export type MapSettings = {
   minimapSize: number;
   contextMenu: boolean;
   popup: boolean;
+  /** Popup: mostra as tropas presentes na aldeia (só nas suas). */
+  popupUnits: boolean;
+  /** Popup: mostra o tempo de viagem de cada unidade até a aldeia. */
+  popupTimes: boolean;
 };
 export const defaultMapSettings: MapSettings = {
   width: 13,
@@ -11,4 +15,6 @@ export const defaultMapSettings: MapSettings = {
   minimapSize: 50,
   contextMenu: true,
   popup: true,
+  popupUnits: true,
+  popupTimes: true,
 };

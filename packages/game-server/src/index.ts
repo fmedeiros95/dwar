@@ -17,7 +17,7 @@ export { enqueueResearch } from './research.js';
 export { enqueueRecruitment, cancelRecruitment } from './recruitment.js';
 export { academyAction } from './academy.js';
 export { readMarket, previewMarketTrade, mutateMarket } from './market.js';
-export { mutateMap, readMap, readMapVillage, readMapPlayer } from './map.js';
+export { mutateMap, readMap, readMapVillage, readMapPlayer, readMapPopup } from './map.js';
 export { readRally, previewRallySupport, mutateRally } from './rally.js';
 export { readMailbox, readMailThread, previewMailMessage, mutateMail } from './mail.js';
 export { readReports, readReport } from './reports.js';

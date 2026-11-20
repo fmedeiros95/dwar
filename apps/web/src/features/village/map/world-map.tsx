@@ -531,7 +531,17 @@ function MapCanvas({ snapshot, options }: { snapshot: VillageSnapshot; options: 
           {resizeAction.error.message}
         </p>
       ) : null}
-      {hover && popup ? <VillagePopup village={hover.village} x={hover.x} y={hover.y} /> : null}
+      {hover && popup ? (
+        <VillagePopup
+          village={hover.village}
+          x={hover.x}
+          y={hover.y}
+          worldId={snapshot.world.id}
+          currentVillageId={snapshot.village.id}
+          showUnits={settings.popupUnits}
+          showTimes={settings.popupTimes}
+        />
+      ) : null}
     </div>
   );
 }

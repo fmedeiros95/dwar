@@ -19,7 +19,8 @@ export async function mapOptions(tx: Transaction, playerId: number) {
     .innerJoin(players, eq(players.id, mapMarks.targetPlayerId))
     .innerJoin(accounts, eq(accounts.id, players.accountId))
     .where(eq(mapMarks.playerId, playerId));
-  return { settings: saved?.settings ?? { ...defaultMapSettings }, marks };
+  // Preferências salvas antes das opções novas não têm todos os campos: completa com o padrão.
+  return { settings: { ...defaultMapSettings, ...saved?.settings }, marks };
 }
 export async function performMapAction(
   tx: Transaction,
@@ -28,7 +29,8 @@ export async function performMapAction(
   action: MapAction,
 ) {
   if (action.type === 'settings') {
-    const { width, height, minimapSize, contextMenu, popup } = action.settings;
+    const { width, height, minimapSize, contextMenu, popup, popupUnits, popupTimes } =
+      action.settings;
     if (
       ![width, height].every((n) => Number.isInteger(n) && n >= 4 && n <= 30) ||
       !Number.isInteger(minimapSize) ||
@@ -36,12 +38,14 @@ export async function performMapAction(
       minimapSize > 120 ||
       minimapSize % 5 !== 0 ||
       typeof contextMenu !== 'boolean' ||
-      typeof popup !== 'boolean'
+      typeof popup !== 'boolean' ||
+      typeof popupUnits !== 'boolean' ||
+      typeof popupTimes !== 'boolean'
     )
       throw new GameError('Opções de mapa inválidas.');
     if (minimapSize * 5 > Math.min(width, height) * 60)
       throw new GameError('Reduza o minimapa para caber no tamanho escolhido para o mapa.');
-    const settings = { width, height, minimapSize, contextMenu, popup };
+    const settings = { width, height, minimapSize, contextMenu, popup, popupUnits, popupTimes };
     await tx
       .insert(mapPreferences)
       .values({ playerId, settings })

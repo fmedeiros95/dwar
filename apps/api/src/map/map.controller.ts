@@ -1,7 +1,7 @@
 import { Body, Controller, Get, Param, Post, Query, UseGuards } from '@nestjs/common';
 import { ApiCookieAuth, ApiTags } from '@nestjs/swagger';
 import { z } from 'zod';
-import { mutateMap, readMap, readMapPlayer, readMapVillage } from '@dwar/game-server';
+import { mutateMap, readMap, readMapPlayer, readMapPopup, readMapVillage } from '@dwar/game-server';
 import type { Account } from '@dwar/api-client';
 import { CurrentAccount } from '../common/current-account.decorator.js';
 import { cookieName } from '../common/cookies.js';
@@ -30,6 +30,8 @@ export class MapController {
             minimapSize: z.number().int().min(20).max(120).multipleOf(5),
             contextMenu: z.boolean(),
             popup: z.boolean(),
+            popupUnits: z.boolean(),
+            popupTimes: z.boolean(),
           }),
         }),
         z.object({
@@ -70,6 +72,16 @@ export class MapController {
     @Param('targetId') targetId: string,
   ) {
     return readMapVillage(account.id, id.parse(worldId), id.parse(villageId), id.parse(targetId));
+  }
+
+  @Get('villages/:targetId/popup')
+  async mapPopup(
+    @CurrentAccount() account: Account,
+    @Param('worldId') worldId: string,
+    @Param('villageId') villageId: string,
+    @Param('targetId') targetId: string,
+  ) {
+    return readMapPopup(account.id, id.parse(worldId), id.parse(villageId), id.parse(targetId));
   }
 
   @Get('players/:playerId')

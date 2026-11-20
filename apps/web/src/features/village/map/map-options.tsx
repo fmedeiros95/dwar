@@ -27,6 +27,8 @@ export function MapOptions({ snapshot, map }: { snapshot: VillageSnapshot; map: 
               minimapSize: Number(form.get('minimapSize')),
               contextMenu: form.has('contextMenu'),
               popup: form.has('popup'),
+              popupUnits: form.has('popupUnits'),
+              popupTimes: form.has('popupTimes'),
             },
           });
         }}
@@ -55,6 +57,22 @@ export function MapOptions({ snapshot, map }: { snapshot: VillageSnapshot; map: 
                 <label>
                   <input name="popup" type="checkbox" defaultChecked={map.settings.popup} /> Mostrar
                   popup
+                </label>
+                <label>
+                  <input
+                    name="popupUnits"
+                    type="checkbox"
+                    defaultChecked={map.settings.popupUnits}
+                  />{' '}
+                  Mostrar as tropas nas suas aldeias
+                </label>
+                <label>
+                  <input
+                    name="popupTimes"
+                    type="checkbox"
+                    defaultChecked={map.settings.popupTimes}
+                  />{' '}
+                  Mostrar o tempo de viagem das unidades
                 </label>
               </td>
             </tr>

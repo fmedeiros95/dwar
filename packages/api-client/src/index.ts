@@ -233,12 +233,40 @@ export type MapSettings = {
   minimapSize: number;
   contextMenu: boolean;
   popup: boolean;
+  popupUnits: boolean;
+  popupTimes: boolean;
 };
 export type MapMark = { playerId: number; username: string; color: string };
 export type MapAction =
   | { type: 'settings'; settings: MapSettings }
   | { type: 'mark'; username: string; color: string }
   | { type: 'unmark'; playerId: number };
+/** Detalhes do popup de uma aldeia do mapa (como no popup do Speed Wars). */
+export type VillagePopupInfo = {
+  id: number;
+  continent: number;
+  /** Distância em campos até a aldeia atual; 0 se for a própria. */
+  distance: number;
+  abandoned: boolean;
+  own: boolean;
+  current: boolean;
+  /** Fim da proteção de iniciante do dono, se ainda valer. */
+  protectedUntil: string | null;
+  /** Moral que o jogador teria atacando esta aldeia; null se for sua. */
+  morale: number | null;
+  /** Atacar este alvo esbarra na proporção máxima de pontos. */
+  pointRatioBlocked: boolean;
+  units: {
+    code: string;
+    name: string;
+    /** Tropas da própria aldeia presentes nela; null quando a aldeia não é sua. */
+    home: number | null;
+    /** Tropas de apoio de outras aldeias presentes nela; null quando não é sua. */
+    foreign: number | null;
+    /** Tempo de viagem de uma unidade a partir da aldeia atual, em segundos. */
+    seconds: number | null;
+  }[];
+};
 export type MapSnapshot = {
   center: { x: number; y: number };
   villages: PublicVillage[];
@@ -474,6 +502,8 @@ export const api = {
     request<VillageSnapshot>(`/worlds/${worldId}/village${villageId ? `?id=${villageId}` : ''}`),
   publicVillage: (worldId: number, villageId: number, targetId: number) =>
     request<PublicVillage>(`/worlds/${worldId}/villages/${villageId}/map/villages/${targetId}`),
+  villagePopup: (worldId: number, villageId: number, targetId: number) =>
+    request<VillagePopupInfo>(`/worlds/${worldId}/villages/${villageId}/map/villages/${targetId}/popup`),
   publicPlayer: (worldId: number, villageId: number, playerId: number) =>
     request<PublicPlayer>(`/worlds/${worldId}/villages/${villageId}/map/players/${playerId}`),
   build: (worldId: number, villageId: number, buildingCode: string, requestId: string) =>

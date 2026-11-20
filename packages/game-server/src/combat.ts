@@ -47,15 +47,14 @@ export type SettleVillage = (
   world: World,
   now: Date,
 ) => Promise<Village>;
-export async function attackConditions(tx: Transaction, from: Village, to: Village, now: Date) {
-  if (from.playerId === null || from.playerId === to.playerId)
-    throw new GameError('Não é possível atacar suas próprias aldeias.');
-  if (to.playerId === null) return { morale: 100 };
+/**
+ * Situação de um alvo para quem ataca de `from`: moral, proteção de iniciante e a proporção de
+ * pontos. Não lança erro, serve tanto à validação do ataque quanto ao popup do mapa.
+ */
+export async function assessTarget(tx: Transaction, from: Village, to: Village, now: Date) {
+  if (to.playerId === null)
+    return { morale: 100, protectedUntil: null as Date | null, pointRatioBlocked: false };
   const [defender] = await tx.select().from(players).where(eq(players.id, to.playerId));
-  if (defender!.protectionUntil > now)
-    throw new GameError(
-      `Este jogador está sob proteção de iniciantes até ${defender!.protectionUntil.toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' })}.`,
-    );
   const totals = await tx
     .select({ playerId: villages.playerId, points: sql<number>`sum(${villages.points})::integer` })
     .from(villages)
@@ -63,11 +62,25 @@ export async function attackConditions(tx: Transaction, from: Village, to: Villa
     .groupBy(villages.playerId);
   const att = totals.find((row) => row.playerId === from.playerId)?.points ?? 0,
     def = totals.find((row) => row.playerId === to.playerId)?.points ?? 0;
-  if (att / combatRules.maxPointRatio > def)
+  return {
+    morale: morale(att, def),
+    protectedUntil: defender!.protectionUntil > now ? defender!.protectionUntil : null,
+    pointRatioBlocked: att / combatRules.maxPointRatio > def,
+  };
+}
+export async function attackConditions(tx: Transaction, from: Village, to: Village, now: Date) {
+  if (from.playerId === null || from.playerId === to.playerId)
+    throw new GameError('Não é possível atacar suas próprias aldeias.');
+  const target = await assessTarget(tx, from, to, now);
+  if (target.protectedUntil)
+    throw new GameError(
+      `Este jogador está sob proteção de iniciantes até ${target.protectedUntil.toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' })}.`,
+    );
+  if (target.pointRatioBlocked)
     throw new GameError(
       `A proporção máxima entre atacante e defensor é ${combatRules.maxPointRatio}:1.`,
     );
-  return { morale: morale(att, def) };
+  return { morale: target.morale };
 }
 export function checkedTarget(troops: Troops, code?: string) {
   if (troops.catapult > 0 && !catapultTargets.includes(code as BuildingCode))
