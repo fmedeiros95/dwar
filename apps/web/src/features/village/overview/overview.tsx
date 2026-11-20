@@ -2,6 +2,7 @@ import { useState, type CSSProperties } from 'react';
 import type { BuildingView, Construction, VillageSnapshot } from '@dwar/api-client';
 import { ResourceIcon } from '../../../components/legacy-frame.js';
 import { VillageScene } from './village-scene.js';
+import { sceneThemes, type SceneTheme } from './scene-model.js';
 import { duration, numbers, resources } from '../shared/index.js';
 
 function ConstructionCard({
@@ -158,6 +159,14 @@ export function Overview({
   clock: number;
 }) {
   const [hovered, setHovered] = useState<string | null>(null);
+  const [theme, setTheme] = useState<SceneTheme>(() => {
+    const saved = localStorage.getItem('dwar:scene-theme');
+    return sceneThemes.some((item) => item.code === saved) ? (saved as SceneTheme) : 'summer';
+  });
+  function changeTheme(value: SceneTheme) {
+    setTheme(value);
+    localStorage.setItem('dwar:scene-theme', value);
+  }
   const [collapsed, setCollapsed] = useState(
     () => localStorage.getItem('dwar:overview-panel-collapsed') === '1',
   );
@@ -220,48 +229,47 @@ export function Overview({
     );
   const hoveredBuilding = snapshot.buildings.find((building) => building.code === hovered);
   return (
-    <div className="scene-stage">
-      <div className="scene-ambient" aria-hidden="true" />
-      <div className="legacy-landscape">
-        <VillageScene
-          buildings={snapshot.buildings}
-          selected=""
-          onSelect={onSelect}
-          onHover={setHovered}
-          queue={snapshot.queue}
-          clock={clock}
-        />
-        <ConstructionCard
-          queue={snapshot.queue}
-          clock={clock}
-          maxQueue={snapshot.world.maxBuildQueue}
-        />
-        {hoveredBuilding ? <BuildingCard building={hoveredBuilding} /> : null}
-        <aside className="legacy-production" aria-label="Produção da aldeia">
-          {!collapsed ? (
-            <>
-              <button
-                className="classic-view-link"
-                disabled={preferencePending}
-                onClick={() => onPreference(false)}
-              >
-                » Visão clássica
-              </button>
-              <Production snapshot={snapshot} />
-              <Troops snapshot={snapshot} />
-            </>
-          ) : null}
-          <button
-            className="production-collapse"
-            onClick={toggle}
-            aria-label={
-              collapsed ? 'Mostrar informações da aldeia' : 'Ocultar informações da aldeia'
-            }
-          >
-            <img src={`/legacy/layout/grip_${collapsed ? 'down' : 'up'}.png`} alt="" />
-          </button>
-        </aside>
-      </div>
-    </div>
+    <VillageScene
+      buildings={snapshot.buildings}
+      onSelect={onSelect}
+      onHover={setHovered}
+      queue={snapshot.queue}
+      clock={clock}
+      theme={theme}
+      onThemeChange={changeTheme}
+    >
+      <ConstructionCard
+        queue={snapshot.queue}
+        clock={clock}
+        maxQueue={snapshot.world.maxBuildQueue}
+      />
+      {hoveredBuilding ? <BuildingCard building={hoveredBuilding} /> : null}
+      <aside
+        className="legacy-production"
+        aria-label="Produção da aldeia"
+        onPointerDown={(event) => event.stopPropagation()}
+      >
+        {!collapsed ? (
+          <>
+            <button
+              className="classic-view-link"
+              disabled={preferencePending}
+              onClick={() => onPreference(false)}
+            >
+              » Visão clássica
+            </button>
+            <Production snapshot={snapshot} />
+            <Troops snapshot={snapshot} />
+          </>
+        ) : null}
+        <button
+          className="production-collapse"
+          onClick={toggle}
+          aria-label={collapsed ? 'Mostrar informações da aldeia' : 'Ocultar informações da aldeia'}
+        >
+          <img src={`/legacy/layout/grip_${collapsed ? 'down' : 'up'}.png`} alt="" />
+        </button>
+      </aside>
+    </VillageScene>
   );
 }

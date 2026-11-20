@@ -1900,60 +1900,108 @@ input:focus {
   align-self: flex-start;
 }
 
-/* Palco do cenário: a arte centralizada, com o próprio fundo desfocado ao redor */
-.scene-stage {
+/* Cenário da aldeia: viewport em tela cheia, arrastável, com zoom */
+.scene-viewport {
   position: relative;
-  display: grid;
   flex: 1;
-  place-items: center;
-  padding: 20px;
+  min-height: calc(100dvh - var(--topbar-h) - var(--subbar-h));
   overflow: hidden;
+  background: #1a2a12;
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+  outline: none;
 }
-.scene-ambient {
-  position: absolute;
-  inset: -60px;
-  background: url('/legacy/layout/back.jpg') center / cover no-repeat;
-  filter: blur(40px) saturate(1.4) brightness(0.62);
-  transform: scale(1.15);
+.scene-viewport.dragging {
+  cursor: grabbing;
 }
-.scene-stage::after {
+.scene-viewport:focus-visible {
+  box-shadow: inset 0 0 0 2px var(--gold-bright);
+}
+.scene-viewport::after {
   content: '';
   position: absolute;
   inset: 0;
+  z-index: 1;
   pointer-events: none;
-  background: radial-gradient(ellipse at center, transparent 45%, rgb(8 5 2 / 0.55) 100%);
+  background:
+    radial-gradient(ellipse at center, transparent 55%, rgb(8 5 2 / 0.5) 100%),
+    linear-gradient(180deg, rgb(13 9 6 / 0.35), transparent 14%);
 }
-/* Produção e tropas no canto inferior esquerdo, onde não há edifícios clicáveis */
+.scene-viewport .village-scene {
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: block;
+  width: 1600px;
+  height: 1000px;
+  max-width: none;
+  min-width: 0;
+  aspect-ratio: auto;
+  transform-origin: 0 0;
+  will-change: transform;
+}
+.scene-viewport .hud-card,
+.scene-viewport .legacy-production,
+.scene-viewport .scene-tools {
+  z-index: 2;
+}
+/* Produção e tropas no canto inferior esquerdo; controles no superior direito */
 .shell .legacy-production {
   top: auto;
   right: auto;
   bottom: 18px;
   left: 18px;
 }
-.rename-village-icon {
-  opacity: 0.9;
-  color: var(--gold);
+.scene-building {
+  cursor: pointer;
 }
-.shell .legacy-landscape {
-  z-index: 1;
-  width: min(100%, calc((100dvh - var(--topbar-h) - var(--subbar-h) - 40px) * 942 / 430));
-  margin: 0;
-  overflow: hidden;
-  background: #16200c;
-  border: 1px solid var(--line-strong);
-  border-radius: var(--radius-lg);
-  box-shadow:
-    0 34px 90px rgb(0 0 0 / 0.7),
-    0 0 0 7px rgb(13 9 6 / 0.55);
-}
-.shell .legacy-landscape::before {
-  content: '';
+.scene-tools {
   position: absolute;
-  inset: 7px;
-  z-index: 3;
-  pointer-events: none;
-  border: 1px solid rgb(232 190 106 / 0.28);
-  border-radius: calc(var(--radius-lg) - 7px);
+  top: 16px;
+  right: 16px;
+  display: grid;
+  gap: 10px;
+  cursor: default;
+}
+.scene-tool-group {
+  display: grid;
+  overflow: hidden;
+  background: rgb(16 11 7 / 0.78);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius);
+  box-shadow: 0 10px 26px rgb(0 0 0 / 0.5);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+}
+.scene-tool-group button {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  color: var(--text);
+  background: transparent;
+  border: 0;
+  border-bottom: 1px solid var(--line-soft);
+  border-radius: 0;
+  box-shadow: none;
+}
+.scene-tool-group button:last-child {
+  border-bottom: 0;
+}
+.scene-tool-group button:hover:not(:disabled) {
+  color: var(--gold-bright);
+  background: rgb(232 190 106 / 0.12);
+  filter: none;
+}
+.scene-tool-group button[aria-pressed='true'] {
+  color: var(--gold-bright);
+  background: rgb(232 190 106 / 0.2);
+  box-shadow: inset 3px 0 0 var(--gold);
+}
+.scene-tool-group button:disabled {
+  opacity: 0.35;
 }
 
 @media (max-width: 1180px) {
@@ -2018,19 +2066,12 @@ input:focus {
     margin: 10px auto 24px;
     padding: 18px 14px;
   }
-  .scene-stage {
-    padding: 0;
+  .scene-viewport {
+    min-height: 64dvh;
   }
-  .scene-stage::after,
-  .shell .legacy-landscape::before {
+  .scene-viewport .hud-card,
+  .scene-viewport .legacy-production {
     display: none;
-  }
-  .shell .legacy-landscape {
-    width: 100%;
-    overflow: auto;
-    border-radius: 0;
-    border-inline: 0;
-    box-shadow: none;
   }
 }
 
