@@ -1,5 +1,5 @@
 import { worldEntryPath, useGameSearchParams as useSearchParams } from '../../routing.js';
-import { useEffect, useState, type FormEvent } from 'react';
+import { useEffect, useState, type CSSProperties, type FormEvent } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { api, ApiError, type Account, type World } from '@dwar/api-client';
@@ -170,18 +170,54 @@ export function VillagePage({
             Sair
           </button>
           <Link to="/worlds">Mundos</Link>
-          <button onClick={() => setScreen('overview')}>Visão da aldeia</button>
-          <button onClick={() => setScreen('main')}>Construções</button>
-          <button onClick={() => setScreen('map')}>Mapa</button>
-          <button onClick={() => setScreen('reports')}>
+          <button
+            aria-current={section === 'overview' ? 'page' : undefined}
+            onClick={() => setScreen('overview')}
+          >
+            Visão da aldeia
+          </button>
+          <button
+            aria-current={section === 'buildings' ? 'page' : undefined}
+            onClick={() => setScreen('main')}
+          >
+            Construções
+          </button>
+          <button
+            aria-current={section === 'map' ? 'page' : undefined}
+            onClick={() => setScreen('map')}
+          >
+            Mapa
+          </button>
+          <button
+            aria-current={section === 'reports' ? 'page' : undefined}
+            onClick={() => setScreen('reports')}
+          >
             Relatórios{reports.data?.unread ? ` (${reports.data.unread})` : ''}
           </button>
-          <button onClick={() => setScreen('mail')}>
+          <button
+            aria-current={section === 'mail' ? 'page' : undefined}
+            onClick={() => setScreen('mail')}
+          >
             Mensagens{mail.data?.unread ? ` (${mail.data.unread})` : ''}
           </button>
-          <button onClick={() => setScreen('activity')}>Atividade</button>
-          <button onClick={() => setScreen('ranking')}>Ranking</button>
-          <button onClick={() => setScreen('settings')}>Configurações</button>
+          <button
+            aria-current={section === 'activity' ? 'page' : undefined}
+            onClick={() => setScreen('activity')}
+          >
+            Atividade
+          </button>
+          <button
+            aria-current={section === 'ranking' ? 'page' : undefined}
+            onClick={() => setScreen('ranking')}
+          >
+            Ranking
+          </button>
+          <button
+            aria-current={section === 'settings' ? 'page' : undefined}
+            onClick={() => setScreen('settings')}
+          >
+            Configurações
+          </button>
           <span>
             {account.username} ({numbers.format(data.village.points)} pontos)
           </span>
@@ -266,6 +302,11 @@ export function VillagePage({
                 <span
                   className="resource-amount"
                   key={code}
+                  style={
+                    {
+                      '--fill': Math.min(1, amount / Math.max(1, data.village.capacity)),
+                    } as CSSProperties
+                  }
                   title={`${resourceName}: ${numbers.format(data.village.productionPerHour[code])} por hora`}
                 >
                   <ResourceIcon code={code} label={resourceName} />

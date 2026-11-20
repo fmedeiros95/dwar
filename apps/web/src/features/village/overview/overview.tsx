@@ -1,7 +1,89 @@
-import { useState } from 'react';
-import type { VillageSnapshot } from '@dwar/api-client';
+import { useState, type CSSProperties } from 'react';
+import type { BuildingView, Construction, VillageSnapshot } from '@dwar/api-client';
+import { ResourceIcon } from '../../../components/legacy-frame.js';
 import { VillageScene } from './village-scene.js';
-import { numbers, resources } from '../shared/index.js';
+import { duration, numbers, resources } from '../shared/index.js';
+
+function ConstructionCard({
+  queue,
+  clock,
+  maxQueue,
+}: {
+  queue: Construction[];
+  clock: number;
+  maxQueue: number;
+}) {
+  return (
+    <section className="hud-card hud-construction" aria-label="Obras em andamento">
+      <h2>
+        Obras
+        <small>
+          {queue.length}/{maxQueue}
+        </small>
+      </h2>
+      {queue.length === 0 ? (
+        <p className="hud-empty">Nenhuma obra em andamento. Passe o mouse sobre um edifício.</p>
+      ) : (
+        <ul>
+          {queue.map((item) => {
+            const start = new Date(item.startsAt).getTime();
+            const end = new Date(item.endsAt).getTime();
+            const progress = Math.min(1, Math.max(0, (clock - start) / Math.max(1, end - start)));
+            return (
+              <li key={item.id} style={{ '--progress': progress } as CSSProperties}>
+                <span className="hud-row">
+                  <strong>{item.name}</strong>
+                  <em>nível {item.targetLevel}</em>
+                </span>
+                <span className="hud-bar" aria-hidden="true" />
+                <time>{duration((end - clock) / 1000)}</time>
+              </li>
+            );
+          })}
+        </ul>
+      )}
+    </section>
+  );
+}
+
+function BuildingCard({ building }: { building: BuildingView }) {
+  const next = building.queuedLevel > building.level ? building.queuedLevel : building.level;
+  const maxed = next >= building.maxLevel;
+  return (
+    <aside className="hud-card hud-building" aria-live="polite">
+      <header>
+        <h2>{building.name}</h2>
+        <span className="hud-level">
+          {building.level > 0 ? `Nível ${building.level}` : 'Não construído'}
+        </span>
+      </header>
+      <p>{building.description}</p>
+      {maxed ? (
+        <p className="hud-maxed">Nível máximo</p>
+      ) : (
+        <>
+          <span className="hud-next">Próximo nível: {next + 1}</span>
+          <ul className="hud-cost">
+            {resources.map(({ code, name }) => (
+              <li key={code}>
+                <ResourceIcon code={code} label={name} />
+                {numbers.format(building.cost[code])}
+              </li>
+            ))}
+            <li>
+              <ResourceIcon code="peasants" label="População" />
+              {numbers.format(building.population)}
+            </li>
+            <li className="hud-time">{duration(building.durationSeconds)}</li>
+          </ul>
+          {!building.canBuild && building.unavailableReason ? (
+            <p className="hud-reason">{building.unavailableReason}</p>
+          ) : null}
+        </>
+      )}
+    </aside>
+  );
+}
 
 function Production({ snapshot }: { snapshot: VillageSnapshot }) {
   const perMinute = snapshot.world.buildSpeed > 100;
@@ -33,6 +115,7 @@ function Production({ snapshot }: { snapshot: VillageSnapshot }) {
   );
 }
 function Troops({ snapshot }: { snapshot: VillageSnapshot }) {
+  if (!snapshot.units.some((unit) => unit.present > 0)) return null;
   return (
     <table className="legacy-table troops-summary">
       <thead>
@@ -74,6 +157,7 @@ export function Overview({
   onSelect: (code: string) => void;
   clock: number;
 }) {
+  const [hovered, setHovered] = useState<string | null>(null);
   const [collapsed, setCollapsed] = useState(
     () => localStorage.getItem('dwar:overview-panel-collapsed') === '1',
   );
@@ -134,15 +218,23 @@ export function Overview({
         </section>
       </div>
     );
+  const hoveredBuilding = snapshot.buildings.find((building) => building.code === hovered);
   return (
     <div className="legacy-landscape">
       <VillageScene
         buildings={snapshot.buildings}
         selected=""
         onSelect={onSelect}
+        onHover={setHovered}
         queue={snapshot.queue}
         clock={clock}
       />
+      <ConstructionCard
+        queue={snapshot.queue}
+        clock={clock}
+        maxQueue={snapshot.world.maxBuildQueue}
+      />
+      {hoveredBuilding ? <BuildingCard building={hoveredBuilding} /> : null}
       <aside className="legacy-production" aria-label="Produção da aldeia">
         {!collapsed ? (
           <>

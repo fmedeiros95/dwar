@@ -15,12 +15,14 @@ export function VillageScene({
   buildings,
   selected,
   onSelect,
+  onHover,
   queue,
   clock,
 }: {
   buildings: BuildingView[];
   selected: string;
   onSelect: (code: string) => void;
+  onHover?: (code: string | null) => void;
   queue: Construction[];
   clock: number;
 }) {
@@ -76,6 +78,10 @@ export function VillageScene({
             aria-label={`${building.name}, nível ${building.level}`}
             className={selected === building.code ? 'scene-building selected' : 'scene-building'}
             onClick={() => onSelect(building.code)}
+            onMouseEnter={() => onHover?.(building.code)}
+            onMouseLeave={() => onHover?.(null)}
+            onFocus={() => onHover?.(building.code)}
+            onBlur={() => onHover?.(null)}
             onKeyDown={(event) => {
               if (event.key === 'Enter' || event.key === ' ') {
                 event.preventDefault();
@@ -116,22 +122,21 @@ export function VillageScene({
             aria-hidden="true"
           >
             <rect
-              width={timedEvent ? 54 : building.level >= 10 ? 21 : 15}
-              height={timedEvent && building.level > 0 ? 30 : 17}
-              fill="#000"
-              fillOpacity="0.65"
+              className="scene-badge"
+              width={timedEvent ? 54 : building.level >= 10 ? 24 : 20}
+              height={timedEvent && building.level > 0 ? 32 : 20}
+              rx={timedEvent ? 8 : 10}
             />
-            <text x="3" y="13" fill="#fee47d" fontSize="12" fontFamily="Verdana, Arial, sans-serif">
+            <text
+              className="scene-badge-level"
+              textAnchor={timedEvent ? 'start' : 'middle'}
+              x={timedEvent ? 6 : building.level >= 10 ? 12 : 10}
+              y="14"
+            >
               {building.level > 0 ? building.level : ''}
             </text>
             {timedEvent ? (
-              <text
-                x="3"
-                y={building.level > 0 ? 25 : 12}
-                fill="#fee47d"
-                fontSize="9"
-                fontFamily="Verdana, Arial, sans-serif"
-              >
+              <text className="scene-badge-timer" x="6" y={building.level > 0 ? 27 : 14}>
                 {duration((new Date(timedEvent.endsAt).getTime() - clock) / 1000)}
               </text>
             ) : null}
