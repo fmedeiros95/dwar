@@ -24,12 +24,14 @@ function currentResources(snapshot: VillageSnapshot, clock: number) {
 export function BuildingTable({
   snapshot,
   pending,
+  pendingCode,
   clock,
   onConstruct,
   onSelect,
 }: {
   snapshot: VillageSnapshot;
   pending: boolean;
+  pendingCode?: string | undefined;
   clock: number;
   onConstruct: (code: string) => void;
   onSelect: (code: string) => void;
@@ -52,6 +54,7 @@ export function BuildingTable({
             building={building}
             have={have}
             pending={pending}
+            busy={pendingCode === building.code}
             clock={clock}
             onConstruct={onConstruct}
             onSelect={onSelect}
@@ -89,6 +92,7 @@ function BuildingCard({
   building,
   have,
   pending,
+  busy,
   clock,
   onConstruct,
   onSelect,
@@ -96,6 +100,7 @@ function BuildingCard({
   building: BuildingView;
   have: Have;
   pending: boolean;
+  busy: boolean;
   clock: number;
   onConstruct: (code: string) => void;
   onSelect: (code: string) => void;
@@ -169,7 +174,16 @@ function BuildingCard({
                 disabled={pending}
                 onClick={() => onConstruct(building.code)}
               >
-                {building.queuedLevel === 0 ? 'Construir' : `Evoluir para o nível ${next}`}
+                {busy ? (
+                  <>
+                    <span className="btn-spinner" aria-hidden="true" />
+                    Construindo…
+                  </>
+                ) : building.queuedLevel === 0 ? (
+                  'Construir'
+                ) : (
+                  `Evoluir para o nível ${next}`
+                )}
               </button>
             ) : (
               <p className="bcard-reason">

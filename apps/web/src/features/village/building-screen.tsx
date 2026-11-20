@@ -13,6 +13,7 @@ export function BuildingScreen({
   building,
   clock,
   pending,
+  pendingCode,
   onCancel,
   onConstruct,
   onSelect,
@@ -29,6 +30,7 @@ export function BuildingScreen({
   building: BuildingView;
   clock: number;
   pending: boolean;
+  pendingCode?: string | undefined;
   onCancel: (id: number) => void;
   onConstruct: (code: string) => void;
   onSelect: (code: string) => void;
@@ -96,6 +98,7 @@ export function BuildingScreen({
           <BuildingTable
             snapshot={snapshot}
             pending={pending}
+            pendingCode={pendingCode}
             clock={clock}
             onConstruct={onConstruct}
             onSelect={onSelect}

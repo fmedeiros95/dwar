@@ -2223,6 +2223,111 @@ input:focus {
   transform: translateX(-50%);
 }
 
+/* ---- Notificações e estados de carregamento ---- */
+.toasts {
+  position: fixed;
+  right: 20px;
+  bottom: 20px;
+  z-index: 100;
+  display: grid;
+  gap: 10px;
+  width: min(380px, calc(100vw - 40px));
+  pointer-events: none;
+}
+.toast {
+  position: relative;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: start;
+  gap: 12px;
+  padding: 13px 12px 13px 16px;
+  overflow: hidden;
+  pointer-events: auto;
+  background-color: rgb(20 14 9 / 0.94);
+  background-image: var(--noise);
+  background-blend-mode: soft-light;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius);
+  box-shadow: 0 16px 40px rgb(0 0 0 / 0.6);
+  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(14px);
+  animation: toast-in 0.28s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.toast::before {
+  content: '';
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 4px;
+  background: var(--toast-color, var(--gold));
+}
+.toast-success {
+  --toast-color: var(--green);
+}
+.toast-error {
+  --toast-color: var(--danger);
+}
+.toast-info {
+  --toast-color: var(--gold);
+}
+.toast-icon {
+  margin-top: 1px;
+  color: var(--toast-color);
+}
+.toast-text {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+.toast-text strong {
+  font-size: 13px;
+  color: var(--text);
+}
+.toast-text span {
+  font-size: 12px;
+  line-height: 1.4;
+  color: var(--muted);
+  overflow-wrap: anywhere;
+}
+.toast-close {
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  color: var(--muted);
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+}
+.toast-close:hover:not(:disabled) {
+  color: var(--gold-bright);
+  filter: none;
+}
+@keyframes toast-in {
+  from {
+    opacity: 0;
+    transform: translateY(14px) scale(0.97);
+  }
+}
+.btn-spinner {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  margin-right: 8px;
+  vertical-align: -2px;
+  border: 2px solid rgb(16 36 10 / 0.3);
+  border-top-color: #10240a;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+@media (max-width: 900px) {
+  .toasts {
+    right: 12px;
+    bottom: 84px;
+    width: calc(100vw - 24px);
+  }
+}
+
 /* Telas muito largas: o cenário fica centralizado e o excedente é o próprio cenário desfocado */
 .scene-ambient {
   position: absolute;

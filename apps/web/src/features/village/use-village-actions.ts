@@ -7,6 +7,7 @@ import {
   type RecruitmentOrder,
   type VillageSnapshot,
 } from '@dwar/api-client';
+import { useToast } from '../../components/toast.js';
 
 type VillageIntent = { worldId: number; villageId: number; requestId: string };
 
@@ -22,6 +23,10 @@ export function useVillageActions({
   onRenameSuccess: () => void;
 }) {
   const client = useQueryClient();
+  const toast = useToast();
+  // Obras canceladas pelo jogador: o desaparecimento delas da fila não é uma conclusão.
+  const cancelledConstructions = useRef(new Set<number>());
+  const failure = (title: string) => (error: Error) => toast.error(title, error.message);
   const [recruitmentVersion, setRecruitmentVersion] = useState(0);
   const academyIntent = useRef<(VillageIntent & { action: 'mint' | 'recruit' }) | null>(null);
   const recruitmentIntent = useRef<
@@ -48,9 +53,17 @@ export function useVillageActions({
     onSuccess: (result) => {
       intent.current = null;
       applySnapshot(result);
+      const queued = result.queue.at(-1);
+      toast.success(
+        'Obra iniciada',
+        queued ? `${queued.name}, nível ${queued.targetLevel}` : undefined,
+      );
     },
     onError: (error) => {
-      if (error instanceof ApiError && error.status < 500) intent.current = null;
+      if (error instanceof ApiError && error.status < 500) {
+        intent.current = null;
+        toast.error('Não foi possível construir', error.message);
+      }
     },
   });
   const recruitment = useMutation({
@@ -62,44 +75,68 @@ export function useVillageActions({
         action.orders,
         action.requestId,
       ),
-    onSuccess: (result) => {
+    onSuccess: (result, action) => {
       recruitmentIntent.current = null;
       setRecruitmentVersion((value) => value + 1);
       applySnapshot(result);
+      const total = action.orders.reduce((sum, order) => sum + order.quantity, 0);
+      toast.success('Treinamento iniciado', `${total} ${total === 1 ? 'unidade' : 'unidades'}`);
     },
     onError: (error) => {
-      if (error instanceof ApiError && error.status < 500) recruitmentIntent.current = null;
+      if (error instanceof ApiError && error.status < 500) {
+        recruitmentIntent.current = null;
+        toast.error('Recrutamento não realizado', error.message);
+      }
     },
   });
   const academy = useMutation({
     mutationFn: (intent: VillageIntent & { action: 'mint' | 'recruit' }) =>
       api.academy(intent.worldId, intent.villageId, intent.action, intent.requestId),
-    onSuccess: (result) => {
+    onSuccess: (result, action) => {
       academyIntent.current = null;
       applySnapshot(result);
+      toast.success(action.action === 'mint' ? 'Moeda cunhada' : 'Nobre em treinamento');
     },
     onError: (error) => {
-      if (error instanceof ApiError && error.status < 500) academyIntent.current = null;
+      if (error instanceof ApiError && error.status < 500) {
+        academyIntent.current = null;
+        toast.error('Ação da Academia não realizada', error.message);
+      }
     },
   });
   const cancelRecruitment = useMutation({
     mutationFn: (id: number) => api.cancelRecruitment(worldId, villageId!, id),
-    onSuccess: applySnapshot,
+    onSuccess: (result) => {
+      applySnapshot(result);
+      toast.info('Treinamento cancelado', 'Os recursos foram devolvidos.');
+    },
+    onError: failure('Não foi possível cancelar'),
   });
   const research = useMutation({
     mutationFn: (code: string) => api.research(worldId, villageId!, code, newRequestKey()),
-    onSuccess: applySnapshot,
+    onSuccess: (result) => {
+      applySnapshot(result);
+      toast.success('Pesquisa iniciada');
+    },
+    onError: failure('Não foi possível pesquisar'),
   });
   const cancel = useMutation({
     mutationFn: (id: number) => api.cancelConstruction(worldId, villageId!, id),
-    onSuccess: applySnapshot,
+    onSuccess: (result, id) => {
+      cancelledConstructions.current.add(id);
+      applySnapshot(result);
+      toast.info('Obra cancelada', 'Os recursos foram devolvidos.');
+    },
+    onError: failure('Não foi possível cancelar a obra'),
   });
   const rename = useMutation({
     mutationFn: (value: string) => api.renameVillage(worldId, villageId!, value),
     onSuccess: (result) => {
       onRenameSuccess();
       applySnapshot(result);
+      toast.success('Aldeia renomeada', result.village.name);
     },
+    onError: failure('Não foi possível renomear'),
   });
   const preference = useMutation({
     mutationFn: api.overviewPreference,
@@ -156,5 +193,6 @@ export function useVillageActions({
     recruitmentIntent,
     academyIntent,
     recruitmentVersion,
+    cancelledConstructions,
   };
 }

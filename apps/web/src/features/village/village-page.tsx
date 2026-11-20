@@ -1,5 +1,5 @@
 import { worldEntryPath, useGameSearchParams as useSearchParams } from '../../routing.js';
-import { useEffect, useState, type CSSProperties, type FormEvent } from 'react';
+import { useEffect, useRef, useState, type CSSProperties, type FormEvent } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { api, ApiError, type Account, type World } from '@dwar/api-client';
@@ -20,6 +20,7 @@ import {
 } from 'lucide-react';
 import { LegacyFrame, ResourceIcon } from '../../components/legacy-frame.js';
 import { GameShell } from '../../components/game-shell.js';
+import { useToast } from '../../components/toast.js';
 import { BuildingScreen } from './building-screen.js';
 import { Overview } from './overview/index.js';
 import { WorldMap } from './map/index.js';
@@ -99,12 +100,34 @@ export function VillagePage({
     recruitmentIntent,
     academyIntent,
     recruitmentVersion,
+    cancelledConstructions,
   } = useVillageActions({
     worldId,
     villageId: data?.village.id,
     onLogout,
     onRenameSuccess: () => setEditingName(false),
   });
+  // Avisa quando uma obra some da fila sem ter sido cancelada pelo jogador: foi concluída.
+  const toast = useToast();
+  const queueMemory = useRef<{
+    villageId: number;
+    items: Map<number, { name: string; level: number }>;
+  } | null>(null);
+  useEffect(() => {
+    if (!data) return;
+    const items = new Map(
+      data.queue.map((item) => [item.id, { name: item.name, level: item.targetLevel }]),
+    );
+    const previous = queueMemory.current;
+    if (previous && previous.villageId === data.village.id) {
+      for (const [id, info] of previous.items) {
+        if (items.has(id)) continue;
+        if (cancelledConstructions.current.delete(id)) continue;
+        toast.success('Obra concluída', `${info.name}, nível ${info.level}`);
+      }
+    }
+    queueMemory.current = { villageId: data.village.id, items };
+  }, [data, cancelledConstructions, toast]);
   useEffect(() => {
     const timer = setInterval(() => setNow(Date.now()), 1000);
     return () => clearInterval(timer);
@@ -178,6 +201,14 @@ export function VillagePage({
     rename.error ??
     preference.error ??
     logout.error;
+  // Erros comuns viram notificações; a faixa fixa fica só para o que pede uma ação do jogador.
+  const needsAction =
+    uncertainAction ||
+    (recruitment.isError && recruitmentIntent.current !== null) ||
+    (academy.isError && academyIntent.current !== null) ||
+    village.error !== null ||
+    preference.isError ||
+    logout.isError;
   return (
     <GameShell
       primary={[
@@ -388,7 +419,7 @@ export function VillagePage({
         </>
       }
     >
-      {error ? (
+      {error && needsAction ? (
         <p className="error" role="alert">
           {error.message}
           {uncertainAction ? (
@@ -451,6 +482,7 @@ export function VillagePage({
           building={active}
           clock={clock}
           pending={pending}
+          pendingCode={build.isPending ? build.variables?.buildingCode : undefined}
           onCancel={(id) => cancel.mutate(id)}
           onConstruct={construct}
           onSelect={setScreen}
