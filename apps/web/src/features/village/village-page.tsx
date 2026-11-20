@@ -16,7 +16,6 @@ import {
   ScrollText,
   Settings,
   Trophy,
-  UserRound,
 } from 'lucide-react';
 import { LegacyFrame, ResourceIcon } from '../../components/legacy-frame.js';
 import { GameShell } from '../../components/game-shell.js';
@@ -459,7 +458,9 @@ export function VillagePage({
               <time>{timeFormat.format(new Date(clock))}</time>
             </span>
             <span className="shell-player" title={`${numbers.format(data.village.points)} pontos`}>
-              <UserRound size={14} aria-hidden="true" />
+              <span className="shell-avatar" aria-hidden="true">
+                {account.username.slice(0, 1).toUpperCase()}
+              </span>
               {account.username}
               <small>{numbers.format(data.village.points)} pts</small>
             </span>

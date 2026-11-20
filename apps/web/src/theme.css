@@ -3591,3 +3591,64 @@ input:focus {
 .gw-body .page-head {
   justify-content: flex-end;
 }
+
+/* ---- Adornos (peças do Tribul) ---- */
+.game-window {
+  box-shadow:
+    0 10px 30px rgb(0 0 0 / 0.5),
+    inset 0 0 0 3px #1d1510,
+    inset 0 0 0 4px rgb(236 194 110 / 0.28);
+}
+.game-window[data-focused='true'] {
+  box-shadow:
+    var(--shadow),
+    inset 0 0 0 3px #1d1510,
+    inset 0 0 0 4px rgb(236 194 110 / 0.5);
+}
+.gw-bar {
+  min-height: 47px;
+  background:
+    linear-gradient(180deg, rgb(0 0 0 / 0.15), rgb(0 0 0 / 0.35)),
+    url('/game/ui/wood-bar.webp') center / 100% 100% no-repeat;
+  border-bottom: 1px solid rgb(0 0 0 / 0.6);
+}
+.gw-title {
+  color: #e9d3a3;
+  text-shadow: 0 1px 2px #000;
+}
+.game-window[data-focused='true'] .gw-title {
+  color: var(--gold-bright);
+}
+.tech-heading {
+  width: 237px;
+  max-width: 100%;
+  height: 34px;
+  margin: 0 0 12px;
+  padding: 0;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  line-height: 30px;
+  text-align: center;
+  color: #3a2406;
+  text-shadow: 0 1px 0 rgb(255 240 200 / 0.5);
+  background: url('/game/ui/ribbon.webp') center / 100% 100% no-repeat;
+  border: 0;
+}
+.shell-avatar {
+  display: inline-grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  font-family: var(--font-display);
+  font-size: 15px;
+  font-weight: 700;
+  color: #4a2f0a;
+  background: url('/game/ui/avatar-frame.webp') center / 100% 100% no-repeat;
+}
+hr,
+.divider {
+  height: 1px;
+  border: 0;
+  background: url('/game/ui/divider.webp') center / 100% 1px no-repeat;
+}
