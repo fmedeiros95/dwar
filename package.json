@@ -1,0 +1,35 @@
+{
+  "name": "dwar",
+  "private": true,
+  "version": "0.1.0",
+  "license": "AGPL-3.0-only",
+  "packageManager": "pnpm@12.8.1",
+  "engines": {
+    "node": ">=22.12"
+  },
+  "scripts": {
+    "dev": "pnpm build:packages && concurrently -n api,worker,web -c blue,yellow,green \"pnpm --filter @dwar/api dev\" \"pnpm --filter @dwar/worker dev\" \"pnpm --filter @dwar/web dev\"",
+    "build:packages": "pnpm --filter \"./packages/**\" -r build",
+    "build": "pnpm -r build",
+    "typecheck": "pnpm -r typecheck",
+    "lint": "eslint apps packages scripts",
+    "db:migrate": "pnpm --filter @dwar/database migrate",
+    "db:barbarians": "node --env-file=.env scripts/populate-barbarians.mjs",
+    "db:seed": "pnpm --filter @dwar/database seed",
+    "db:up": "docker compose -f compose.modern.yml up -d",
+    "start:api": "pnpm --filter @dwar/api start",
+    "start:worker": "pnpm --filter @dwar/worker start",
+    "format": "prettier --write \"apps/*/src/**/*.{ts,tsx,css}\" \"packages/*/src/**/*.ts\" \"apps/*/*.json\" \"apps/web/vite.config.ts\" \"packages/*/*.json\" \"scripts/*.mjs\" \"*.{json,mjs}\""
+  },
+  "devDependencies": {
+    "@eslint/js": "9.39.5",
+    "@types/node": "22.20.5",
+    "concurrently": "9.2.5",
+    "eslint": "9.39.5",
+    "globals": "16.5.0",
+    "prettier": "3.10.1",
+    "tsx": "4.23.15",
+    "typescript": "5.9.3",
+    "typescript-eslint": "8.73.0"
+  }
+}

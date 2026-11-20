@@ -1,0 +1,11 @@
+node_modules/
+dist/
+.env
+.env.*
+!.env.example
+*.tsbuildinfo
+.local/
+apps/api/storage/avatars/*
+!apps/api/storage/avatars/.gitkeep
+Thumbs.db
+desktop.ini

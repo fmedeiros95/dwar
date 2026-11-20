@@ -1,0 +1,37 @@
+{
+  "name": "@dwar/api",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "dev": "tsx watch --env-file=../../.env src/main.ts",
+    "start": "node --env-file=../../.env dist/main.js"
+  },
+  "dependencies": {
+    "@dwar/api-client": "workspace:*",
+    "@dwar/database": "workspace:*",
+    "@dwar/game-config": "workspace:*",
+    "@dwar/game-core": "workspace:*",
+    "@dwar/game-server": "workspace:*",
+    "@nestjs/common": "12.5.1",
+    "@nestjs/core": "12.5.1",
+    "@nestjs/platform-express": "12.5.1",
+    "@nestjs/swagger": "12.1.2",
+    "cookie-parser": "1.4.7",
+    "drizzle-orm": "0.45.4",
+    "express": "5.3.0",
+    "helmet": "8.3.0",
+    "multer": "2.5.0",
+    "reflect-metadata": "0.2.2",
+    "rxjs": "7.8.2",
+    "sharp": "0.35.5",
+    "zod": "4.6.7"
+  },
+  "devDependencies": {
+    "@types/cookie-parser": "1.4.10",
+    "@types/express": "5.0.6",
+    "@types/multer": "2.3.0"
+  }
+}

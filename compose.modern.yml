@@ -1,0 +1,19 @@
+name: dwar-modern
+services:
+  postgres:
+    image: postgres:17.11-alpine
+    environment:
+      POSTGRES_USER: dwar
+      POSTGRES_PASSWORD: dwar_local
+      POSTGRES_DB: dwar
+    ports:
+      - "127.0.0.1:55432:5432"
+    volumes:
+      - modern_pg_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U dwar -d dwar"]
+      interval: 3s
+      timeout: 3s
+      retries: 15
+volumes:
+  modern_pg_data:

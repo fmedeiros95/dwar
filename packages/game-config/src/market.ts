@@ -1,0 +1,31 @@
+// beta/inc/configs/dealers.php, actions/market.php and market_other_offer.php.
+export const merchantCapacity = 1000;
+export const merchantCounts: Record<number, number> = {
+  0: 0,
+  1: 1,
+  2: 2,
+  3: 3,
+  4: 4,
+  5: 5,
+  6: 6,
+  7: 7,
+  8: 8,
+  9: 6,
+  10: 10,
+  11: 11,
+  12: 14,
+  13: 19,
+  14: 26,
+  15: 35,
+  16: 46,
+  17: 59,
+  18: 74,
+  19: 91,
+  20: 110,
+  21: 131,
+  22: 154,
+  23: 179,
+  24: 206,
+  25: 235,
+};
+export const legacyUnitSpeed = 1.019;
