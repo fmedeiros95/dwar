@@ -546,3 +546,232 @@ th {
     0 2px 0 #140a05,
     inset 0 1px 0 rgb(255 215 150 / 0.25);
 }
+
+/* ---- Mapa: carta de campo ---- */
+.map-stage {
+  background: #274f1c;
+}
+.map-stage::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  pointer-events: none;
+  mix-blend-mode: soft-light;
+  opacity: 0.55;
+  background: var(--paper);
+}
+.map-sector-line {
+  background: rgb(255 240 190 / 0.13);
+}
+.map-sector-line.vertical.continent,
+.map-sector-line.horizontal.continent {
+  background: rgb(232 190 106 / 0.8);
+  box-shadow: 0 0 6px rgb(232 190 106 / 0.5);
+}
+.map-sector-line.vertical.continent {
+  width: 2px;
+}
+.map-sector-line.horizontal.continent {
+  height: 2px;
+}
+.map-stage .map-y-axis,
+.map-stage .map-x-axis {
+  background: linear-gradient(90deg, rgb(20 11 5 / 0.82), transparent);
+}
+.map-stage .map-x-axis {
+  background: linear-gradient(0deg, rgb(20 11 5 / 0.82), transparent);
+}
+.map-stage .map-y-axis span,
+.map-stage .map-x-axis span {
+  font-family: var(--font-caps);
+  font-size: 13px;
+  font-weight: 400;
+  color: #f1d28a;
+}
+.map-card,
+.map-toolbar,
+.world-map-context {
+  background:
+    linear-gradient(180deg, rgb(0 0 0 / 0.16), rgb(0 0 0 / 0.5)),
+    var(--wood) 0 0 / 900px 72px repeat,
+    var(--oak);
+  border: 2px solid #1b120c;
+  border-radius: var(--radius);
+  box-shadow:
+    0 10px 24px rgb(0 0 0 / 0.55),
+    0 0 0 1px rgb(185 139 61 / 0.5),
+    inset 0 1px 0 rgb(255 215 150 / 0.18);
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  color: #efe0bd;
+}
+.map-toolbar button,
+.map-toolbar button:hover:not(:disabled) {
+  color: #f1d28a;
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+  text-shadow: none;
+}
+.map-title h1,
+.map-card h2 {
+  font-family: var(--font-caps);
+  font-size: 17px;
+  color: #f1d28a;
+  text-shadow: 0 1px 2px #000;
+}
+.world-minimap-surface {
+  border-radius: 2px;
+  box-shadow: inset 0 0 0 2px #1b120c;
+}
+
+.map-stage .map-y-axis span,
+.map-stage .map-x-axis span {
+  font-family: var(--font-ui);
+  font-weight: 700;
+  font-size: 12px;
+}
+
+/* ---- Entrada e mundos: decretos em pergaminho ---- */
+.landing-card,
+.world-card,
+.foundation-card {
+  --surface: transparent;
+  --surface-raised: rgb(255 250 232 / 0.4);
+  --surface-sunken: rgb(92 62 24 / 0.09);
+  --line: rgb(70 45 18 / 0.38);
+  --line-soft: rgb(70 45 18 / 0.2);
+  --line-strong: rgb(70 45 18 / 0.7);
+  --text: var(--ink);
+  --muted: #55442c;
+  --gold: var(--seal);
+  --gold-bright: var(--seal-deep);
+  --green: #3f6a2a;
+  --danger: #a3261c;
+  position: relative;
+  color: var(--ink);
+  color-scheme: light;
+  background-color: var(--parch);
+  background-image:
+    radial-gradient(ellipse at 50% 40%, transparent 55%, rgb(110 70 25 / 0.28) 100%),
+    var(--paper);
+  background-blend-mode: normal, multiply;
+  border: 2px solid #1b120c;
+  border-radius: var(--radius-lg);
+  box-shadow:
+    0 20px 50px rgb(0 0 0 / 0.65),
+    0 0 0 1px var(--brass),
+    0 0 0 4px rgb(185 139 61 / 0.2);
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+.landing-card::before,
+.world-card::before,
+.foundation-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    var(--corner-tl) left 3px top 3px / 40px 40px no-repeat,
+    var(--corner-tr) right 3px top 3px / 40px 40px no-repeat,
+    var(--corner-bl) left 3px bottom 3px / 40px 40px no-repeat,
+    var(--corner-br) right 3px bottom 3px / 40px 40px no-repeat;
+}
+.landing-card h1,
+.landing-card h2,
+.world-card h2,
+.world-card h3,
+.foundation-card h1,
+.foundation-card h2 {
+  color: var(--seal-deep);
+  text-shadow: 0 1px 0 rgb(255 250 232 / 0.6);
+}
+.landing-card input,
+.foundation-card input {
+  color: var(--ink);
+  background: rgb(255 250 232 / 0.55);
+  border: 1px solid var(--line);
+  box-shadow: inset 0 1px 3px rgb(70 45 18 / 0.25);
+}
+.auth-tabs {
+  background: linear-gradient(180deg, #4a3322, var(--oak));
+  border-bottom: 2px solid #1b120c;
+}
+.auth-tabs button,
+.auth-tabs button:hover:not(:disabled) {
+  color: #cdb98c;
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+  text-shadow: none;
+  filter: none;
+}
+.auth-tabs [aria-selected='true'],
+.auth-tabs .active {
+  color: #ffe6ad;
+  background: rgb(0 0 0 / 0.28);
+  box-shadow: inset 0 -3px 0 var(--brass);
+}
+.landing-features li {
+  background:
+    linear-gradient(180deg, rgb(0 0 0 / 0.18), rgb(0 0 0 / 0.5)),
+    var(--wood) 0 0 / 900px 72px repeat,
+    var(--oak);
+  border: 2px solid #1b120c;
+  border-radius: var(--radius);
+  box-shadow:
+    0 8px 18px rgb(0 0 0 / 0.5),
+    0 0 0 1px rgb(185 139 61 / 0.45);
+  color: #efe0bd;
+}
+.landing-features strong,
+.landing-features h3 {
+  font-family: var(--font-caps);
+  font-size: 17px;
+  color: #f1d28a;
+}
+.landing-hero h1 {
+  text-shadow:
+    0 2px 0 #3a0f0b,
+    0 4px 14px rgb(0 0 0 / 0.7);
+}
+.pregame-bar {
+  background:
+    linear-gradient(180deg, rgb(0 0 0 / 0.12), rgb(0 0 0 / 0.42)),
+    var(--wood) left top / 900px 100% repeat-x,
+    var(--oak);
+  border-bottom: 2px solid var(--brass);
+  box-shadow: 0 4px 14px rgb(0 0 0 / 0.55);
+}
+.pregame-heading h1 {
+  text-shadow:
+    0 2px 0 #3a0f0b,
+    0 4px 14px rgb(0 0 0 / 0.7);
+}
+.world-card-icon,
+.foundation-icon {
+  display: grid;
+  place-items: center;
+  color: #f6e3b2;
+  background: radial-gradient(circle at 35% 30%, #a8382d, #4d150f 80%);
+  border: 0;
+  border-radius: 50%;
+  box-shadow:
+    0 0 0 2px #c9a04e,
+    0 0 0 3.5px #3a2208,
+    inset 0 2px 5px rgb(0 0 0 / 0.55);
+}
+
+.landing-card .auth-tabs button,
+.landing-card .auth-tabs button:hover:not(:disabled) {
+  color: #cdb98c;
+}
+.landing-card .auth-tabs button[aria-selected='true'],
+.landing-card .auth-tabs button[aria-current],
+.landing-card .auth-tabs button.active {
+  color: #ffe6ad;
+  background: rgb(0 0 0 / 0.28);
+  box-shadow: inset 0 -3px 0 var(--brass);
+}

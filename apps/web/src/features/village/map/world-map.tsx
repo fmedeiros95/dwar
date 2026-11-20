@@ -311,18 +311,12 @@ function MapCanvas({ snapshot, options }: { snapshot: VillageSnapshot; options: 
                   ) : null}
                   {x % 5 === 0 ? (
                     <span
-                      className="map-sector-line vertical"
-                      style={{
-                        backgroundColor: x % 100 === 0 ? '#000' : '#214b18',
-                      }}
+                      className={`map-sector-line vertical${x % 100 === 0 ? ' continent' : ''}`}
                     />
                   ) : null}
                   {y % 5 === 0 ? (
                     <span
-                      className="map-sector-line horizontal"
-                      style={{
-                        backgroundColor: y % 100 === 0 ? '#000' : '#214b18',
-                      }}
+                      className={`map-sector-line horizontal${y % 100 === 0 ? ' continent' : ''}`}
                     />
                   ) : null}
                 </div>
