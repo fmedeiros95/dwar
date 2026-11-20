@@ -2,24 +2,8 @@ import { useMemo } from 'react';
 import type { BuildingView, VillageSnapshot } from '@dwar/api-client';
 import { ResourceIcon } from '../../../components/legacy-frame.js';
 import { duration, numbers, resources } from '../shared/index.js';
+import { currentResources, type Have } from '../shared/current-resources.js';
 import { buildingThumb } from '../overview/scene-model.js';
-
-type Have = Record<(typeof resources)[number]['code'], number>;
-
-/** Recursos disponíveis agora, projetando a produção desde o último snapshot do servidor. */
-function currentResources(snapshot: VillageSnapshot, clock: number) {
-  const elapsedHours = Math.max(0, clock - new Date(snapshot.serverTime).getTime()) / 3_600_000;
-  const { village } = snapshot;
-  return Object.fromEntries(
-    resources.map(({ code }) => [
-      code,
-      Math.min(
-        village.capacity,
-        Math.floor(village.resources[code] + village.productionPerHour[code] * elapsedHours),
-      ),
-    ]),
-  ) as Have;
-}
 
 export function BuildingTable({
   snapshot,

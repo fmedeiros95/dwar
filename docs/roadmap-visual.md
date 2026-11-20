@@ -18,13 +18,16 @@ texturas legadas, então telas ainda não redesenhadas herdam cores e superfíci
   inverno e Halloween, 18 edifícios com fases de obra, ícones de recursos e retratos de tropas.
 - Aldeia em tela cheia, arrastável e com zoom; seletor de estação.
 - Mapa em tela cheia com painéis flutuantes (arrasto 1:1).
+- Ultrawide: cenário centralizado com laterais desfocadas; mapa pede ao servidor o raio visível
+  (`span`).
+- Feedback de ações: notificações (`ToastProvider`), aviso de obra concluída, botão com carregamento.
+- Recrutamento: cartões de unidade com custo total e fila de treinamento com progresso.
 
 ## Próximos passos (ordem de impacto)
 
-1. **Feedback de ações:** toasts de sucesso/erro, estados de carregamento nos botões, animação ao
-   concluir uma obra. Hoje o erro aparece como faixa fixa no topo.
-2. **Recrutamento e pesquisa:** quartel, estábulo, oficina e ferraria ainda usam tabelas legadas.
-   Cartões de unidade com ataque/defesa, custo e campo de quantidade com "máximo".
+1. **Ferraria (pesquisa) e Academia:** ainda usam tabelas legadas; levar para cartões como o
+   recrutamento.
+2. **Menu de contexto do mapa e telas de aldeia/jogador públicos.**
 3. **Mensagens, relatórios e ranking:** lista e leitura em duas colunas, filtros, estado vazio.
 4. **Mercado e praça de reunião:** fluxo de envio com resumo antes de confirmar.
 5. **Acessibilidade e desempenho:** contraste, foco visível, `prefers-reduced-motion`, imagens

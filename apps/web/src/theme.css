@@ -2223,6 +2223,202 @@ input:focus {
   transform: translateX(-50%);
 }
 
+/* ---- Recrutamento: cartões de unidade ---- */
+.queue-portrait {
+  width: 56px;
+  height: 56px;
+  object-fit: cover;
+  border: 1px solid var(--line-strong);
+  border-radius: 8px;
+}
+.unit-queue {
+  grid-template-columns: 56px minmax(0, 1fr) auto auto;
+}
+.ugrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 14px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.ucard {
+  display: grid;
+  align-content: start;
+  gap: 12px;
+  padding: 14px;
+  background: linear-gradient(180deg, rgb(255 217 138 / 0.05), rgb(0 0 0 / 0.18));
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  transition:
+    border-color 0.18s ease,
+    box-shadow 0.18s ease;
+}
+.ucard:hover {
+  border-color: var(--line-strong);
+  box-shadow: 0 14px 30px rgb(0 0 0 / 0.45);
+}
+.ucard[data-state='locked'] {
+  opacity: 0.78;
+}
+.ucard-top {
+  display: grid;
+  grid-template-columns: 56px minmax(0, 1fr);
+  align-items: center;
+  gap: 14px;
+}
+.ucard-portrait {
+  width: 56px;
+  height: 56px;
+  object-fit: cover;
+  background: #16200c;
+  border: 1px solid var(--line-strong);
+  border-radius: 10px;
+  box-shadow:
+    0 6px 16px rgb(0 0 0 / 0.5),
+    0 0 0 3px rgb(13 9 6 / 0.6);
+}
+.ucard[data-state='locked'] .ucard-portrait {
+  filter: grayscale(0.7) brightness(0.8);
+}
+.ucard h3 {
+  margin: 0 0 4px;
+  font-family: var(--font-display);
+  font-size: 14px;
+  letter-spacing: 0.04em;
+  color: var(--gold-bright);
+}
+.ucard-stock {
+  font-size: 12px;
+  color: var(--muted);
+}
+.ucard-stock strong {
+  color: var(--text);
+}
+.ucard-qty {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.stepper {
+  display: flex;
+  flex: 1;
+  align-items: stretch;
+  overflow: hidden;
+  background: var(--surface-sunken);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+}
+.stepper input {
+  flex: 1;
+  width: 100%;
+  min-width: 0;
+  padding: 8px 4px;
+  text-align: center;
+  font-size: 15px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  background: transparent;
+  border: 0;
+  border-inline: 1px solid var(--line-soft);
+  border-radius: 0;
+}
+.stepper button {
+  width: 38px;
+  padding: 0;
+  font-size: 18px;
+  color: var(--text);
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+}
+.stepper button:hover:not(:disabled) {
+  color: var(--gold-bright);
+  background: rgb(232 190 106 / 0.12);
+  filter: none;
+}
+.ucard-max {
+  padding: 9px 12px;
+  font-size: 11px;
+  white-space: nowrap;
+  color: var(--text);
+  background: transparent;
+  border: 1px solid var(--line);
+  box-shadow: none;
+}
+.ucard-max:hover:not(:disabled) {
+  color: var(--gold-bright);
+  background: rgb(232 190 106 / 0.12);
+  filter: none;
+}
+.ucard-locked {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 9px 12px;
+  color: var(--muted);
+  background: transparent;
+  border: 1px dashed var(--line-strong);
+  box-shadow: none;
+}
+.ucard-locked:hover:not(:disabled) {
+  color: var(--gold-bright);
+  filter: none;
+}
+.recruit-bar {
+  position: sticky;
+  bottom: 16px;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-top: 18px;
+  padding: 12px 16px;
+  background-color: rgb(16 11 7 / 0.9);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: 0 14px 34px rgb(0 0 0 / 0.5);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+  transition: border-color 0.2s ease;
+}
+.recruit-bar.active {
+  border-color: var(--line-strong);
+}
+.recruit-summary {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 14px;
+  min-width: 0;
+}
+.recruit-summary strong {
+  font-family: var(--font-display);
+  letter-spacing: 0.04em;
+  color: var(--gold-bright);
+}
+.recruit-hint {
+  font-size: 13px;
+  color: var(--muted);
+}
+.recruit-bar > button {
+  flex-shrink: 0;
+  min-width: 140px;
+  padding: 10px 20px;
+}
+@media (max-width: 680px) {
+  .unit-queue {
+    grid-template-columns: 48px minmax(0, 1fr) auto;
+  }
+  .recruit-bar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
+
 /* ---- Notificações e estados de carregamento ---- */
 .toasts {
   position: fixed;

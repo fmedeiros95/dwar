@@ -1,3 +1,4 @@
+import type { CSSProperties } from 'react';
 import type { Recruitment } from '@dwar/api-client';
 import { completionDate, duration, numbers } from './format.js';
 import { unitIconSrc } from '../../../components/unit-icon.js';
@@ -17,52 +18,50 @@ export function RecruitmentQueue({
 }) {
   if (!queue.length) return null;
   return (
-    <div className="table-scroll">
-      <table className={`legacy-table recruitment-queue${academy ? ' academy-queue' : ''}`}>
-        <thead>
-          <tr>
-            <th>Unidade</th>
-            <th>Duração</th>
-            <th>Conclusão</th>
-            <th>{academy ? 'Opção' : 'Ação'}</th>
-          </tr>
-        </thead>
-        <tbody>
-          {queue.map((event, index) => (
-            <tr key={event.id} className={index === 0 ? 'selected-row' : undefined}>
-              <td>
-                {academy ? (
-                  <>
-                    <img className="research-unit-icon" src={unitIconSrc('noble')} alt="" /> 1 Nobre
-                  </>
-                ) : (
-                  <>
-                    {event.name} ({numbers.format(event.quantity)})
-                  </>
-                )}
-              </td>
-              <td>
-                {duration(
-                  (new Date(event.endsAt).getTime() -
-                    (index === 0 ? clock : new Date(event.startsAt).getTime())) /
-                    1000,
-                )}
-              </td>
-              <td>{completionDate(event.endsAt, clock)}</td>
-              <td>
-                <button
-                  className="text-button"
-                  aria-label={`Cancelar recrutamento de ${event.name} (${event.quantity})`}
-                  disabled={pending}
-                  onClick={() => onCancel(event.id)}
-                >
-                  Cancelar
-                </button>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
+    <section className="queue" aria-label="Treinamento em andamento">
+      <h2>
+        Treinamento em andamento
+        <small>{queue.length}</small>
+      </h2>
+      <ol>
+        {queue.map((event, index) => {
+          const start = new Date(event.startsAt).getTime();
+          const end = new Date(event.endsAt).getTime();
+          const active = index === 0;
+          const progress = active
+            ? Math.min(1, Math.max(0, (clock - start) / Math.max(1, end - start)))
+            : 0;
+          const seconds = (end - (active ? clock : start)) / 1000;
+          const label = academy ? '1 Nobre' : `${event.name} (${numbers.format(event.quantity)})`;
+          return (
+            <li
+              key={event.id}
+              className={active ? 'queue-item active unit-queue' : 'queue-item unit-queue'}
+              style={{ '--progress': progress } as CSSProperties}
+            >
+              <img
+                className="queue-portrait"
+                src={unitIconSrc(academy ? 'noble' : event.unitCode)}
+                alt=""
+              />
+              <div className="queue-info">
+                <strong>{label}</strong>
+                <span>Conclui {completionDate(event.endsAt, clock)}</span>
+                <span className="queue-bar" aria-hidden="true" />
+              </div>
+              <time className="queue-time">{duration(seconds)}</time>
+              <button
+                className="queue-cancel"
+                aria-label={`Cancelar recrutamento de ${event.name} (${event.quantity})`}
+                disabled={pending}
+                onClick={() => onCancel(event.id)}
+              >
+                Cancelar
+              </button>
+            </li>
+          );
+        })}
+      </ol>
+    </section>
   );
 }
