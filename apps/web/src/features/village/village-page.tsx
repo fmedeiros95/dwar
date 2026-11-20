@@ -20,6 +20,8 @@ import {
 } from 'lucide-react';
 import { LegacyFrame, ResourceIcon } from '../../components/legacy-frame.js';
 import { GameShell } from '../../components/game-shell.js';
+import { WindowLayer } from '../../components/game-window.js';
+import { screenOf, useWindowManager } from '../../components/use-window-manager.js';
 import { useToast } from '../../components/toast.js';
 import { BuildingScreen } from './building-screen.js';
 import { Overview } from './overview/index.js';
@@ -31,6 +33,25 @@ import { RankingScreen } from './ranking/index.js';
 import { SettingsScreen } from './settings/index.js';
 import { useVillageActions } from './use-village-actions.js';
 import { numbers, resources, timeFormat } from './shared/index.js';
+
+const backgroundScreens = ['overview', 'map'];
+const windowTitles: Record<string, string> = {
+  reports: 'Relatórios',
+  mail: 'Mensagens',
+  activity: 'Atividade da aldeia',
+  ranking: 'Ranking',
+  settings: 'Ajustes',
+  info_village: 'Aldeia',
+  info_player: 'Jogador',
+};
+const wideScreens = ['mail', 'reports', 'ranking'];
+function windowSize(screen: string) {
+  return wideScreens.includes(screen) ? { w: 860, h: 600 } : { w: 920, h: 640 };
+}
+
+function lastBackgroundScreen(raw: string, isBackground: boolean, last: string) {
+  return isBackground ? raw : last;
+}
 
 export function VillagePage({
   account,
@@ -45,7 +66,12 @@ export function VillagePage({
   const client = useQueryClient(),
     navigate = useNavigate();
   const [params, setParams] = useSearchParams();
-  const screen = params.get('screen') ?? 'overview';
+  const rawScreen = params.get('screen') ?? 'overview';
+  const isBackground = backgroundScreens.includes(rawScreen);
+  const lastBackground = useRef('overview');
+  const handledSearch = useRef('');
+  const windows = useWindowManager(windowSize);
+  const openWindow = windows.open;
   const selectedVillageId = params.has('village') ? Number(params.get('village')) : undefined;
   const villageKey = ['village', worldId, selectedVillageId ?? null];
   const [now, setNow] = useState(Date.now());
@@ -66,11 +92,31 @@ export function VillagePage({
   const canonicalVillageId = data?.village.id;
   useEffect(() => {
     if (canonicalVillageId === undefined) return;
+    // Telas de janela são tratadas pelo efeito seguinte, que também corrige a URL.
+    if (!backgroundScreens.includes(params.get('screen') ?? 'overview')) return;
     const next = new URLSearchParams(params);
     if (!next.has('village')) next.set('village', String(canonicalVillageId));
     if (!next.has('screen')) next.set('screen', 'overview');
     if (next.toString() !== params.toString()) setParams(next, { replace: true });
   }, [canonicalVillageId, params, setParams]);
+  // Qualquer navegação para uma tela que não é o fundo (aldeia ou mapa) abre uma janela.
+  useEffect(() => {
+    if (canonicalVillageId === undefined) return;
+    if (isBackground) {
+      lastBackground.current = rawScreen;
+      handledSearch.current = '';
+      return;
+    }
+    if (handledSearch.current === params.toString()) return;
+    handledSearch.current = params.toString();
+    const search = new URLSearchParams(params);
+    if (!search.has('village')) search.set('village', String(canonicalVillageId));
+    openWindow(search.toString());
+    const next = new URLSearchParams();
+    next.set('village', search.get('village')!);
+    next.set('screen', lastBackground.current);
+    setParams(next, { replace: true });
+  }, [canonicalVillageId, isBackground, rawScreen, params, openWindow, setParams]);
   const reports = useQuery({
     queryKey: ['reports', worldId, 1],
     queryFn: () => api.reports(worldId, 1),
@@ -140,15 +186,28 @@ export function VillagePage({
     }
   }, [village.error, client, navigate, worldId, world.slug]);
   function setScreen(value: string) {
-    const next = new URLSearchParams(params);
-    next.set('screen', value);
-    next.delete('mode');
-    next.delete('x');
-    next.delete('y');
-    next.delete('id');
-    next.delete('rpage');
-    next.delete('rsearch');
-    setParams(next);
+    if (backgroundScreens.includes(value)) {
+      const next = new URLSearchParams(params);
+      next.set('screen', value);
+      next.delete('mode');
+      next.delete('x');
+      next.delete('y');
+      next.delete('id');
+      next.delete('rpage');
+      next.delete('rsearch');
+      setParams(next);
+      return;
+    }
+    const villageId = params.get('village') ?? String(canonicalVillageId ?? '');
+    openWindow(new URLSearchParams({ village: villageId, screen: value }).toString());
+  }
+  /** Navegação feita de dentro de uma janela: outra tela na própria janela, ou o fundo. */
+  function navigateWindow(id: number, search: string) {
+    if (backgroundScreens.includes(new URLSearchParams(search).get('screen') ?? '')) {
+      setParams(new URLSearchParams(search));
+      return;
+    }
+    windows.setSearch(id, search);
   }
   function submitName(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -170,24 +229,15 @@ export function VillagePage({
     );
   const clock = new Date(data.serverTime).getTime() + Math.max(0, now - village.dataUpdatedAt);
   const elapsed = Math.max(0, now - village.dataUpdatedAt) / 3_600_000;
-  const active = data.buildings.find((building) => building.code === screen);
+  const buildingFor = (code: string) => data.buildings.find((building) => building.code === code);
+  const focusedWindow = windows.windows.find((item) => item.id === windows.focusedId);
+  const focusedScreen = focusedWindow ? screenOf(focusedWindow.search) : lastBackgroundScreen(rawScreen, isBackground, lastBackground.current);
+  const active = buildingFor(focusedScreen);
   const section = active
     ? 'buildings'
-    : screen === 'reports'
-      ? 'reports'
-      : screen === 'map'
-        ? 'map'
-        : screen === 'mail'
-          ? 'mail'
-          : screen === 'activity'
-            ? 'activity'
-            : screen === 'info_village' || screen === 'info_player'
-              ? screen
-              : screen === 'ranking'
-                ? 'ranking'
-                : screen === 'settings'
-                  ? 'settings'
-                  : 'overview';
+    : [...backgroundScreens, ...Object.keys(windowTitles)].includes(focusedScreen)
+      ? focusedScreen
+      : 'overview';
   const uncertainAction = build.isError && intent.current !== null;
   const pending = build.isPending || cancel.isPending || uncertainAction;
   const error =
@@ -209,6 +259,33 @@ export function VillagePage({
     village.error !== null ||
     preference.isError ||
     logout.isError;
+  const activityView = (
+<div className="legacy-content">
+          <h1>Atividade da aldeia</h1>
+          <div className="table-scroll">
+            <table className="legacy-table activity-table">
+              <thead>
+                <tr>
+                  <th>Acontecimento</th>
+                  <th>Data</th>
+                </tr>
+              </thead>
+              <tbody>
+                {data.activity.map((item) => (
+                  <tr key={item.id}>
+                    <td>{item.message}</td>
+                    <td>
+                      <time dateTime={item.occurredAt}>
+                        {new Date(item.occurredAt).toLocaleString('pt-BR')}
+                      </time>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+  );
   return (
     <GameShell
       primary={[
@@ -405,7 +482,7 @@ export function VillagePage({
                       <button
                         className="subbar-link"
                         key={code}
-                        aria-current={screen === code ? 'page' : undefined}
+                        aria-current={focusedScreen === code ? 'page' : undefined}
                         onClick={() => setScreen(code)}
                       >
                         {building.name}
@@ -459,7 +536,7 @@ export function VillagePage({
           ) : null}
         </p>
       ) : null}
-      {section === 'overview' ? (
+      {lastBackgroundScreen(rawScreen, isBackground, lastBackground.current) === 'overview' ? (
         <Overview
           snapshot={data}
           graphical={account.graphicalOverview !== false}
@@ -468,69 +545,63 @@ export function VillagePage({
           onSelect={setScreen}
           clock={clock}
         />
-      ) : null}
-      {section === 'map' ? <WorldMap snapshot={data} /> : null}
-      {section === 'info_village' ? <PublicVillageScreen snapshot={data} /> : null}
-      {section === 'info_player' ? <PublicPlayerScreen snapshot={data} /> : null}
-      {section === 'reports' ? <ReportsPanel snapshot={data} clock={clock} /> : null}
-      {section === 'mail' ? <MailPanel snapshot={data} clock={clock} /> : null}
-      {section === 'ranking' ? <RankingScreen snapshot={data} /> : null}
-      {section === 'settings' ? <SettingsScreen snapshot={data} /> : null}
-      {section === 'buildings' && active ? (
-        <BuildingScreen
-          snapshot={data}
-          building={active}
-          clock={clock}
-          pending={pending}
-          pendingCode={build.isPending ? build.variables?.buildingCode : undefined}
-          onCancel={(id) => cancel.mutate(id)}
-          onConstruct={construct}
-          onSelect={setScreen}
-          onResearch={(code) => research.mutate(code)}
-          researchPending={research.isPending}
-          onRecruit={recruit}
-          onCancelRecruitment={(id) => cancelRecruitment.mutate(id)}
-          recruitmentPending={
-            recruitment.isPending ||
-            cancelRecruitment.isPending ||
-            (recruitment.isError && recruitmentIntent.current !== null)
-          }
-          recruitmentVersion={recruitmentVersion}
-          onAcademyAction={academyAction}
-          academyPending={
-            academy.isPending ||
-            cancelRecruitment.isPending ||
-            (academy.isError && academyIntent.current !== null)
-          }
-        />
-      ) : null}
-      {section === 'activity' ? (
-        <div className="legacy-content">
-          <h1>Atividade da aldeia</h1>
-          <div className="table-scroll">
-            <table className="legacy-table activity-table">
-              <thead>
-                <tr>
-                  <th>Acontecimento</th>
-                  <th>Data</th>
-                </tr>
-              </thead>
-              <tbody>
-                {data.activity.map((item) => (
-                  <tr key={item.id}>
-                    <td>{item.message}</td>
-                    <td>
-                      <time dateTime={item.occurredAt}>
-                        {new Date(item.occurredAt).toLocaleString('pt-BR')}
-                      </time>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      ) : null}
+      ) : (
+        <WorldMap snapshot={data} />
+      )}
+      <WindowLayer
+        manager={windows}
+        titleOf={(search) => {
+          const code = screenOf(search);
+          return buildingFor(code)?.name ?? windowTitles[code] ?? 'Janela';
+        }}
+        onNavigate={navigateWindow}
+        render={(win) => {
+          const code = screenOf(win.search);
+          const building = buildingFor(code);
+          const select = (value: string) =>
+            navigateWindow(
+              win.id,
+              new URLSearchParams({ village: String(data.village.id), screen: value }).toString(),
+            );
+          if (building)
+            return (
+              <BuildingScreen
+                snapshot={data}
+                building={building}
+                clock={clock}
+                pending={pending}
+                pendingCode={build.isPending ? build.variables?.buildingCode : undefined}
+                onCancel={(id) => cancel.mutate(id)}
+                onConstruct={construct}
+                onSelect={select}
+                onResearch={(code) => research.mutate(code)}
+                researchPending={research.isPending}
+                onRecruit={recruit}
+                onCancelRecruitment={(id) => cancelRecruitment.mutate(id)}
+                recruitmentPending={
+                  recruitment.isPending ||
+                  cancelRecruitment.isPending ||
+                  (recruitment.isError && recruitmentIntent.current !== null)
+                }
+                recruitmentVersion={recruitmentVersion}
+                onAcademyAction={academyAction}
+                academyPending={
+                  academy.isPending ||
+                  cancelRecruitment.isPending ||
+                  (academy.isError && academyIntent.current !== null)
+                }
+              />
+            );
+          if (code === 'info_village') return <PublicVillageScreen snapshot={data} />;
+          if (code === 'info_player') return <PublicPlayerScreen snapshot={data} />;
+          if (code === 'reports') return <ReportsPanel snapshot={data} clock={clock} />;
+          if (code === 'mail') return <MailPanel snapshot={data} clock={clock} />;
+          if (code === 'ranking') return <RankingScreen snapshot={data} />;
+          if (code === 'settings') return <SettingsScreen snapshot={data} />;
+          if (code === 'activity') return activityView;
+          return null;
+        }}
+      />
     </GameShell>
   );
 }
