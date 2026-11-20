@@ -1,3 +1,4 @@
+import { Brand } from '../../components/icons.js';
 import { useState, type FormEvent } from 'react';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { Eye, EyeOff, Hammer, Map as MapIcon, Swords } from 'lucide-react';
@@ -93,7 +94,7 @@ export function AuthPage({ onAuthenticated }: { onAuthenticated: (account: Accou
     <div className="landing">
       <div className="landing-bg" aria-hidden="true" />
       <section className="landing-hero">
-        <img className="landing-logo" src="/legacy/layout/logo.png" alt="DWar" />
+        <Brand size={84} />
         <h1>
           Funde sua aldeia.
           <br />

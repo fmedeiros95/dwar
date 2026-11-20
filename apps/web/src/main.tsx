@@ -15,6 +15,7 @@ import '@fontsource/im-fell-english-sc/400.css';
 import './styles.css';
 import './theme.css';
 import './skin.css';
+import './frames.css';
 
 const client = new QueryClient({
   defaultOptions: { queries: { retry: false, refetchOnWindowFocus: true } },

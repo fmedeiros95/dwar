@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 import { Link } from 'react-router-dom';
+import { Brand } from './icons.js';
 
 export type RailItem = {
   key: string;
@@ -52,7 +53,7 @@ export function GameShell({
     <div className="shell">
       <header className="shell-topbar">
         <Link className="shell-logo" to="/worlds" aria-label="DWar — mundos">
-          <img src="/legacy/layout/logo.png" alt="" width="160" height="99" />
+          <Brand size={42} />
         </Link>
         {topbar}
       </header>

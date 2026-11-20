@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 import { Link } from 'react-router-dom';
+import { Brand, Icon, type IconName } from './icons.js';
 
 export function LegacyFrame({
   children,
@@ -28,7 +29,7 @@ export function LegacyFrame({
       <header className={`legacy-masthead${masthead ? ' with-login' : ''}`}>
         <span className="legacy-chain left" aria-hidden="true" />
         <Link className="legacy-logo" to="/" aria-label="DWar — início">
-          <img src="/legacy/layout/logo.png" alt="Logo do jogo" width="160" height="99" />
+          <Brand size={52} />
         </Link>
         {masthead}
         <span className="legacy-chain right" aria-hidden="true" />
@@ -40,27 +41,34 @@ export function LegacyFrame({
     </div>
   );
 }
-const resourceArt: Record<string, string> = {
-  wood: 'woodB',
-  stone: 'clayB',
-  iron: 'ironB',
-  peasants: 'workersB',
-  food: 'foodB',
-  merchant: 'merchantB',
-  noble: 'nobleB',
-  time: 'timeB',
+const resourceIcon: Record<string, IconName> = {
+  wood: 'wood',
+  stone: 'clay',
+  iron: 'iron',
+  peasants: 'people',
+  food: 'food',
+  merchant: 'coin',
+  noble: 'banner',
+  time: 'time',
+  storage: 'storage',
 };
 
 export function ResourceIcon({ code, label }: { code: string; label: string }) {
-  const art = resourceArt[code];
+  const icon = resourceIcon[code];
+  if (!icon)
+    return (
+      <img
+        className="resource-icon"
+        src={`/legacy/icons/${code}.png`}
+        alt={label}
+        title={label}
+        width="18"
+        height="18"
+      />
+    );
   return (
-    <img
-      className="resource-icon"
-      src={art ? `/game/resources/${art}.webp` : `/legacy/icons/${code}.png`}
-      alt={label}
-      title={label}
-      width="18"
-      height="18"
-    />
+    <span className={`resource-icon ri-${code}`} role="img" aria-label={label} title={label}>
+      <Icon name={icon} size={20} />
+    </span>
   );
 }

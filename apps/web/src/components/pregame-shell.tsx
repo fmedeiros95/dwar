@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import { Brand } from './icons.js';
 import { Link } from 'react-router-dom';
 import { LogOut, UserRound } from 'lucide-react';
 
@@ -19,7 +20,7 @@ export function PregameShell({
       <div className="landing-bg" aria-hidden="true" />
       <header className="pregame-bar">
         <Link to="/worlds" aria-label="DWar — mundos">
-          <img src="/legacy/layout/logo.png" alt="" height="44" />
+          <Brand size={40} />
         </Link>
         {username ? (
           <div className="pregame-user">

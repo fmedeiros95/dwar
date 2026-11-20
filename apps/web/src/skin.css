@@ -388,3 +388,161 @@ th {
 .legacy-production > :first-child {
   font-size: 13px;
 }
+
+/* ---- Marca e ícones próprios ---- */
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+}
+.emblem {
+  flex: none;
+  filter: drop-shadow(0 3px 4px rgb(0 0 0 / 0.55));
+}
+.brand-text {
+  display: grid;
+  line-height: 1;
+}
+.brand-name {
+  font-family: var(--font-display);
+  font-size: 30px;
+  color: #f6e3b2;
+  text-shadow:
+    0 2px 0 #3a0f0b,
+    0 3px 6px rgb(0 0 0 / 0.6);
+}
+.brand-sub {
+  margin-top: 3px;
+  font-family: var(--font-caps);
+  font-size: 12px;
+  letter-spacing: 0.14em;
+  color: var(--brass);
+}
+.shell-logo .brand-name {
+  font-size: 25px;
+}
+.shell-logo .brand-sub {
+  font-size: 10.5px;
+}
+.landing-hero > .brand {
+  margin-bottom: 18px;
+}
+.landing-hero .brand-name {
+  font-size: 54px;
+}
+.landing-hero .brand-sub {
+  font-size: 16px;
+}
+.resource-icon {
+  display: inline-flex;
+  flex: none;
+  filter: drop-shadow(0 1px 1px rgb(0 0 0 / 0.55));
+}
+.resource-icon .icon {
+  width: 100%;
+  height: 100%;
+}
+.ri-wood {
+  color: #cf9a48;
+}
+.ri-stone {
+  color: #d26d45;
+}
+.ri-iron {
+  color: #a3b8cc;
+}
+.ri-peasants {
+  color: #e8d9b0;
+}
+.ri-food {
+  color: #dfc454;
+}
+.ri-merchant {
+  color: #ebca62;
+}
+.ri-noble {
+  color: #d96b5b;
+}
+.ri-time {
+  color: #d9c8a0;
+}
+.ri-storage {
+  color: #c9a66b;
+}
+.gw-body .resource-icon {
+  filter: drop-shadow(0 1px 0 rgb(40 20 5 / 0.55));
+}
+.rail-icon .icon {
+  display: block;
+}
+
+.shell-logo {
+  flex: 0 0 auto;
+  justify-content: flex-start;
+  min-width: var(--rail-w);
+  padding: 0 22px 0 16px;
+}
+.brand-text,
+.brand-name,
+.brand-sub {
+  white-space: nowrap;
+}
+@media (max-width: 900px) {
+  .shell-logo .brand-text {
+    display: none;
+  }
+  .shell-logo {
+    min-width: 0;
+    padding: 0 8px;
+  }
+}
+
+/* ---- Placas de madeira sobre a aldeia ---- */
+.hud-card,
+.legacy-production {
+  background:
+    linear-gradient(180deg, rgb(0 0 0 / 0.18), rgb(0 0 0 / 0.5)),
+    var(--wood) 0 0 / 900px 72px repeat,
+    var(--oak);
+  border: 2px solid #1b120c;
+  border-radius: var(--radius);
+  box-shadow:
+    0 10px 24px rgb(0 0 0 / 0.55),
+    0 0 0 1px rgb(185 139 61 / 0.5),
+    inset 0 1px 0 rgb(255 215 150 / 0.18);
+  backdrop-filter: none;
+}
+.hud-card::before,
+.legacy-production::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    var(--corner-tl) left 2px top 2px / 24px 24px no-repeat,
+    var(--corner-tr) right 2px top 2px / 24px 24px no-repeat,
+    var(--corner-bl) left 2px bottom 2px / 24px 24px no-repeat,
+    var(--corner-br) right 2px bottom 2px / 24px 24px no-repeat;
+}
+.hud-card h2,
+.legacy-production h2 {
+  font-family: var(--font-caps);
+  font-size: 16px;
+  color: #f1d28a;
+  text-shadow: 0 1px 2px #000;
+}
+.hud-card,
+.legacy-production {
+  color: #efe0bd;
+  text-shadow: 0 1px 1px rgb(0 0 0 / 0.55);
+}
+.scene-tools button,
+.scene-tool {
+  background: linear-gradient(180deg, #5a3a24, #34231a);
+  border: 1px solid #1b120c;
+  border-radius: var(--radius-sm);
+  color: #f1d28a;
+  box-shadow:
+    0 2px 0 #140a05,
+    inset 0 1px 0 rgb(255 215 150 / 0.25);
+}

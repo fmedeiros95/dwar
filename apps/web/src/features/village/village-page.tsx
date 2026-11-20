@@ -4,20 +4,11 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { api, ApiError, type Account, type World } from '@dwar/api-client';
 import {
-  Castle,
   Clock,
-  Globe,
-  Hammer,
-  History,
-  LogOut,
-  Mail,
-  Map as MapIcon,
   Pencil,
-  ScrollText,
-  Settings,
-  Trophy,
 } from 'lucide-react';
 import { LegacyFrame, ResourceIcon } from '../../components/legacy-frame.js';
+import { Icon } from '../../components/icons.js';
 import { GameShell } from '../../components/game-shell.js';
 import { WindowLayer } from '../../components/game-window.js';
 import { screenOf, useWindowManager } from '../../components/use-window-manager.js';
@@ -291,28 +282,28 @@ export function VillagePage({
         {
           key: 'overview',
           label: 'Aldeia',
-          icon: <Castle />,
+          icon: <Icon name="village" size={26} />,
           active: section === 'overview',
           onClick: () => setScreen('overview'),
         },
         {
           key: 'buildings',
           label: 'Construir',
-          icon: <Hammer />,
+          icon: <Icon name="build" size={26} />,
           active: section === 'buildings',
           onClick: () => setScreen('main'),
         },
         {
           key: 'map',
           label: 'Mapa',
-          icon: <MapIcon />,
+          icon: <Icon name="map" size={26} />,
           active: section === 'map',
           onClick: () => setScreen('map'),
         },
         {
           key: 'reports',
           label: 'Relatórios',
-          icon: <ScrollText />,
+          icon: <Icon name="reports" size={26} />,
           active: section === 'reports',
           badge: reports.data?.unread,
           onClick: () => setScreen('reports'),
@@ -320,7 +311,7 @@ export function VillagePage({
         {
           key: 'mail',
           label: 'Mensagens',
-          icon: <Mail />,
+          icon: <Icon name="mail" size={26} />,
           active: section === 'mail',
           badge: mail.data?.unread,
           onClick: () => setScreen('mail'),
@@ -328,14 +319,14 @@ export function VillagePage({
         {
           key: 'activity',
           label: 'Atividade',
-          icon: <History />,
+          icon: <Icon name="activity" size={26} />,
           active: section === 'activity',
           onClick: () => setScreen('activity'),
         },
         {
           key: 'ranking',
           label: 'Ranking',
-          icon: <Trophy />,
+          icon: <Icon name="ranking" size={26} />,
           active: section === 'ranking',
           onClick: () => setScreen('ranking'),
         },
@@ -344,20 +335,20 @@ export function VillagePage({
         {
           key: 'settings',
           label: 'Ajustes',
-          icon: <Settings />,
+          icon: <Icon name="settings" size={26} />,
           active: section === 'settings',
           onClick: () => setScreen('settings'),
         },
         {
           key: 'worlds',
           label: 'Mundos',
-          icon: <Globe />,
+          icon: <Icon name="world" size={26} />,
           onClick: () => navigate('/worlds'),
         },
         {
           key: 'logout',
           label: 'Sair',
-          icon: <LogOut />,
+          icon: <Icon name="logout" size={26} />,
           disabled: logout.isPending,
           onClick: () => logout.mutate(),
         },
