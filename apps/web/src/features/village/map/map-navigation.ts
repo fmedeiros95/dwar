@@ -12,9 +12,11 @@ export function useMapNavigation(
   const halfX = Math.floor(width / 2),
     halfY = Math.floor(height / 2);
   const route = `${routeX}|${routeY}|${width}|${height}`;
-  const [camera, setCamera] = useState<{ route: string; position: Point } | null>(null);
+  // `from` e `to` são as rotas (da URL) em que a câmera vale. Ao confirmar um arrasto a URL só muda
+  // um instante depois; sem aceitar as duas, a posição voltaria à antiga por um quadro e pularia.
+  const [camera, setCamera] = useState<{ from: string; to: string; position: Point } | null>(null);
   const position =
-    camera?.route === route
+    camera && (camera.from === route || camera.to === route)
       ? camera.position
       : { x: bound(routeX - halfX, 1000 - width), y: bound(routeY - halfY, 1000 - height) };
   const animation = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -25,6 +27,10 @@ export function useMapNavigation(
     scale: number;
     moved: boolean;
   } | null>(null);
+  useEffect(() => {
+    // a URL alcançou a câmera: a rota antiga deixa de valer (voltar no navegador reposiciona)
+    if (camera && camera.to === route && camera.from !== route) setCamera({ ...camera, from: route });
+  }, [camera, route]);
   useEffect(
     () => () => {
       if (animation.current !== null) clearInterval(animation.current);
@@ -39,7 +45,8 @@ export function useMapNavigation(
     const bounded = { x: bound(next.x, 1000 - width), y: bound(next.y, 1000 - height) };
     const x = Math.floor(bounded.x + halfX),
       y = Math.floor(bounded.y + halfY);
-    setCamera({ route: commit ? `${x}|${y}|${width}|${height}` : route, position: bounded });
+    const target = commit ? `${x}|${y}|${width}|${height}` : route;
+    setCamera({ from: route, to: target, position: bounded });
     if (commit) onCommit(x, y);
     return bounded;
   }
