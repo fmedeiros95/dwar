@@ -14,6 +14,10 @@ texturas legadas, então telas ainda não redesenhadas herdam cores e superfíci
 - Aldeia: HUD com obras em andamento e detalhe do edifício ao passar o mouse.
 - Construções: cartões com custo (destaca o recurso que falta) e fila de obras com progresso.
 - Entrada: login e cadastro em abas. Mundos e fundação da aldeia redesenhados (`PregameShell`).
+- Assets do Tribul importados e otimizados (`scripts/import-tribul-assets.py`): cenários de verão,
+  inverno e Halloween, 18 edifícios com fases de obra, ícones de recursos e retratos de tropas.
+- Aldeia em tela cheia, arrastável e com zoom; seletor de estação.
+- Mapa em tela cheia com painéis flutuantes (arrasto 1:1).
 
 ## Próximos passos (ordem de impacto)
 
@@ -29,5 +33,5 @@ texturas legadas, então telas ainda não redesenhadas herdam cores e superfíci
 
 ## Mecânicas
 
-Nenhuma alteração ainda. Qualquer mudança de regra deve ser aditiva (novas colunas/tabelas com
+Nenhuma alteração ainda. Proposta de Tesouraria e Moleiro em `docs/proposta-novas-construcoes.md`. Qualquer mudança de regra deve ser aditiva (novas colunas/tabelas com
 valores padrão), nunca destrutiva, e passar por `packages/game-core` com testes das fórmulas.
