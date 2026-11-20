@@ -1,10 +1,26 @@
 import { useGameSearchParams as useSearchParams } from '../../../routing.js';
 import { useEffect, useRef, useState, type FormEvent, type PointerEvent } from 'react';
-import { Layers, LocateFixed, SlidersHorizontal, X } from 'lucide-react';
+import {
+  ArrowDown,
+  ArrowDownLeft,
+  ArrowDownRight,
+  ArrowLeft,
+  ArrowRight,
+  ArrowUp,
+  ArrowUpLeft,
+  ArrowUpRight,
+  Globe,
+  Layers,
+  LocateFixed,
+  Moon,
+  SlidersHorizontal,
+  X,
+} from 'lucide-react';
 import { keepPreviousData, useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 
 import {
   api,
+  type MapCommand,
   type MapSnapshot,
   type MapSettings,
   type PublicVillage,
@@ -14,6 +30,20 @@ import { useMapNavigation } from './map-navigation.js';
 import { MapResize } from './map-resize.js';
 import { MapOptions } from './map-options.js';
 import { MapLegend, VillagePopup, ownerColor, villageGraphic } from './map-legend.js';
+import { Icon } from '../../../components/icons.js';
+
+/** Noite do jogo: das 20h às 8h, no horário de Brasília, como no Speed Wars. */
+function isNight(now = new Date()) {
+  const hour = Number(
+    new Intl.DateTimeFormat('en-GB', { hour: '2-digit', hour12: false, timeZone: 'America/Sao_Paulo' }).format(now),
+  );
+  return hour >= 20 || hour <= 8;
+}
+const commandLabel = {
+  attack: 'Ataque seu a caminho',
+  support: 'Apoio seu a caminho',
+  return: 'Tropas suas voltando',
+} as const;
 
 const coordinate = (value: string | null, fallback: number) =>
   value !== null && /^\d{1,3}$/.test(value) ? Number(value) : fallback;
@@ -109,6 +139,13 @@ function MapCanvas({ snapshot, options }: { snapshot: VillageSnapshot; options: 
     refetchInterval: 15000,
   });
   const known = new Map(map.data?.villages.map((row) => [`${row.x}|${row.y}`, row]));
+  const commandsByVillage = new Map<number, MapCommand[]>();
+  for (const command of map.data?.commands ?? [])
+    commandsByVillage.set(command.villageId, [
+      ...(commandsByVillage.get(command.villageId) ?? []),
+      command,
+    ]);
+  const night = isNight();
   const selected = map.data?.villages.find((row) => row.id === selectedId);
   const left = Math.floor(position.x),
     top = Math.floor(position.y),
@@ -215,7 +252,7 @@ function MapCanvas({ snapshot, options }: { snapshot: VillageSnapshot; options: 
     : [];
   return (
     <div
-      className="map-stage"
+      className={`map-stage${night ? ' night' : ''}`}
       ref={stageRef}
       style={{ '--mini-size': `${miniPixels}px` } as import('react').CSSProperties}
     >
@@ -309,6 +346,24 @@ function MapCanvas({ snapshot, options }: { snapshot: VillageSnapshot; options: 
                       />
                     </button>
                   ) : null}
+                  {village && commandsByVillage.has(village.id) ? (
+                    <span className="map-commands">
+                      {commandsByVillage.get(village.id)!.map((command) => (
+                        <span
+                          key={`${command.kind}|${command.incoming}`}
+                          className={`map-command ${command.kind}${command.incoming ? ' incoming' : ''}`}
+                          title={
+                            command.incoming
+                              ? `Ataque inimigo a caminho${command.count > 1 ? ` (${command.count})` : ''}`
+                              : `${commandLabel[command.kind]}${command.count > 1 ? ` (${command.count})` : ''}`
+                          }
+                        >
+                          <Icon name={command.kind === 'return' ? 'return' : command.kind === 'attack' ? 'sword' : 'shield'} size={12} />
+                          {command.count > 1 ? <b>{command.count}</b> : null}
+                        </span>
+                      ))}
+                    </span>
+                  ) : null}
                   {x % 5 === 0 ? (
                     <span
                       className={`map-sector-line vertical${x % 100 === 0 ? ' continent' : ''}`}
@@ -366,6 +421,11 @@ function MapCanvas({ snapshot, options }: { snapshot: VillageSnapshot; options: 
               {Math.floor(center.y / 100)}
               {Math.floor(center.x / 100)}
             </span>
+            {night ? (
+              <em className="map-night" title="É noite no mundo (20h às 8h)">
+                <Moon size={13} aria-hidden="true" /> Noite
+              </em>
+            ) : null}
           </h1>
           <form
             key={`${center.x}|${center.y}`}
@@ -430,6 +490,35 @@ function MapCanvas({ snapshot, options }: { snapshot: VillageSnapshot; options: 
             <LocateFixed size={18} />
           </button>
         </div>
+      </div>
+      <div className="map-card map-arrows" onPointerDown={(event) => event.stopPropagation()}>
+        {(
+          [
+            ['Noroeste', -1, -1, ArrowUpLeft],
+            ['Norte', 0, -1, ArrowUp],
+            ['Nordeste', 1, -1, ArrowUpRight],
+            ['Oeste', -1, 0, ArrowLeft],
+            ['centro', 0, 0, Globe],
+            ['Leste', 1, 0, ArrowRight],
+            ['Sudoeste', -1, 1, ArrowDownLeft],
+            ['Sul', 0, 1, ArrowDown],
+            ['Sudeste', 1, 1, ArrowDownRight],
+          ] as const
+        ).map(([label, dx, dy, ArrowIcon]) => (
+          <button
+            key={label}
+            type="button"
+            title={label === 'centro' ? 'Centro do mundo (500|500)' : `Rolar para o ${label.toLowerCase()}`}
+            aria-label={label === 'centro' ? 'Ir ao centro do mundo' : `Rolar para o ${label.toLowerCase()}`}
+            onClick={() => {
+              closeMenus();
+              if (label === 'centro') nav.focus(500, 500);
+              else nav.block(dx, dy);
+            }}
+          >
+            <ArrowIcon size={16} />
+          </button>
+        ))}
       </div>
       <div className="map-card map-minimap-card" onPointerDown={(event) => event.stopPropagation()}>
         <div className="world-minimap">

@@ -167,6 +167,12 @@ const paths: Record<string, ReactNode> = {
       <path d="M9.4 22.6 L4 28" stroke="currentColor" strokeWidth="3.4" strokeLinecap="round" />
     </>
   ),
+  return: (
+    <g fill="none" stroke="currentColor" strokeWidth="3.2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M11 5 L5 11 L11 17" />
+      <path d="M5 11 H20 a7 7 0 0 1 0 14 H11" />
+    </g>
+  ),
   shield: <path d="M16 2.8 L27.5 7 V16 C27.5 22 22.4 26 16 29.5 C9.6 26 4.5 22 4.5 16 V7 Z" />,
   helm: (
     <path d="M6 28 V19 C6 13 9 8 14 6 L16 3 L18.4 6.6 C22.6 8 26 12 26 17.5 V28 H21 V20 L18 22 V28 Z" />

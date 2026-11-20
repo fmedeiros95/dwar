@@ -17,6 +17,7 @@ import type {
   PublicVillage,
   PublicPlayer,
   MapSnapshot,
+  MapCommand,
   RallySnapshot,
   RallyAction,
   SupportPreview,
@@ -167,11 +168,58 @@ export async function mapView(
         span,
       ) / 2,
     ) + 1;
+  const visible = await publicVillages(tx, village, { x, y, radius });
   return {
     center: { x, y },
-    villages: await publicVillages(tx, village, { x, y, radius }),
+    villages: visible,
+    commands: await mapCommands(tx, village, visible),
     ...options,
   };
+}
+/** Ordens de tropas pendentes que aparecem como ícones sobre as aldeias visíveis. */
+async function mapCommands(
+  tx: Transaction,
+  village: Village,
+  visible: PublicVillage[],
+): Promise<MapCommand[]> {
+  if (!visible.length || !village.playerId) return [];
+  const ids = visible.map((row) => row.id);
+  const mine = visible.filter((row) => row.own).map((row) => row.id);
+  const pending = await tx
+    .select({
+      kind: troopMovements.kind,
+      from: troopMovements.fromVillageId,
+      to: troopMovements.toVillageId,
+      owner: troopMovements.ownerPlayerId,
+    })
+    .from(troopMovements)
+    .where(
+      and(
+        eq(troopMovements.worldId, village.worldId),
+        isNull(troopMovements.arrivedAt),
+        or(
+          and(
+            eq(troopMovements.ownerPlayerId, village.playerId),
+            or(inArray(troopMovements.toVillageId, ids), inArray(troopMovements.fromVillageId, ids)),
+          ),
+          mine.length
+            ? and(eq(troopMovements.kind, 'attack'), inArray(troopMovements.toVillageId, mine))
+            : undefined,
+        ),
+      ),
+    );
+  const grouped = new Map<string, MapCommand>();
+  for (const row of pending) {
+    const incoming = row.owner !== village.playerId;
+    // ordens suas aparecem no destino; o retorno aparece na aldeia de onde as tropas voltam
+    const villageId = !incoming && row.kind === 'return' ? row.from : row.to;
+    if (!ids.includes(villageId)) continue;
+    const key = `${villageId}|${row.kind}|${incoming}`;
+    const found = grouped.get(key);
+    if (found) found.count += 1;
+    else grouped.set(key, { villageId, kind: row.kind, incoming, count: 1 });
+  }
+  return [...grouped.values()];
 }
 function requirePlace(village: Village) {
   if (village.buildings.place < 1) throw new GameError('Praça de reunião não construída.');

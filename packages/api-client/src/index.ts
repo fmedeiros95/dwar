@@ -267,9 +267,19 @@ export type VillagePopupInfo = {
     seconds: number | null;
   }[];
 };
+/** Ordem de tropas em andamento sobre uma aldeia do mapa (ícone no estilo Speed Wars/Tribal Wars). */
+export type MapCommand = {
+  villageId: number;
+  /** attack/support: tropas suas a caminho; return: tropas suas voltando desta aldeia. */
+  kind: 'attack' | 'support' | 'return';
+  /** Ataque de outro jogador a caminho de uma aldeia sua. */
+  incoming: boolean;
+  count: number;
+};
 export type MapSnapshot = {
   center: { x: number; y: number };
   villages: PublicVillage[];
+  commands: MapCommand[];
   settings: MapSettings;
   marks: MapMark[];
 };

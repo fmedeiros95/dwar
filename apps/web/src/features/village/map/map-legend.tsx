@@ -4,6 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 import { api, type PublicVillage, type MapSnapshot } from '@dwar/api-client';
 import { duration, numbers } from '../shared/index.js';
 import { unitIconSrc } from '../../../components/unit-icon.js';
+import { Icon } from '../../../components/icons.js';
 
 export function villageGraphic(points: number): number {
   return points < 300
@@ -45,6 +46,17 @@ export function MapLegend() {
   return (
     <table className="legacy-table world-map-legend">
       <tbody>
+        <tr>
+          <td>Ordens:</td>
+          <td colSpan={6}>
+            <span className="legend-commands">
+              <span className="map-command attack"><Icon name="sword" size={12} /></span> Seu ataque
+              <span className="map-command support"><Icon name="shield" size={12} /></span> Seu apoio
+              <span className="map-command return"><Icon name="return" size={12} /></span> Tropas voltando
+              <span className="map-command attack incoming"><Icon name="sword" size={12} /></span> Ataque inimigo
+            </span>
+          </td>
+        </tr>
         {[
           { label: 'Aldeias:', items: villageLegend },
           { label: 'Tribos:', items: tribeLegend },
