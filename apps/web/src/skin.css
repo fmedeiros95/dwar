@@ -1009,3 +1009,143 @@ th {
     inset 0 1px 0 rgb(255 215 150 / 0.22);
   text-shadow: none;
 }
+
+/* ---- Legibilidade: Inter em toda a interface; a marca mantém o traço histórico ---- */
+:root {
+  --font-ui: 'Inter Variable', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --font-display: var(--font-ui);
+  --font-caps: var(--font-ui);
+  font-size: 14px;
+}
+body {
+  font-size-adjust: none;
+  font-feature-settings: 'tnum' 0;
+  font-variant-numeric: normal;
+}
+body,
+input,
+textarea,
+button,
+select {
+  font-feature-settings: normal;
+  font-variant-numeric: normal;
+}
+h1,
+h2,
+h3,
+.gw-title,
+.village-name,
+.tech-heading,
+.map-card h2,
+.map-title h1,
+.landing-features h3,
+.legacy-production h2,
+.village-popup > header strong,
+.village-popup h3,
+.legacy-table th {
+  font-family: var(--font-ui);
+  font-weight: 650;
+  letter-spacing: -0.005em;
+  text-shadow: none;
+}
+h1 {
+  font-size: 22px;
+}
+h2 {
+  font-size: 17px;
+}
+.gw-title {
+  font-size: 15px;
+  letter-spacing: 0.01em;
+  text-shadow: 0 1px 2px #000;
+}
+.village-name {
+  font-size: 18px;
+  text-shadow: 0 2px 2px #000;
+}
+.legacy-table th {
+  font-size: 13px;
+}
+.legacy-table td {
+  font-size: 14px;
+}
+.legacy-production,
+.legacy-production .legacy-table td,
+.legacy-production .legacy-table th {
+  font-size: 13px;
+}
+.tech-heading {
+  font-size: 13px;
+}
+button,
+.button {
+  font-size: 13.5px;
+  font-weight: 650;
+}
+input,
+textarea,
+select,
+.gw-body input,
+.gw-body textarea {
+  font-size: 14px;
+}
+.legacy-resources .resource-amount {
+  font-size: 15px;
+  font-weight: 650;
+}
+.rail-label {
+  font-size: 12px;
+}
+.gw-body {
+  font-size: 14px;
+}
+.map-stage .map-y-axis span,
+.map-stage .map-x-axis span {
+  font-size: 11px;
+}
+/* A marca é o único texto em estilo histórico. */
+.brand-name {
+  font-family: 'IM Fell English', Georgia, serif;
+  font-weight: 400;
+}
+.brand-sub {
+  font-family: var(--font-ui);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+}
+.shell-logo .brand-sub {
+  font-size: 9px;
+}
+
+/* ---- Popup do mapa: as unidades ficam numa linha só ---- */
+.village-popup {
+  width: max-content;
+  min-width: 330px;
+  max-width: calc(100vw - 16px);
+  font-size: 13.5px;
+}
+.village-popup > header strong {
+  font-size: 15px;
+}
+.village-popup > header span {
+  font-size: 12px;
+}
+.village-popup h3 {
+  font-size: 13px;
+}
+.pop-grid {
+  grid-template-columns: repeat(10, 46px);
+  gap: 0 2px;
+}
+.pop-grid li {
+  font-size: 11px;
+}
+.pop-grid b {
+  white-space: nowrap;
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+}
+.pop-grid small {
+  white-space: nowrap;
+}

@@ -123,9 +123,9 @@ export function VillagePopup({
     <div
       className="village-popup"
       style={{
-        left: Math.max(3, Math.min(x + 15, window.innerWidth - 335)),
+        left: Math.max(3, Math.min(x + 15, window.innerWidth - 520)),
         // Sem espaço embaixo, o popup abre para cima e fica colado ao cursor.
-        ...(y + 320 < window.innerHeight
+        ...(y + 270 < window.innerHeight
           ? { top: y + 15 }
           : { bottom: window.innerHeight - y + 15, maxHeight: Math.max(120, y - 20) }),
       }}
