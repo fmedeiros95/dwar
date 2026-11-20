@@ -1,6 +1,7 @@
 import type { BuildingView, VillageSnapshot, RecruitmentOrder } from '@dwar/api-client';
 import { ResourceIcon } from '../../components/legacy-frame.js';
 import { BuildingTable, ConstructionQueue } from './building/index.js';
+import { BuildPrompt } from './building/build-prompt.js';
 import { ResearchTable } from './research/index.js';
 import { RecruitmentPanel } from './recruitment/index.js';
 import { AcademyPanel } from './academy/index.js';
@@ -81,7 +82,7 @@ export function BuildingScreen({
       ) : null}
       {building.code === 'smith' && building.level > 0 ? (
         <ResearchTable
-          technologies={snapshot.technologies}
+          snapshot={snapshot}
           clock={clock}
           pending={researchPending}
           onResearch={onResearch}
@@ -104,6 +105,15 @@ export function BuildingScreen({
             onSelect={onSelect}
           />
         </>
+      ) : building.level === 0 && building.queuedLevel === 0 ? (
+        <BuildPrompt
+          snapshot={snapshot}
+          building={building}
+          clock={clock}
+          pending={pending}
+          onConstruct={onConstruct}
+          onSelect={onSelect}
+        />
       ) : (
         <>
           {building.details.length ? (

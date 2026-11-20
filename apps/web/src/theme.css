@@ -2223,6 +2223,153 @@ input:focus {
   transform: translateX(-50%);
 }
 
+/* ---- Edifício ainda não construído ---- */
+.build-prompt {
+  display: grid;
+  gap: 20px;
+  max-width: 640px;
+}
+.build-prompt-block h2 {
+  margin: 0 0 10px;
+  font-size: 12px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+.build-prompt-action {
+  justify-self: start;
+  min-width: 260px;
+  padding: 12px 22px;
+}
+.req-list {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.req-list li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+  padding: 9px 14px;
+  font-size: 13px;
+  background: var(--surface-sunken);
+  border: 1px solid var(--line-soft);
+  border-radius: var(--radius-sm);
+}
+.req-list li.met {
+  color: var(--green);
+  border-color: rgb(134 180 106 / 0.35);
+}
+.req-list li.unmet {
+  color: var(--warn);
+  border-color: rgb(240 162 75 / 0.4);
+}
+.req-list li .text-button {
+  margin-left: auto;
+  font-size: 12px;
+}
+
+/* ---- Ferraria e Academia ---- */
+.tech-groups {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 22px;
+  align-items: start;
+}
+.tech-heading {
+  margin: 0 0 12px;
+  padding-bottom: 8px;
+  font-size: 12px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  border-bottom: 1px solid var(--line);
+}
+.tech-list {
+  display: grid;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.ucard[data-state='done'] {
+  border-color: rgb(134 180 106 / 0.45);
+}
+.tech-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--muted);
+}
+.tech-researched {
+  font-weight: 700;
+  color: var(--green);
+}
+.tech-researching {
+  color: var(--gold-bright);
+}
+.tech-remaining {
+  font-size: 13px;
+  color: var(--muted);
+}
+.tech-remaining time {
+  margin-left: 6px;
+  font-size: 15px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--gold-bright);
+}
+.btn-spinner.gold {
+  width: 11px;
+  height: 11px;
+  margin: 0;
+  border-color: rgb(232 190 106 / 0.25);
+  border-top-color: var(--gold-bright);
+}
+.stat-tiles {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 12px;
+  margin: 0 0 20px;
+}
+.stat-tile {
+  display: grid;
+  gap: 4px;
+  padding: 12px 14px;
+  background: var(--surface-sunken);
+  border: 1px solid var(--line-soft);
+  border-radius: var(--radius);
+}
+.stat-tile dt {
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.stat-tile dd {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 24px;
+  font-variant-numeric: tabular-nums;
+  color: var(--gold-bright);
+}
+.stat-tile.warn dd {
+  color: var(--warn);
+}
+.ucard-portrait.coin {
+  display: grid;
+  place-items: center;
+}
+.ucard-portrait.coin img {
+  width: 34px;
+  height: 34px;
+}
+.academy-grid {
+  grid-template-columns: repeat(auto-fit, minmax(320px, 440px));
+}
+
 /* ---- Recrutamento: cartões de unidade ---- */
 .queue-portrait {
   width: 56px;
