@@ -96,11 +96,6 @@ export function RankingScreen({ snapshot }: { snapshot: VillageSnapshot }) {
                 </td>
                 <td>
                   <span className="rank-player">
-                    <img
-                      src={`/legacy/rank/rank_${entry.rankTier}.gif`}
-                      alt=""
-                      title={entry.rankTitle}
-                    />
                     <button
                       className="text-button"
                       onClick={() =>
