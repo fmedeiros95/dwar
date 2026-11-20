@@ -55,9 +55,11 @@ export class MapController {
       .object({
         x: z.coerce.number().int().min(0).max(999),
         y: z.coerce.number().int().min(0).max(999),
+        // Quantos tiles o cliente quer ver (mapa em tela cheia); amplia o raio de busca.
+        span: z.coerce.number().int().min(1).max(120).optional(),
       })
       .parse(query);
-    return readMap(account.id, id.parse(worldId), id.parse(villageId), data.x, data.y);
+    return readMap(account.id, id.parse(worldId), id.parse(villageId), data.x, data.y, data.span);
   }
 
   @Get('villages/:targetId')

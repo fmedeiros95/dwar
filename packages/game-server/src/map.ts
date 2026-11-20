@@ -25,11 +25,12 @@ export async function readMap(
   villageId: number,
   x: number,
   y: number,
+  span?: number,
 ) {
   return db.transaction(async (tx) => {
     await lockWorld(tx, worldId);
     const village = await ownedVillage(tx, accountId, worldId, villageId);
-    return mapView(tx, village, x, y);
+    return mapView(tx, village, x, y, span);
   });
 }
 

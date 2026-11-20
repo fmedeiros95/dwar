@@ -489,8 +489,10 @@ export const api = {
       method: 'POST',
       body: JSON.stringify(action),
     }),
-  map: (worldId: number, villageId: number, x: number, y: number) =>
-    request<MapSnapshot>(`/worlds/${worldId}/villages/${villageId}/map?x=${x}&y=${y}`),
+  map: (worldId: number, villageId: number, x: number, y: number, span?: number) =>
+    request<MapSnapshot>(
+      `/worlds/${worldId}/villages/${villageId}/map?x=${x}&y=${y}${span ? `&span=${span}` : ''}`,
+    ),
   rally: (worldId: number, villageId: number) =>
     request<RallySnapshot>(`/worlds/${worldId}/villages/${villageId}/rally`),
   previewSupport: (

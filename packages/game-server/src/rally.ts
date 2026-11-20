@@ -152,6 +152,7 @@ export async function mapView(
   village: Village,
   x: number,
   y: number,
+  span = 0,
 ): Promise<MapSnapshot> {
   if (![x, y].every((value) => Number.isInteger(value) && value >= 0 && value <= 999))
     throw new GameError('Use coordenadas entre 0 e 999.');
@@ -159,7 +160,12 @@ export async function mapView(
   const options = await mapOptions(tx, village.playerId);
   const radius =
     Math.ceil(
-      Math.max(options.settings.minimapSize, options.settings.width, options.settings.height) / 2,
+      Math.max(
+        options.settings.minimapSize,
+        options.settings.width,
+        options.settings.height,
+        span,
+      ) / 2,
     ) + 1;
   return {
     center: { x, y },

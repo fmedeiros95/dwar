@@ -72,6 +72,8 @@ function MapCanvas({ snapshot, options }: { snapshot: VillageSnapshot; options: 
     onCancel: () => setResizeDraft(null),
   };
   const miniPixels = minimapSize * 5;
+  // O servidor só devolve aldeias dentro do raio pedido; informa quantos tiles estão visíveis.
+  const span = Math.max(width, height);
 
   const [params, setParams] = useSearchParams(),
     [selectedId, setSelectedId] = useState<number | null>(null);
@@ -92,8 +94,16 @@ function MapCanvas({ snapshot, options }: { snapshot: VillageSnapshot; options: 
   );
   const { position, center } = nav;
   const map = useQuery({
-    queryKey: ['map', snapshot.world.id, snapshot.village.id, center.x, center.y, minimapSize],
-    queryFn: () => api.map(snapshot.world.id, snapshot.village.id, center.x, center.y),
+    queryKey: [
+      'map',
+      snapshot.world.id,
+      snapshot.village.id,
+      center.x,
+      center.y,
+      minimapSize,
+      span,
+    ],
+    queryFn: () => api.map(snapshot.world.id, snapshot.village.id, center.x, center.y, span),
     placeholderData: keepPreviousData,
     staleTime: 15000,
     refetchInterval: 15000,

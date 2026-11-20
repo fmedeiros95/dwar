@@ -66,8 +66,13 @@ export function VillageScene({
       aria-label="Vista da aldeia. Arraste para mover, use a roda para ampliar e selecione um edifício."
       {...pan.handlers}
     >
+      <div
+        className="scene-ambient"
+        aria-hidden="true"
+        style={{ backgroundImage: `url(${backingUrl(theme)})` }}
+      />
       <svg
-        className="village-scene"
+        className={`village-scene${pan.gapX ? ' gap-x' : ''}${pan.gapY ? ' gap-y' : ''}`}
         width={sceneSize.width}
         height={sceneSize.height}
         viewBox={`0 0 ${sceneSize.width} ${sceneSize.height}`}

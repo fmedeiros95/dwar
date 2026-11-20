@@ -40,19 +40,22 @@ export function usePanZoom({
   const [dragging, setDragging] = useState(false);
 
   const cover = size.w ? Math.max(size.w / width, size.h / height) : 1;
+  // Em telas muito largas, cobrir exigiria ampliar além do máximo (arte borrada): nesse caso o
+  // conteúdo fica centralizado em maxScale e quem usa o hook preenche o excedente.
+  const minScale = Math.min(cover, maxScale);
 
   const clamp = useCallback(
     (next: View): View => {
-      const scale = Math.min(maxScale, Math.max(cover, next.scale));
-      const minX = Math.min(0, size.w - width * scale);
-      const minY = Math.min(0, size.h - height * scale);
+      const scale = Math.min(maxScale, Math.max(minScale, next.scale));
+      const slackX = size.w - width * scale;
+      const slackY = size.h - height * scale;
       return {
         scale,
-        x: Math.min(0, Math.max(minX, next.x)),
-        y: Math.min(0, Math.max(minY, next.y)),
+        x: slackX >= 0 ? slackX / 2 : Math.min(0, Math.max(slackX, next.x)),
+        y: slackY >= 0 ? slackY / 2 : Math.min(0, Math.max(slackY, next.y)),
       };
     },
-    [cover, maxScale, size.w, size.h, width, height],
+    [minScale, maxScale, size.w, size.h, width, height],
   );
 
   useEffect(() => {
@@ -72,23 +75,23 @@ export function usePanZoom({
       initialized.current = true;
       setView(
         clamp({
-          scale: cover,
-          x: size.w / 2 - focus.x * cover,
-          y: size.h / 2 - focus.y * cover,
+          scale: minScale,
+          x: size.w / 2 - focus.x * minScale,
+          y: size.h / 2 - focus.y * minScale,
         }),
       );
     } else setView((current) => clamp(current));
-  }, [size.w, size.h, cover, clamp, focus.x, focus.y]);
+  }, [size.w, size.h, minScale, clamp, focus.x, focus.y]);
 
   const zoomAt = useCallback(
     (factor: number, cx: number, cy: number) => {
       setView((current) => {
-        const scale = Math.min(maxScale, Math.max(cover, current.scale * factor));
+        const scale = Math.min(maxScale, Math.max(minScale, current.scale * factor));
         const ratio = scale / current.scale;
         return clamp({ scale, x: cx - (cx - current.x) * ratio, y: cy - (cy - current.y) * ratio });
       });
     },
-    [clamp, cover, maxScale],
+    [clamp, minScale, maxScale],
   );
 
   useEffect(() => {
@@ -144,9 +147,13 @@ export function usePanZoom({
   const reset = useCallback(
     () =>
       setView(
-        clamp({ scale: cover, x: size.w / 2 - focus.x * cover, y: size.h / 2 - focus.y * cover }),
+        clamp({
+          scale: minScale,
+          x: size.w / 2 - focus.x * minScale,
+          y: size.h / 2 - focus.y * minScale,
+        }),
       ),
-    [clamp, cover, size.w, size.h, focus.x, focus.y],
+    [clamp, minScale, size.w, size.h, focus.x, focus.y],
   );
   const onKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
     const step = 80;
@@ -173,7 +180,10 @@ export function usePanZoom({
     zoomBy,
     reset,
     canZoomIn: view.scale < maxScale - 0.01,
-    canZoomOut: view.scale > cover + 0.01,
+    canZoomOut: view.scale > minScale + 0.01,
+    // Sobra de viewport em cada eixo (conteúdo menor que a área): quem usa preenche o fundo.
+    gapX: size.w > width * view.scale + 1,
+    gapY: size.h > height * view.scale + 1,
     handlers: {
       onPointerDown,
       onPointerMove,
