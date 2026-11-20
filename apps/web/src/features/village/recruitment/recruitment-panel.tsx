@@ -2,6 +2,7 @@ import { useState, type FormEvent } from 'react';
 import type { RecruitmentOrder, VillageSnapshot } from '@dwar/api-client';
 import { ResourceIcon } from '../../../components/legacy-frame.js';
 import { RecruitmentQueue, duration, numbers, resources } from '../shared/index.js';
+import { unitIconSrc } from '../../../components/unit-icon.js';
 
 export function RecruitmentPanel({
   snapshot,
@@ -51,11 +52,7 @@ export function RecruitmentPanel({
               {units.map((unit) => (
                 <tr key={unit.code}>
                   <td>
-                    <img
-                      className="research-unit-icon"
-                      src={`/legacy/unit/unit_${unit.code}.png`}
-                      alt=""
-                    />{' '}
+                    <img className="research-unit-icon" src={unitIconSrc(unit.code)} alt="" />{' '}
                     <strong>{unit.name}</strong>
                   </td>
                   {resources.map(({ code, name }) => (

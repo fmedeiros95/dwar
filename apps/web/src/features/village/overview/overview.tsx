@@ -4,6 +4,7 @@ import { ResourceIcon } from '../../../components/legacy-frame.js';
 import { VillageScene } from './village-scene.js';
 import { sceneThemes, type SceneTheme } from './scene-model.js';
 import { duration, numbers, resources } from '../shared/index.js';
+import { unitIconSrc } from '../../../components/unit-icon.js';
 
 function ConstructionCard({
   queue,
@@ -130,11 +131,7 @@ function Troops({ snapshot }: { snapshot: VillageSnapshot }) {
           .map((unit) => (
             <tr key={unit.code}>
               <td>
-                <img
-                  className="research-unit-icon"
-                  src={`/legacy/unit/unit_${unit.code}.png`}
-                  alt=""
-                />{' '}
+                <img className="research-unit-icon" src={unitIconSrc(unit.code)} alt="" />{' '}
                 <strong>{numbers.format(unit.present)}</strong> {unit.name}
               </td>
             </tr>

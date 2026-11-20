@@ -128,3 +128,9 @@ export function placeBuilding(
 }
 
 export const sceneArtReady = (code: string) => Boolean(buildingArtId[code]);
+
+/** Miniatura do edifício (150x150, com transparência); cai no ícone antigo se não houver arte. */
+export function buildingThumb(code: string): string {
+  const artId = buildingArtId[code];
+  return artId && art[artId] ? `/game/buildings/${artId}/thumb.webp` : `/legacy/build/${code}.jpg`;
+}

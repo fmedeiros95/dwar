@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 import type { BuildingView, VillageSnapshot } from '@dwar/api-client';
 import { ResourceIcon } from '../../../components/legacy-frame.js';
 import { duration, numbers, resources } from '../shared/index.js';
+import { buildingThumb } from '../overview/scene-model.js';
 
 type Have = Record<(typeof resources)[number]['code'], number>;
 
@@ -112,7 +113,7 @@ function BuildingCard({
           aria-label={`Abrir ${building.name}`}
           onClick={() => onSelect(building.code)}
         >
-          <img src={`/legacy/build/${building.code}.jpg`} alt="" loading="lazy" />
+          <img src={buildingThumb(building.code)} alt="" loading="lazy" />
         </button>
         <div className="bcard-title">
           <h3>

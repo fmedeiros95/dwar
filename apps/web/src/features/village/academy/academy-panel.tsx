@@ -1,6 +1,7 @@
 import type { VillageSnapshot } from '@dwar/api-client';
 import { ResourceIcon } from '../../../components/legacy-frame.js';
 import { RecruitmentQueue, duration, numbers, resources } from '../shared/index.js';
+import { unitIconSrc } from '../../../components/unit-icon.js';
 
 function Availability({
   reason,
@@ -56,7 +57,7 @@ export function AcademyPanel({
           <tbody>
             <tr>
               <td>
-                <img className="research-unit-icon" src="/legacy/unit/unit_noble.png" alt="" />{' '}
+                <img className="research-unit-icon" src={unitIconSrc('noble')} alt="" />{' '}
                 <strong>Nobre</strong>
               </td>
               {resources.map(({ code, name }) => (

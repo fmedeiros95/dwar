@@ -40,11 +40,23 @@ export function LegacyFrame({
     </div>
   );
 }
+const resourceArt: Record<string, string> = {
+  wood: 'woodB',
+  stone: 'clayB',
+  iron: 'ironB',
+  peasants: 'workersB',
+  food: 'foodB',
+  merchant: 'merchantB',
+  noble: 'nobleB',
+  time: 'timeB',
+};
+
 export function ResourceIcon({ code, label }: { code: string; label: string }) {
+  const art = resourceArt[code];
   return (
     <img
       className="resource-icon"
-      src={`/legacy/icons/${code}.png`}
+      src={art ? `/game/resources/${art}.webp` : `/legacy/icons/${code}.png`}
       alt={label}
       title={label}
       width="18"

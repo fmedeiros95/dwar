@@ -1,6 +1,7 @@
 import type { TechnologyView } from '@dwar/api-client';
 import { ResourceIcon } from '../../../components/legacy-frame.js';
 import { duration, numbers, resources } from '../shared/index.js';
+import { unitIconSrc } from '../../../components/unit-icon.js';
 
 const rows = [
   ['spear', 'spy', 'ram'],
@@ -23,7 +24,7 @@ function Technology({
   const missing = technology.requirements.filter((requirement) => !requirement.met);
   return (
     <>
-      <img className="research-unit-icon" src={`/legacy/unit/unit_${technology.code}.png`} alt="" />{' '}
+      <img className="research-unit-icon" src={unitIconSrc(technology.code)} alt="" />{' '}
       <strong>{technology.name}</strong>{' '}
       {technology.status === 'researched' ? (
         '(pesquisado)'

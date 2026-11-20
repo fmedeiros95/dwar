@@ -3,6 +3,7 @@ import { api, type VillageSnapshot, type BattleReportView } from '@dwar/api-clie
 import { useGameSearchParams } from '../../../routing.js';
 import { ResourceIcon } from '../../../components/legacy-frame.js';
 import { numbers, completionDate } from '../shared/index.js';
+import { unitIconSrc } from '../../../components/unit-icon.js';
 const outcome = {
   attacker: 'Vitória do atacante',
   defender: 'Vitória do defensor',
@@ -30,7 +31,7 @@ function Troops({
                 <th>Unidades</th>
                 {data.unitTypes.map((u) => (
                   <th key={u.code}>
-                    <img src={`/legacy/unit/unit_${u.code}.png`} alt={u.name} title={u.name} />
+                    <img src={unitIconSrc(u.code)} alt={u.name} title={u.name} />
                   </th>
                 ))}
               </tr>

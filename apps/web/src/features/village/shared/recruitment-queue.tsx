@@ -1,5 +1,6 @@
 import type { Recruitment } from '@dwar/api-client';
 import { completionDate, duration, numbers } from './format.js';
+import { unitIconSrc } from '../../../components/unit-icon.js';
 
 export function RecruitmentQueue({
   queue,
@@ -32,8 +33,7 @@ export function RecruitmentQueue({
               <td>
                 {academy ? (
                   <>
-                    <img className="research-unit-icon" src="/legacy/unit/unit_noble.png" alt="" />{' '}
-                    1 Nobre
+                    <img className="research-unit-icon" src={unitIconSrc('noble')} alt="" /> 1 Nobre
                   </>
                 ) : (
                   <>

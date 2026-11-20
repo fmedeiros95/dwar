@@ -7,6 +7,7 @@ import { AcademyPanel } from './academy/index.js';
 import { MarketPanel } from './market/index.js';
 import { RallyPanel } from './rally/index.js';
 import { completionDate, duration, numbers, resources } from './shared/index.js';
+import { buildingThumb } from './overview/scene-model.js';
 export function BuildingScreen({
   snapshot,
   building,
@@ -47,7 +48,7 @@ export function BuildingScreen({
   return (
     <div className="legacy-content">
       <header className="legacy-building-heading">
-        <img src={`/legacy/build/${building.code}.jpg`} alt="" />
+        <img src={buildingThumb(building.code)} alt="" />
         <div>
           <h1>
             {building.name} ({building.level ? `nível ${building.level}` : 'não construído'})

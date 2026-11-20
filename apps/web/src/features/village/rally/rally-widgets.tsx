@@ -1,11 +1,12 @@
 import { useState, type FormEvent } from 'react';
 import type { RallySnapshot, TroopCounts } from '@dwar/api-client';
 import { numbers } from '../shared/index.js';
+import { unitIconSrc } from '../../../components/unit-icon.js';
 
 export function UnitHeaders({ types }: { types: RallySnapshot['unitTypes'] }) {
   return types.map(({ code, name }) => (
     <th key={code}>
-      <img src={`/legacy/unit/unit_${code}.png`} alt={name} title={name} />
+      <img src={unitIconSrc(code)} alt={name} title={name} />
     </th>
   ));
 }
@@ -66,7 +67,7 @@ export function SendForm({
               {data.unitTypes.slice(start, end).map(({ code, name }) => (
                 <tr key={code}>
                   <td>
-                    <img src={`/legacy/unit/unit_${code}.png`} alt={name} title={name} />{' '}
+                    <img src={unitIconSrc(code)} alt={name} title={name} />{' '}
                     <input
                       aria-label={`Enviar ${name}`}
                       inputMode="numeric"
