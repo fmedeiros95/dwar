@@ -93,7 +93,7 @@ export function BuildingScreen({
             pending={pending}
           />
           <BuildingTable
-            buildings={snapshot.buildings}
+            snapshot={snapshot}
             pending={pending}
             clock={clock}
             onConstruct={onConstruct}

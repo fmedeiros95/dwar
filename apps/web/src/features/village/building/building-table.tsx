@@ -1,21 +1,40 @@
-import { useState } from 'react';
-import type { BuildingView } from '@dwar/api-client';
+import { useMemo } from 'react';
+import type { BuildingView, VillageSnapshot } from '@dwar/api-client';
 import { ResourceIcon } from '../../../components/legacy-frame.js';
 import { duration, numbers, resources } from '../shared/index.js';
+
+type Have = Record<(typeof resources)[number]['code'], number>;
+
+/** Recursos disponíveis agora, projetando a produção desde o último snapshot do servidor. */
+function currentResources(snapshot: VillageSnapshot, clock: number) {
+  const elapsedHours = Math.max(0, clock - new Date(snapshot.serverTime).getTime()) / 3_600_000;
+  const { village } = snapshot;
+  return Object.fromEntries(
+    resources.map(({ code }) => [
+      code,
+      Math.min(
+        village.capacity,
+        Math.floor(village.resources[code] + village.productionPerHour[code] * elapsedHours),
+      ),
+    ]),
+  ) as Have;
+}
+
 export function BuildingTable({
-  buildings,
+  snapshot,
   pending,
   clock,
   onConstruct,
   onSelect,
 }: {
-  buildings: BuildingView[];
+  snapshot: VillageSnapshot;
   pending: boolean;
   clock: number;
   onConstruct: (code: string) => void;
   onSelect: (code: string) => void;
 }) {
-  const [showUnavailable, setShowUnavailable] = useState(false);
+  const { buildings } = snapshot;
+  const have = useMemo(() => currentResources(snapshot, clock), [snapshot, clock]);
   const unavailable = buildings.filter(
     (item) =>
       item.level === 0 &&
@@ -24,123 +43,143 @@ export function BuildingTable({
   );
   const available = buildings.filter((item) => !unavailable.includes(item));
   return (
-    <div className="table-scroll">
-      <table className="legacy-table building-table">
-        <thead>
-          <tr>
-            <th>Edifício</th>
-            {resources.map(({ code, name }) => (
-              <th key={code}>
-                <ResourceIcon code={code} label={name} />
-              </th>
-            ))}
-            <th>
-              <ResourceIcon code="peasants" label="População" />
-            </th>
-            <th>Duração</th>
-            <th>Opção</th>
-          </tr>
-        </thead>
-        <tbody>
-          {available.map((building) => (
-            <tr key={building.code}>
-              <td>
+    <>
+      <ul className="bgrid">
+        {available.map((building) => (
+          <BuildingCard
+            key={building.code}
+            building={building}
+            have={have}
+            pending={pending}
+            clock={clock}
+            onConstruct={onConstruct}
+            onSelect={onSelect}
+          />
+        ))}
+      </ul>
+      {unavailable.length ? (
+        <details className="bunavail">
+          <summary>Edifícios indisponíveis ({unavailable.length})</summary>
+          <ul>
+            {unavailable.map((building) => (
+              <li key={building.code}>
                 <button className="text-button" onClick={() => onSelect(building.code)}>
                   {building.name}
-                </button>{' '}
-                <span className="building-level">
-                  ({building.level ? `nível ${building.level}` : 'não construído'})
-                </span>
-              </td>
-              {building.queuedLevel >= building.maxLevel ? (
-                <td colSpan={6}>Edifício completamente construído.</td>
-              ) : (
-                <>
-                  {resources.map(({ code }) => (
-                    <td className="numeric" key={code}>
-                      {numbers.format(building.cost[code])}
-                    </td>
-                  ))}
-                  <td className="numeric">{building.population}</td>
-                  <td className="numeric">{duration(building.durationSeconds)}</td>
-                  <td className="build-option">
-                    {building.canBuild ? (
-                      building.queuedLevel === 0 ? (
-                        <button
-                          className="text-button"
-                          disabled={pending}
-                          onClick={() => onConstruct(building.code)}
-                        >
-                          Construir
-                        </button>
-                      ) : (
-                        <div className="build-control">
-                          <div
-                            className="legacy-progress"
-                            aria-label={`Nível ${building.level} de ${building.maxLevel}`}
-                          >
-                            <span
-                              style={{ width: `${(building.level / building.maxLevel) * 100}%` }}
-                            />
-                          </div>
-                          <button
-                            className="build-plus"
-                            aria-label={`Evoluir ${building.name}`}
-                            title={`Construir nível ${building.queuedLevel + 1}`}
-                            disabled={pending}
-                            onClick={() => onConstruct(building.code)}
-                          >
-                            <img src="/legacy/icons/plus.png" alt="" />
-                          </button>
-                        </div>
-                      )
-                    ) : (
-                      <span className="unavailable-reason">
-                        {building.resourcesAvailableAt
-                          ? `Recursos disponíveis em ${duration((new Date(building.resourcesAvailableAt).getTime() - clock) / 1000)}`
-                          : building.unavailableReason}
+                </button>
+                <span className="bunavail-reqs">
+                  {building.requirements
+                    .filter((item) => !item.met)
+                    .map((item) => (
+                      <span className="bunavail-req" key={item.code}>
+                        {item.name} nível {item.level}
                       </span>
-                    )}
-                  </td>
-                </>
-              )}
-            </tr>
-          ))}
-          {showUnavailable
-            ? unavailable.map((building) => (
-                <tr key={building.code}>
-                  <td>
-                    <button className="text-button" onClick={() => onSelect(building.code)}>
-                      {building.name}
-                    </button>
-                  </td>
-                  <td colSpan={6}>
-                    {building.requirements
-                      .filter((item) => !item.met)
-                      .map((item) => `${item.name} (nível ${item.level})`)
-                      .join(' · ')}
-                  </td>
-                </tr>
-              ))
-            : null}
-          {unavailable.length ? (
-            <tr>
-              <th colSpan={7}>
-                <label className="unavailable-toggle">
-                  <input
-                    type="checkbox"
-                    checked={showUnavailable}
-                    onChange={(event) => setShowUnavailable(event.currentTarget.checked)}
-                  />
-                  {showUnavailable
-                    ? 'Ocultar edifícios indisponíveis'
-                    : 'Mostrar edifícios indisponíveis'}
-                </label>
-              </th>
-            </tr>
-          ) : null}
-        </tbody>
-      </table>
-    </div>
+                    ))}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </details>
+      ) : null}
+    </>
+  );
+}
+
+function BuildingCard({
+  building,
+  have,
+  pending,
+  clock,
+  onConstruct,
+  onSelect,
+}: {
+  building: BuildingView;
+  have: Have;
+  pending: boolean;
+  clock: number;
+  onConstruct: (code: string) => void;
+  onSelect: (code: string) => void;
+}) {
+  const maxed = building.queuedLevel >= building.maxLevel;
+  const building_ = building.queuedLevel > building.level;
+  const next = building.queuedLevel + 1;
+  const progress = (building.level / building.maxLevel) * 100;
+  const queuedProgress = (building.queuedLevel / building.maxLevel) * 100;
+  return (
+    <li className="bcard" data-state={maxed ? 'max' : building_ ? 'building' : undefined}>
+      <div className="bcard-top">
+        <button
+          className="bcard-art"
+          aria-label={`Abrir ${building.name}`}
+          onClick={() => onSelect(building.code)}
+        >
+          <img src={`/legacy/build/${building.code}.jpg`} alt="" loading="lazy" />
+        </button>
+        <div className="bcard-title">
+          <h3>
+            <button className="text-button" onClick={() => onSelect(building.code)}>
+              {building.name}
+            </button>
+          </h3>
+          <span className="bcard-level">
+            {building.level ? `Nível ${building.level} de ${building.maxLevel}` : 'Não construído'}
+            {building_ ? <em> → {building.queuedLevel}</em> : null}
+          </span>
+          <div
+            className="bcard-progress"
+            role="img"
+            aria-label={`Nível ${building.level} de ${building.maxLevel}`}
+          >
+            <span className="bcard-progress-queued" style={{ width: `${queuedProgress}%` }} />
+            <span style={{ width: `${progress}%` }} />
+          </div>
+        </div>
+      </div>
+      <div className="bcard-body">
+        {maxed ? (
+          <p className="bcard-maxed">Nível máximo</p>
+        ) : (
+          <>
+            <ul className="bcard-cost" aria-label={`Custo do nível ${next}`}>
+              {resources.map(({ code, name }) => (
+                <li
+                  key={code}
+                  className={have[code] < building.cost[code] ? 'short' : undefined}
+                  title={
+                    have[code] < building.cost[code]
+                      ? `Faltam ${numbers.format(building.cost[code] - have[code])} de ${name.toLowerCase()}`
+                      : name
+                  }
+                >
+                  <ResourceIcon code={code} label={name} />
+                  {numbers.format(building.cost[code])}
+                </li>
+              ))}
+              <li title="População">
+                <ResourceIcon code="peasants" label="População" />
+                {building.population}
+              </li>
+              <li className="bcard-time" title="Tempo de construção">
+                {duration(building.durationSeconds)}
+              </li>
+            </ul>
+            {building.canBuild ? (
+              <button
+                className="bcard-action green"
+                disabled={pending}
+                onClick={() => onConstruct(building.code)}
+              >
+                {building.queuedLevel === 0 ? 'Construir' : `Evoluir para o nível ${next}`}
+              </button>
+            ) : (
+              <p className="bcard-reason">
+                {building.resourcesAvailableAt
+                  ? `Recursos disponíveis em ${duration((new Date(building.resourcesAvailableAt).getTime() - clock) / 1000)}`
+                  : building.unavailableReason}
+              </p>
+            )}
+          </>
+        )}
+      </div>
+    </li>
   );
 }
