@@ -775,3 +775,10 @@ th {
   background: rgb(0 0 0 / 0.28);
   box-shadow: inset 0 -3px 0 var(--brass);
 }
+
+@media (max-width: 900px) {
+  .gw-actions .gw-maximize,
+  .gw-actions button[aria-label='Minimizar'] {
+    display: none;
+  }
+}
