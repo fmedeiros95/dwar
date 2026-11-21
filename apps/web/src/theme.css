@@ -3682,6 +3682,12 @@ input:focus {
   color: #4a2f0a;
   background: url('/game/ui/avatar-frame.webp') center / 100% 100% no-repeat;
 }
+.shell-avatar img {
+  width: 30px;
+  height: 30px;
+  object-fit: cover;
+  border-radius: 50%;
+}
 hr,
 .divider {
   height: 1px;

@@ -76,6 +76,11 @@ export function VillagePage({
     queryFn: () => api.village(worldId, selectedVillageId),
     refetchInterval: 3000,
   });
+  const profile = useQuery({
+    queryKey: ['profile', worldId],
+    queryFn: () => api.profile(worldId),
+    staleTime: 5 * 60 * 1000,
+  });
   useEffect(() => {
     if (village.error instanceof ApiError && [404, 409].includes(village.error.status)) {
       client.removeQueries({ queryKey: ['village', worldId] });
@@ -486,8 +491,12 @@ export function VillagePage({
               className="shell-player"
               title={`${data.player.rank}º de ${numbers.format(data.player.players)} jogadores · ${numbers.format(data.player.points)} pontos em ${data.player.villages} ${data.player.villages === 1 ? 'aldeia' : 'aldeias'} (esta aldeia: ${numbers.format(data.village.points)})`}
             >
-              <span className="shell-avatar" aria-hidden="true">
-                {account.username.slice(0, 1).toUpperCase()}
+              <span className="shell-avatar">
+                {profile.data?.avatarUrl ? (
+                  <img src={profile.data.avatarUrl} alt={`Avatar de ${account.username}`} />
+                ) : (
+                  <span aria-hidden="true">{account.username.slice(0, 1).toUpperCase()}</span>
+                )}
               </span>
               <span className="shell-player-info">
                 <span className="shell-player-name">{account.username}</span>
