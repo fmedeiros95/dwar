@@ -1,4 +1,9 @@
-import { merchantCapacity, legacyUnitSpeed, type Resources } from '@dwar/game-config';
+import {
+  merchantCapacity,
+  legacyUnitSpeed,
+  type Resources,
+  worldSpeedMultiplier,
+} from '@dwar/game-config';
 export function requiredMerchants(resources: Resources): number {
   return Math.ceil((resources.wood + resources.stone + resources.iron) / merchantCapacity);
 }
@@ -8,11 +13,12 @@ export function tradeDuration(
   speed: number,
   mode: 'normal' | 'offer',
 ): number {
+  const multiplier = worldSpeedMultiplier(speed);
   return Math.max(
     1,
     Math.round(
       (Math.hypot(to.x - from.x, to.y - from.y) * 360) /
-        speed /
+        multiplier /
         (mode === 'normal' ? legacyUnitSpeed + 1 : 0.3),
     ),
   );

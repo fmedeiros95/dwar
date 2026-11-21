@@ -40,8 +40,8 @@ try {
     JSON.stringify(
       {
         mundo: world.name,
-        velocidadeConstrucao: world.buildSpeed,
-        velocidadeProducao: world.productionSpeed,
+        velocidadeConstrucao: world.buildSpeed / 1000,
+        velocidadeProducao: world.productionSpeed / 1000,
         barbarasPorJogador: world.barbarianVillagesPerPlayer,
         limiteDePontosDasBarbaras: world.barbarianMaxPoints,
       },

@@ -1,4 +1,4 @@
-export const numbers = new Intl.NumberFormat('pt-BR');
+export const numbers = new Intl.NumberFormat('pt-BR', { maximumFractionDigits: 0 });
 export const timeFormat = new Intl.DateTimeFormat('pt-BR', {
   hour: '2-digit',
   minute: '2-digit',

@@ -9,6 +9,7 @@ import {
   type BuildingDefinition,
   type BuildingLevels,
   type Resources,
+  worldSpeedMultiplier,
 } from '@dwar/game-config';
 
 export { buildingCodes, resourceCodes };
@@ -43,10 +44,12 @@ export function buildingDuration(
   headquartersLevel: number,
   speed: number,
 ): number {
+  const multiplier = worldSpeedMultiplier(speed);
   return Math.max(
     1,
     Math.round(
-      ((buildings[code].baseTime * 1.2 ** currentLevel) / speed) * 0.896281 ** headquartersLevel,
+      ((buildings[code].baseTime * 1.2 ** currentLevel) / multiplier) *
+        0.896281 ** headquartersLevel,
     ),
   );
 }
@@ -110,8 +113,9 @@ export function populationCapacity(levels: BuildingLevels): number {
 }
 
 export function productionRates(levels: BuildingLevels, speed: number): Resources {
+  const multiplier = worldSpeedMultiplier(speed);
   return Object.fromEntries(
-    resourceCodes.map((resource) => [resource, (production[levels[resource]] ?? 0) * speed]),
+    resourceCodes.map((resource) => [resource, (production[levels[resource]] ?? 0) * multiplier]),
   ) as Resources;
 }
 

@@ -1,4 +1,10 @@
-import { unitCodes, movementSpeeds, legacyUnitSpeed, type Troops } from '@dwar/game-config';
+import {
+  unitCodes,
+  movementSpeeds,
+  legacyUnitSpeed,
+  type Troops,
+  worldSpeedMultiplier,
+} from '@dwar/game-config';
 
 export function troopDuration(
   from: { x: number; y: number },
@@ -10,8 +16,13 @@ export function troopDuration(
     ...unitCodes.filter((code) => troops[code] > 0).map((code) => movementSpeeds[code]),
   );
   if (!Number.isFinite(slowest)) throw new Error('Selecione pelo menos uma unidade.');
+  const multiplier = worldSpeedMultiplier(worldSpeed);
   return Math.max(
     1,
-    Math.round((Math.hypot(to.x - from.x, to.y - from.y) * slowest) / worldSpeed / legacyUnitSpeed),
+    Math.round(
+      (Math.hypot(to.x - from.x, to.y - from.y) * slowest) /
+        multiplier /
+        legacyUnitSpeed,
+    ),
   );
 }

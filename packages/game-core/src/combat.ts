@@ -8,6 +8,7 @@ import {
   type Troops,
   type Resources,
   type BuildingCode,
+  worldSpeedMultiplier,
 } from '@dwar/game-config';
 export const emptyTroops = (): Troops => Object.fromEntries(unitCodes.map((c) => [c, 0])) as Troops;
 const total = (troops: Troops) => unitCodes.reduce((sum, c) => sum + troops[c], 0);
@@ -19,13 +20,14 @@ export function morale(attackerPoints: number, defenderPoints: number) {
   );
 }
 export function loyaltyAt(loyalty: number, from: Date, until: Date, speed: number) {
+  const multiplier = worldSpeedMultiplier(speed);
   return Math.floor(
     Math.min(
       100,
       loyalty +
         (Math.max(0, until.getTime() - from.getTime()) / 3600000) *
           combatRules.loyaltyPerHour *
-          speed,
+          multiplier,
     ),
   );
 }

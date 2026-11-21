@@ -17,6 +17,7 @@ export {
 } from './production-tables.js';
 
 export { initialBuildings, initialResources, worldDefaults } from './world-defaults.js';
+export { worldSpeedMultiplier } from './world-speed.js';
 
 export { technologies, technologyCodes, type TechnologyCode } from './technologies.js';
 

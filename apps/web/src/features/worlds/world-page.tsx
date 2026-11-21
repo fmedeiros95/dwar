@@ -51,11 +51,11 @@ export function WorldPage({
               <ul className="world-stats">
                 <li title="Velocidade de construção">
                   <Hammer size={15} aria-hidden="true" />
-                  Construção <strong>{world.buildSpeed}×</strong>
+                  Construção <strong>{world.buildSpeed / 1000}×</strong>
                 </li>
                 <li title="Velocidade de produção">
                   <Sprout size={15} aria-hidden="true" />
-                  Produção <strong>{world.productionSpeed}×</strong>
+                  Produção <strong>{world.productionSpeed / 1000}×</strong>
                 </li>
               </ul>
               <button

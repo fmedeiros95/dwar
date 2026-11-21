@@ -2,13 +2,13 @@ import {
   buildings,
   farmCapacity,
   hideCapacity,
-  production,
   storageCapacity,
   wallDefense,
   type BuildingCode,
   type BuildingLevels,
 } from '@dwar/game-config';
 import type { BuildingView } from '@dwar/api-client';
+import { productionRates } from '@dwar/game-core';
 
 export function buildingDetails(
   code: BuildingCode,
@@ -18,18 +18,19 @@ export function buildingDetails(
 ): BuildingView['details'] {
   const level = levels[code];
   const next = level < buildings[code].maxLevel ? level + 1 : null;
+  const rates = productionRates(levels, productionSpeed);
   const rows: BuildingView['details'] = [];
   if (code === 'wood' || code === 'stone' || code === 'iron') {
     rows.push({
       label: 'Produção atual',
-      value: (production[level] ?? 0) * productionSpeed,
+      value: rates[code],
       unit: 'por hora',
       icon: code,
     });
     if (next)
       rows.push({
         label: `Produção no nível ${next}`,
-        value: (production[next] ?? 0) * productionSpeed,
+        value: productionRates({ ...levels, [code]: next }, productionSpeed)[code],
         unit: 'por hora',
         icon: code,
       });
