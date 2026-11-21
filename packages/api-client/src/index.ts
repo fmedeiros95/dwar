@@ -388,6 +388,25 @@ export type ReportSide = {
   x: number;
   y: number;
 };
+export type PlayerNote = {
+  /** Aldeia da nota; nulo na nota geral. */
+  villageId: number | null;
+  village: { name: string; x: number; y: number } | null;
+  text: string;
+  content: MessageNode[];
+  updatedAt: string | null;
+};
+export type NotesOverview = {
+  general: PlayerNote;
+  villages: {
+    villageId: number;
+    name: string;
+    x: number;
+    y: number;
+    excerpt: string;
+    updatedAt: string;
+  }[];
+};
 export type ReportGroup = 'all' | 'attack' | 'defense' | 'support' | 'trade';
 /** Relatórios de batalha e avisos (comércio, chegada de apoio) têm numerações separadas. */
 export type ReportRef = { source: 'battle' | 'notice'; id: number };
@@ -538,6 +557,14 @@ export const api = {
     }),
   report: (worldId: number, reportId: number) =>
     request<BattleReportView>(`/worlds/${worldId}/reports/${reportId}`),
+  notes: (worldId: number) => request<NotesOverview>(`/worlds/${worldId}/notes`),
+  note: (worldId: number, villageId: number) =>
+    request<PlayerNote>(`/worlds/${worldId}/notes/villages/${villageId}`),
+  saveNote: (worldId: number, text: string, villageId?: number) =>
+    request<PlayerNote>(`/worlds/${worldId}/notes`, {
+      method: 'PUT',
+      body: JSON.stringify({ text, ...(villageId ? { villageId } : {}) }),
+    }),
   notice: (worldId: number, reportId: number) =>
     request<NoticeReportView>(`/worlds/${worldId}/reports/notices/${reportId}`),
   me: () => request<Account>('/auth/me'),

@@ -101,3 +101,80 @@
   padding-left: 22px;
   list-style: disc;
 }
+
+/* Notas pessoais */
+.note-box {
+  display: grid;
+  gap: 10px;
+  margin-top: 12px;
+}
+.note-body,
+.note-preview {
+  min-height: 120px;
+  padding: 12px 14px;
+  background: var(--surface-sunken);
+  border: 1px solid var(--line-soft);
+  border-radius: var(--radius-sm, 6px);
+}
+.note-form {
+  display: grid;
+  gap: 10px;
+}
+.note-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+}
+.note-count {
+  margin-right: auto;
+  font-size: 12px;
+}
+.note-back {
+  margin-top: 4px;
+}
+.note-hint {
+  margin: 4px 0 12px;
+}
+.note-heading {
+  margin: 22px 0 0;
+  font-size: 15px;
+}
+.note-list {
+  display: grid;
+  gap: 8px;
+  margin: 14px 0 0;
+  padding: 0;
+  list-style: none;
+}
+.note-list button {
+  display: grid;
+  gap: 2px;
+  width: 100%;
+  padding: 10px 14px;
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  background: var(--surface-sunken);
+  border: 1px solid var(--line-soft);
+  border-radius: var(--radius-sm, 6px);
+  cursor: pointer;
+}
+.note-list button:hover {
+  border-color: var(--gold);
+}
+.note-list span {
+  font-size: 12px;
+  color: var(--muted);
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.note-section {
+  grid-column: 1 / -1;
+}
+.note-actions .bcard-action {
+  width: auto;
+  min-width: 110px;
+}

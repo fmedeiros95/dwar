@@ -708,6 +708,34 @@ export const battleReportRecipients = pgTable(
   ],
 );
 
+/** Notas pessoais com BBCode: uma geral (village_id nulo) e uma por aldeia. */
+export const playerNotes = pgTable(
+  'player_notes',
+  {
+    id: integer('id').primaryKey().generatedAlwaysAsIdentity(),
+    worldId: integer('world_id')
+      .notNull()
+      .references(() => worlds.id),
+    playerId: integer('player_id').notNull(),
+    villageId: integer('village_id'),
+    body: text('body').notNull(),
+    updatedAt: time('updated_at').defaultNow(),
+  },
+  (t) => [
+    foreignKey({ columns: [t.playerId, t.worldId], foreignColumns: [players.id, players.worldId] }),
+    foreignKey({
+      columns: [t.villageId, t.worldId],
+      foreignColumns: [villages.id, villages.worldId],
+    }),
+    uniqueIndex('player_notes_general_idx')
+      .on(t.playerId)
+      .where(sql`${t.villageId} IS NULL`),
+    uniqueIndex('player_notes_village_idx')
+      .on(t.playerId, t.villageId)
+      .where(sql`${t.villageId} IS NOT NULL`),
+  ],
+);
+
 /** Relatórios de comércio e de chegada de apoio, um por destinatário. */
 export const noticeReports = pgTable(
   'notice_reports',

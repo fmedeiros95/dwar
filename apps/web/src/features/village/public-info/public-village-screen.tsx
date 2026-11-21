@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 
 import { api, type VillageSnapshot } from '@dwar/api-client';
 import { numbers } from '../shared/index.js';
+import { NoteBox } from '../notes/index.js';
 
 export function PublicVillageScreen({ snapshot }: { snapshot: VillageSnapshot }) {
   const [params, setParams] = useSearchParams(),
@@ -141,6 +142,15 @@ export function PublicVillageScreen({ snapshot }: { snapshot: VillageSnapshot })
           ) : null}
         </tbody>
       </table>
+      <div className="note-section">
+        <h2 className="note-heading">Sua nota sobre esta aldeia</h2>
+        <NoteBox
+          worldId={snapshot.world.id}
+          villageId={targetId}
+          onTarget={(type, id) => go(type === 'player' ? 'info_player' : 'info_village', { id })}
+          emptyText="Nenhuma nota ainda. Só você vê o que escrever aqui."
+        />
+      </div>
     </div>
   );
 }

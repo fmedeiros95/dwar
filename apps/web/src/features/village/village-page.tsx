@@ -3,10 +3,7 @@ import { useEffect, useRef, useState, type CSSProperties, type FormEvent } from 
 import { Link, useNavigate } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { api, ApiError, type Account, type World } from '@dwar/api-client';
-import {
-  Clock,
-  Pencil,
-} from 'lucide-react';
+import { Clock, Pencil } from 'lucide-react';
 import { LegacyFrame, ResourceIcon } from '../../components/legacy-frame.js';
 import { Icon } from '../../components/icons.js';
 import { GameShell } from '../../components/game-shell.js';
@@ -19,6 +16,7 @@ import { WorldMap } from './map/index.js';
 import { PublicVillageScreen, PublicPlayerScreen } from './public-info/index.js';
 import { ReportsPanel } from './reports/index.js';
 import { MailPanel } from './mail/index.js';
+import { NotesPanel } from './notes/index.js';
 import { RankingScreen } from './ranking/index.js';
 import { SettingsScreen } from './settings/index.js';
 import { useVillageActions } from './use-village-actions.js';
@@ -28,6 +26,7 @@ const backgroundScreens = ['overview', 'map'];
 const windowTitles: Record<string, string> = {
   reports: 'Relatórios',
   mail: 'Mensagens',
+  notes: 'Notas',
   activity: 'Atividade da aldeia',
   ranking: 'Ranking',
   settings: 'Ajustes',
@@ -221,7 +220,9 @@ export function VillagePage({
   const elapsed = Math.max(0, now - village.dataUpdatedAt) / 3_600_000;
   const buildingFor = (code: string) => data.buildings.find((building) => building.code === code);
   const focusedWindow = windows.windows.find((item) => item.id === windows.focusedId);
-  const focusedScreen = focusedWindow ? screenOf(focusedWindow.search) : lastBackgroundScreen(rawScreen, isBackground, lastBackground.current);
+  const focusedScreen = focusedWindow
+    ? screenOf(focusedWindow.search)
+    : lastBackgroundScreen(rawScreen, isBackground, lastBackground.current);
   const active = buildingFor(focusedScreen);
   const section = active
     ? 'buildings'
@@ -250,31 +251,31 @@ export function VillagePage({
     preference.isError ||
     logout.isError;
   const activityView = (
-<div className="legacy-content">
-          <h1>Atividade da aldeia</h1>
-          <div className="table-scroll">
-            <table className="legacy-table activity-table">
-              <thead>
-                <tr>
-                  <th>Acontecimento</th>
-                  <th>Data</th>
-                </tr>
-              </thead>
-              <tbody>
-                {data.activity.map((item) => (
-                  <tr key={item.id}>
-                    <td>{item.message}</td>
-                    <td>
-                      <time dateTime={item.occurredAt}>
-                        {new Date(item.occurredAt).toLocaleString('pt-BR')}
-                      </time>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
+    <div className="legacy-content">
+      <h1>Atividade da aldeia</h1>
+      <div className="table-scroll">
+        <table className="legacy-table activity-table">
+          <thead>
+            <tr>
+              <th>Acontecimento</th>
+              <th>Data</th>
+            </tr>
+          </thead>
+          <tbody>
+            {data.activity.map((item) => (
+              <tr key={item.id}>
+                <td>{item.message}</td>
+                <td>
+                  <time dateTime={item.occurredAt}>
+                    {new Date(item.occurredAt).toLocaleString('pt-BR')}
+                  </time>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
   );
   return (
     <GameShell
@@ -315,6 +316,13 @@ export function VillagePage({
           active: section === 'mail',
           badge: mail.data?.unread,
           onClick: () => setScreen('mail'),
+        },
+        {
+          key: 'notes',
+          label: 'Notas',
+          icon: <Icon name="notes" size={26} />,
+          active: section === 'notes',
+          onClick: () => setScreen('notes'),
         },
         {
           key: 'activity',
@@ -588,6 +596,7 @@ export function VillagePage({
           if (code === 'info_player') return <PublicPlayerScreen snapshot={data} />;
           if (code === 'reports') return <ReportsPanel snapshot={data} clock={clock} />;
           if (code === 'mail') return <MailPanel snapshot={data} clock={clock} />;
+          if (code === 'notes') return <NotesPanel snapshot={data} />;
           if (code === 'ranking') return <RankingScreen snapshot={data} />;
           if (code === 'settings') return <SettingsScreen snapshot={data} />;
           if (code === 'activity') return activityView;

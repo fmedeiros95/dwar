@@ -99,13 +99,35 @@ const paths: Record<string, ReactNode> = {
     <>
       <path d="M3 7.5 L11 4 L21 7.5 L29 4 V24.5 L21 28 L11 24.5 L3 28 Z" />
       <path d="M11 4 V24.5 M21 7.5 V28" stroke={L} strokeWidth="1.2" fill="none" />
-      <path d="M14.4 11.5 L18 16.5 M18 11.5 L14.4 16.5" stroke={L} strokeWidth="1.6" strokeLinecap="round" />
+      <path
+        d="M14.4 11.5 L18 16.5 M18 11.5 L14.4 16.5"
+        stroke={L}
+        strokeWidth="1.6"
+        strokeLinecap="round"
+      />
     </>
   ),
   reports: (
     <>
       <path d="M8 4.5 H26 V24.5 C26 26.8 24.2 28.5 22 28.5 H9 C11 27 11 25.4 11 24 V8 C11 6.4 9.8 5.2 8 4.5 Z" />
-      <path d="M14.5 11 H22.5 M14.5 15 H22.5 M14.5 19 H20" stroke={L} strokeWidth="1.5" strokeLinecap="round" />
+      <path
+        d="M14.5 11 H22.5 M14.5 15 H22.5 M14.5 19 H20"
+        stroke={L}
+        strokeWidth="1.5"
+        strokeLinecap="round"
+      />
+    </>
+  ),
+  notes: (
+    <>
+      <path d="M6 5.5 H23 L27 9.5 V26.5 H6 Z" />
+      <path d="M23 5.5 V9.5 H27" fill="none" stroke={L} strokeWidth="1.3" />
+      <path
+        d="M10.5 13.5 H22.5 M10.5 17.5 H22.5 M10.5 21.5 H18"
+        stroke={L}
+        strokeWidth="1.5"
+        strokeLinecap="round"
+      />
     </>
   ),
   mail: (
@@ -155,7 +177,13 @@ const paths: Record<string, ReactNode> = {
     </g>
   ),
   logout: (
-    <g fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round">
+    <g
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2.6"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
       <path d="M13 4.5 H5.5 V27.5 H13" />
       <path d="M13 16 H28 M22 10 L28 16 L22 22" />
     </g>
@@ -168,7 +196,13 @@ const paths: Record<string, ReactNode> = {
     </>
   ),
   return: (
-    <g fill="none" stroke="currentColor" strokeWidth="3.2" strokeLinecap="round" strokeLinejoin="round">
+    <g
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="3.2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
       <path d="M11 5 L5 11 L11 17" />
       <path d="M5 11 H20 a7 7 0 0 1 0 14 H11" />
     </g>
@@ -178,7 +212,10 @@ const paths: Record<string, ReactNode> = {
     <path d="M6 28 V19 C6 13 9 8 14 6 L16 3 L18.4 6.6 C22.6 8 26 12 26 17.5 V28 H21 V20 L18 22 V28 Z" />
   ),
   tower: (
-    <path d="M7 29 V12 H9.4 V9 H12.6 V12 H14.4 V9 H17.6 V12 H19.4 V9 H22.6 V12 H25 V29 Z M14 29 V23 a2 2 0 0 1 4 0 V29 Z" fillRule="evenodd" />
+    <path
+      d="M7 29 V12 H9.4 V9 H12.6 V12 H14.4 V9 H17.6 V12 H19.4 V9 H22.6 V12 H25 V29 Z M14 29 V23 a2 2 0 0 1 4 0 V29 Z"
+      fillRule="evenodd"
+    />
   ),
 };
 
