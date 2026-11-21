@@ -2,6 +2,7 @@ name: dwar-modern
 services:
   postgres:
     image: postgres:17.11-alpine
+    restart: unless-stopped
     environment:
       POSTGRES_USER: dwar
       POSTGRES_PASSWORD: dwar_local
