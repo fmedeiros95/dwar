@@ -333,7 +333,11 @@ function MapCanvas({ snapshot, options }: { snapshot: VillageSnapshot; options: 
                       onBlur={() => setHover(null)}
                     >
                       <img
-                        src={`/legacy/map/new/vil_${villageGraphic(village.points)}n.png`}
+                        src={
+                          village.playerId === null
+                            ? `/legacy/map/new/left_${villageGraphic(village.points)}n.jpg`
+                            : `/legacy/map/new/vil_${villageGraphic(village.points)}n.png`
+                        }
                         alt=""
                         draggable={false}
                       />
