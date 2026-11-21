@@ -75,6 +75,51 @@ export function TribeProfileScreen({ snapshot }: { snapshot: VillageSnapshot }) 
           />
         </div>
       </section>
+      {data.relations.wars.length ||
+      data.relations.ally.length ||
+      data.relations.nap.length ||
+      data.relations.enemy.length ? (
+        <section className="tribe-card" aria-label="Diplomacia da tribo">
+          <h2>Diplomacia</h2>
+          {data.relations.wars.length ? (
+            <p>
+              <strong>Em guerra com:</strong>{' '}
+              {data.relations.wars.map((war) => (
+                <button
+                  key={war.id}
+                  className="text-button"
+                  title={war.title}
+                  onClick={() => go('info_tribe', { id: war.other.id })}
+                >
+                  {war.other.name} <span className="tribe-tag static">{war.other.tag}</span>
+                </button>
+              ))}
+            </p>
+          ) : null}
+          {(
+            [
+              ['ally', 'Aliadas'],
+              ['nap', 'Pacto de não agressão'],
+              ['enemy', 'Inimigas'],
+            ] as const
+          ).map(([kind, label]) =>
+            data.relations[kind].length ? (
+              <p key={kind}>
+                <strong>{label}:</strong>{' '}
+                {data.relations[kind].map((tribe) => (
+                  <button
+                    key={tribe.id}
+                    className="text-button"
+                    onClick={() => go('info_tribe', { id: tribe.id })}
+                  >
+                    {tribe.name} <span className="tribe-tag static">{tribe.tag}</span>
+                  </button>
+                ))}
+              </p>
+            ) : null,
+          )}
+        </section>
+      ) : null}
       <section className="tribe-card" aria-label="Membros da tribo">
         <h2>Membros</h2>
         <div className="table-scroll">

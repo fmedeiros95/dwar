@@ -1,7 +1,7 @@
 import { Fragment } from 'react';
 import { createPortal } from 'react-dom';
 import { useQuery } from '@tanstack/react-query';
-import { api, type PublicVillage, type MapSnapshot } from '@dwar/api-client';
+import { api, type PublicVillage, type MapSnapshot, type RelationKind } from '@dwar/api-client';
 import { duration, numbers } from '../shared/index.js';
 import { unitIconSrc } from '../../../components/unit-icon.js';
 import { Icon } from '../../../components/icons.js';
@@ -20,11 +20,19 @@ export function villageGraphic(points: number): number {
             : 6;
 }
 
+/** Cores das relações entre tribos no mapa, iguais às da legenda. */
+export const relationColors: Record<RelationKind, string> = {
+  ally: '#00a0f4',
+  nap: '#800080',
+  enemy: '#f40000',
+};
+
 export function ownerColor(
   village: PublicVillage,
   currentId: number,
   marks: MapSnapshot['marks'],
   ownTribeId: number | null = null,
+  relations: Record<number, RelationKind> = {},
 ) {
   return village.id === currentId
     ? '#ffffff'
@@ -33,9 +41,11 @@ export function ownerColor(
       : (marks.find((mark) => mark.playerId === village.playerId)?.color ??
         (ownTribeId !== null && village.tribe?.id === ownTribeId
           ? '#0000f4'
-          : village.playerId
-            ? '#823c0a'
-            : '#969696'));
+          : village.tribe && relations[village.tribe.id]
+            ? relationColors[relations[village.tribe.id]!]
+            : village.playerId
+              ? '#823c0a'
+              : '#969696'));
 }
 
 const villageLegend = [

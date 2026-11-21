@@ -4,12 +4,14 @@ import { Icon } from '../../../components/icons.js';
 import { useGameSearchParams } from '../../../routing.js';
 import { numbers, targetScreen } from '../shared/index.js';
 import { NoTribe } from './no-tribe.js';
+import { Diplomacy } from './tribe-diplomacy.js';
 import { EditProfile, Invites, Members, Options, Overview } from './tribe-sections.js';
 
 const tabs = [
   { code: 'overview', label: 'Visão geral' },
   { code: 'members', label: 'Membros' },
   { code: 'invites', label: 'Convites' },
+  { code: 'diplomacy', label: 'Diplomacia' },
   { code: 'edit', label: 'Perfil e texto' },
   { code: 'options', label: 'Sair' },
 ] as const;
@@ -96,6 +98,10 @@ export function TribePanel({ snapshot }: { snapshot: VillageSnapshot }) {
                 onClick={() => go(item.code)}
               >
                 {item.label}
+                {item.code === 'diplomacy' &&
+                data.tribe!.diplomacy.wars.some((war) => war.peace && !war.peace.offeredByUs) ? (
+                  <span className="report-count">!</span>
+                ) : null}
                 {item.code === 'invites' && data.tribe!.invites.length ? (
                   <span className="report-count">{data.tribe!.invites.length}</span>
                 ) : null}
@@ -111,6 +117,7 @@ export function TribePanel({ snapshot }: { snapshot: VillageSnapshot }) {
             };
             if (tab === 'members') return <Members {...shared} />;
             if (tab === 'invites') return <Invites {...shared} />;
+            if (tab === 'diplomacy') return <Diplomacy {...shared} />;
             if (tab === 'edit') return <EditProfile {...shared} />;
             if (tab === 'options') return <Options {...shared} />;
             return <Overview data={data.tribe!} onTarget={onTarget} />;

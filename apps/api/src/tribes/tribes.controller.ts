@@ -31,6 +31,13 @@ const tribeAction = z.discriminatedUnion('type', [
   z.object({ type: z.literal('cancel_invite'), inviteId: id }),
   z.object({ type: z.literal('accept_invite'), inviteId: id }),
   z.object({ type: z.literal('decline_invite'), inviteId: id }),
+  z.object({ type: z.literal('set_relation'), tag: text, kind: z.enum(['ally', 'nap', 'enemy']) }),
+  z.object({ type: z.literal('cancel_relation'), relationId: id }),
+  z.object({ type: z.literal('declare_war'), tag: text, title: text, declaration: text }),
+  z.object({ type: z.literal('offer_peace'), warId: id }),
+  z.object({ type: z.literal('withdraw_peace'), warId: id }),
+  z.object({ type: z.literal('accept_peace'), warId: id }),
+  z.object({ type: z.literal('reject_peace'), warId: id }),
   z.object({ type: z.literal('kick'), playerId: id }),
   z.object({ type: z.literal('rights'), playerId: id, title: text, rights }),
   z.object({

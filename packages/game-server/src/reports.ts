@@ -80,6 +80,15 @@ function noticeTitle(notice: Notice): string {
   const { payload } = notice;
   if (payload.kind === 'tribe') {
     const tribe = `${payload.tribeName} (${payload.tribeTag})`;
+    const war = payload.detail ? ` — ${payload.detail}` : '';
+    if (payload.event === 'war_declared')
+      return payload.outgoing
+        ? `Sua tribo declarou guerra à tribo ${tribe}${war}`
+        : `A tribo ${tribe} declarou guerra à sua tribo${war}`;
+    if (payload.event === 'peace_offered') return `A tribo ${tribe} pediu paz${war}`;
+    if (payload.event === 'peace_accepted')
+      return `Paz com a tribo ${tribe}: a guerra terminou${war}`;
+    if (payload.event === 'peace_rejected') return `A tribo ${tribe} recusou o pedido de paz${war}`;
     if (payload.event === 'invited') return `Convite para a tribo ${tribe}, de ${payload.by}`;
     if (payload.event === 'kicked') return `Você foi expulso da tribo ${tribe} por ${payload.by}`;
     return `A tribo ${tribe} foi dissolvida por ${payload.by}`;

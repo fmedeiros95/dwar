@@ -46,6 +46,7 @@ import { combatRules, catapultTargets, buildings } from '@dwar/game-config';
 import { mapOptions } from './map-options.js';
 import { addNotices } from './notices.js';
 import { tribesOf } from './tribe-lookup.js';
+import { relationsFor } from './tribe-diplomacy.js';
 import { GameError } from './errors.js';
 
 type Village = typeof villages.$inferSelect;
@@ -191,12 +192,14 @@ export async function mapView(
       ) / 2,
     ) + 1;
   const visible = await publicVillages(tx, village, { x, y, radius });
+  const ownTribeId = (await tribesOf(tx, [village.playerId])).get(village.playerId)?.id ?? null;
   return {
     center: { x, y },
     villages: visible,
     commands: await mapCommands(tx, village, visible),
     reports: await mapReports(tx, village, visible),
-    ownTribeId: (await tribesOf(tx, [village.playerId])).get(village.playerId)?.id ?? null,
+    ownTribeId,
+    tribeRelations: ownTribeId === null ? {} : await relationsFor(tx, ownTribeId),
     ...options,
   };
 }

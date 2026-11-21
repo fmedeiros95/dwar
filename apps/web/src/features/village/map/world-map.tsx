@@ -336,6 +336,7 @@ function MapCanvas({ snapshot, options }: { snapshot: VillageSnapshot; options: 
                           snapshot.village.id,
                           options.marks,
                           map.data?.ownTribeId ?? null,
+                          map.data?.tribeRelations,
                         ),
                       }}
                       onClick={(event) => {
@@ -605,6 +606,7 @@ function MapCanvas({ snapshot, options }: { snapshot: VillageSnapshot; options: 
                     snapshot.village.id,
                     options.marks,
                     map.data?.ownTribeId ?? null,
+                    map.data?.tribeRelations,
                   )}
                 />
               ))}

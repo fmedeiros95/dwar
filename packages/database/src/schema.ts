@@ -815,6 +815,67 @@ export const tribeInvites = pgTable(
   ],
 );
 
+/** Relação declarada por uma tribo com outra (aliada, pacto de não agressão ou inimiga). */
+export const tribeRelations = pgTable(
+  'tribe_relations',
+  {
+    id: integer('id').primaryKey().generatedAlwaysAsIdentity(),
+    worldId: integer('world_id').notNull(),
+    fromTribeId: integer('from_tribe_id').notNull(),
+    toTribeId: integer('to_tribe_id').notNull(),
+    kind: text('kind').$type<'ally' | 'nap' | 'enemy'>().notNull(),
+    createdAt: time('created_at').defaultNow(),
+  },
+  (t) => [
+    foreignKey({
+      columns: [t.fromTribeId, t.worldId],
+      foreignColumns: [tribes.id, tribes.worldId],
+    }).onDelete('cascade'),
+    foreignKey({
+      columns: [t.toTribeId, t.worldId],
+      foreignColumns: [tribes.id, tribes.worldId],
+    }).onDelete('cascade'),
+    uniqueIndex('tribe_relations_from_tribe_id_to_tribe_id_unique').on(t.fromTribeId, t.toTribeId),
+    index('tribe_relations_to_idx').on(t.toTribeId),
+  ],
+);
+
+/** Guerra formal entre duas tribos, com título, declaração e (quando acaba) a data de fim. */
+export const tribeWars = pgTable(
+  'tribe_wars',
+  {
+    id: integer('id').primaryKey().generatedAlwaysAsIdentity(),
+    worldId: integer('world_id').notNull(),
+    declarerTribeId: integer('declarer_tribe_id').notNull(),
+    targetTribeId: integer('target_tribe_id').notNull(),
+    title: text('title').notNull(),
+    body: text('body').notNull().default(''),
+    declaredAt: time('declared_at').defaultNow(),
+    endedAt: timestamp('ended_at', { withTimezone: true }),
+  },
+  (t) => [
+    foreignKey({
+      columns: [t.declarerTribeId, t.worldId],
+      foreignColumns: [tribes.id, tribes.worldId],
+    }).onDelete('cascade'),
+    foreignKey({
+      columns: [t.targetTribeId, t.worldId],
+      foreignColumns: [tribes.id, tribes.worldId],
+    }).onDelete('cascade'),
+    index('tribe_wars_declarer_idx').on(t.declarerTribeId),
+    index('tribe_wars_target_idx').on(t.targetTribeId),
+  ],
+);
+
+/** Pedido de paz em aberto de uma guerra (no máximo um por guerra). */
+export const tribePeaceOffers = pgTable('tribe_peace_offers', {
+  warId: integer('war_id')
+    .primaryKey()
+    .references(() => tribeWars.id, { onDelete: 'cascade' }),
+  offeredByTribeId: integer('offered_by_tribe_id').notNull(),
+  createdAt: time('created_at').defaultNow(),
+});
+
 /** Registro de eventos da tribo; a mensagem usa BBCode ([player]Nome[/player]). */
 export const tribeEvents = pgTable(
   'tribe_events',

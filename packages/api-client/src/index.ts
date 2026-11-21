@@ -332,6 +332,8 @@ export type MapSnapshot = {
   reports: MapReportDot[];
   /** Tribo de quem consulta; as aldeias dela são pintadas de azul no mapa. */
   ownTribeId: number | null;
+  /** Como a tribo de quem consulta enxerga as outras (aliada, pacto, inimiga ou em guerra). */
+  tribeRelations: Record<number, RelationKind>;
   settings: MapSettings;
   marks: MapMark[];
 };
@@ -474,6 +476,13 @@ export type TribeProfile = {
   members: { playerId: number; username: string; title: string; points: number; rank: number }[];
   /** O jogador que consulta faz parte desta tribo. */
   isMember: boolean;
+  /** Relações declaradas e guerras em andamento, públicas. */
+  relations: {
+    ally: TribeRef[];
+    nap: TribeRef[];
+    enemy: TribeRef[];
+    wars: { id: number; title: string; other: TribeRef }[];
+  };
 };
 export type TribeInviteView = {
   id: number;
@@ -484,7 +493,36 @@ export type TribeInviteView = {
 export type MyTribeInvite = { id: number; tribe: TribeRef; invitedBy: string; createdAt: string };
 export type TribeEventView = { id: number; createdAt: string; content: MessageNode[] };
 /** A tribo do próprio jogador, com tudo o que só os membros veem. */
+export type RelationKind = 'ally' | 'nap' | 'enemy';
+export type TribeRelationView = {
+  id: number;
+  tribe: TribeRef;
+  kind: RelationKind;
+  createdAt: string;
+};
+export type TribeWarView = {
+  id: number;
+  title: string;
+  declaration: MessageNode[];
+  other: TribeRef;
+  declaredByUs: boolean;
+  declaredAt: string;
+  endedAt: string | null;
+  /** Pedido de paz em aberto: quem fez. */
+  peace: { offeredByUs: boolean } | null;
+  /** Batalhas e unidades derrotadas entre as duas tribos durante a guerra. */
+  stats: { ourAttacks: number; theirAttacks: number; ourKills: number; theirKills: number };
+};
+export type TribeDiplomacy = {
+  /** Relações que a nossa tribo declarou. */
+  declared: TribeRelationView[];
+  /** Relações que outras tribos declararam em relação à nossa. */
+  received: TribeRelationView[];
+  wars: TribeWarView[];
+  endedWars: TribeWarView[];
+};
 export type TribeOverview = {
+  diplomacy: TribeDiplomacy;
   profile: TribeProfile;
   /** Texto bruto (BBCode) para edição. */
   descriptionText: string;
@@ -505,6 +543,13 @@ export type TribeAction =
   | { type: 'cancel_invite'; inviteId: number }
   | { type: 'accept_invite'; inviteId: number }
   | { type: 'decline_invite'; inviteId: number }
+  | { type: 'set_relation'; tag: string; kind: RelationKind }
+  | { type: 'cancel_relation'; relationId: number }
+  | { type: 'declare_war'; tag: string; title: string; declaration: string }
+  | { type: 'offer_peace'; warId: number }
+  | { type: 'withdraw_peace'; warId: number }
+  | { type: 'accept_peace'; warId: number }
+  | { type: 'reject_peace'; warId: number }
   | { type: 'kick'; playerId: number }
   | { type: 'rights'; playerId: number; title: string; rights: Partial<TribeRightsView> }
   | {

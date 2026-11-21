@@ -2,7 +2,6 @@ import { and, desc, eq, sql } from 'drizzle-orm';
 import {
   db,
   accounts,
-  noticeReports,
   players,
   tribeEvents,
   tribeInvites,
@@ -10,7 +9,7 @@ import {
   tribes,
   type Transaction,
 } from '@dwar/database';
-import { tribeLimits, tribeTagPattern, type NoticePayload } from '@dwar/game-config';
+import { tribeLimits, tribeTagPattern } from '@dwar/game-config';
 import { canManageMember, founderRights, normalizeRights } from '@dwar/game-core';
 import type {
   MyTribeInvite,
@@ -25,24 +24,24 @@ import { GameError } from './errors.js';
 import { memberPlayer } from './member.js';
 import { lockWorld } from './village-engine.js';
 import { renderBBCode } from './bbcode.js';
+import {
+  diplomacyOf,
+  isDiplomacyAction,
+  performDiplomacy,
+  publicRelations,
+} from './tribe-diplomacy.js';
+import {
+  logEvent,
+  membership,
+  notify,
+  plain,
+  rightsOf,
+  safe,
+  usernameOf,
+  type MemberRow,
+} from './tribe-common.js';
 
-type MemberRow = typeof tribeMembers.$inferSelect;
-type Notice = Extract<NoticePayload, { kind: 'tribe' }>;
-
-const rightsOf = (member: MemberRow): TribeRightsView => ({
-  isFounder: member.isFounder,
-  canLead: member.canLead,
-  canInvite: member.canInvite,
-  canDiplomacy: member.canDiplomacy,
-  canMassMail: member.canMassMail,
-  canModerate: member.canModerate,
-  canHiddenForum: member.canHiddenForum,
-});
 const rightColumns = (rights: TribeRightsView) => ({ ...rights });
-
-/** Nomes entram em textos com BBCode; colchetes quebrariam a leitura. */
-const safe = (name: string) => name.replaceAll('[', '(').replaceAll(']', ')');
-const plain = (value: unknown) => (typeof value === 'string' ? value.trim() : '');
 
 function checkName(name: string) {
   if (
@@ -100,27 +99,6 @@ async function requireFree(
       throw new GameError(`O nome "${name}" já está em uso.`);
     throw new GameError(`A tag "${tag}" já está em uso.`);
   }
-}
-
-async function membership(tx: Transaction, playerId: number) {
-  const [row] = await tx.select().from(tribeMembers).where(eq(tribeMembers.playerId, playerId));
-  return row;
-}
-
-async function logEvent(tx: Transaction, worldId: number, tribeId: number, message: string) {
-  await tx.insert(tribeEvents).values({ worldId, tribeId, message });
-}
-
-async function notify(tx: Transaction, worldId: number, playerId: number, payload: Notice) {
-  await tx.insert(noticeReports).values({
-    worldId,
-    playerId,
-    kind: 'tribe',
-    occurredAt: new Date(),
-    fromVillageId: null,
-    toVillageId: null,
-    payload,
-  });
 }
 
 /** Pontos, aldeias e posição de todos os jogadores do mundo (mesmo critério do ranking). */
@@ -213,6 +191,7 @@ async function profileOf(
       rank,
     })),
     isMember: members.some((member) => member.playerId === viewerPlayerId),
+    relations: await publicRelations(tx, tribeId),
   };
 }
 
@@ -246,6 +225,7 @@ async function overviewOf(
       content: await renderBBCode(tx, worldId, event.message),
     });
   return {
+    diplomacy: await diplomacyOf(tx, worldId, member.tribeId),
     profile: await profileOf(tx, worldId, member.tribeId, member.playerId, roster),
     descriptionText: tribe!.description,
     internalText: tribe!.internalText,
@@ -291,15 +271,6 @@ async function homeOf(tx: Transaction, worldId: number, playerId: number): Promi
   };
 }
 
-async function usernameOf(tx: Transaction, playerId: number) {
-  const [row] = await tx
-    .select({ username: accounts.username })
-    .from(players)
-    .innerJoin(accounts, eq(accounts.id, players.accountId))
-    .where(eq(players.id, playerId));
-  return safe(row?.username ?? 'jogador');
-}
-
 export async function performTribeAction(
   tx: Transaction,
   worldId: number,
@@ -317,6 +288,11 @@ export async function performTribeAction(
     if (!member[right]) throw new GameError(message, 403);
     return member;
   };
+
+  if (isDiplomacyAction(action)) {
+    await performDiplomacy(tx, worldId, requireMember(), me, action);
+    return;
+  }
 
   if (action.type === 'create') {
     if (mine) throw new GameError('Você já pertence a uma tribo. Saia dela antes de fundar outra.');

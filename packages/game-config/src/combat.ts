@@ -164,12 +164,24 @@ export type NoticePayload =
       troops: Troops;
     }
   | {
-      /** Aviso de tribo: convite recebido, expulsão ou tribo dissolvida. */
+      /** Aviso de tribo: convite, expulsão, dissolução e diplomacia (guerra e paz). */
       kind: 'tribe';
-      event: 'invited' | 'kicked' | 'disbanded';
+      event:
+        | 'invited'
+        | 'kicked'
+        | 'disbanded'
+        | 'war_declared'
+        | 'peace_offered'
+        | 'peace_accepted'
+        | 'peace_rejected';
+      /** Tribo do convite ou a outra tribo da guerra. */
       tribeName: string;
       tribeTag: string;
       by: string;
+      /** Título da guerra, quando o aviso é sobre uma. */
+      detail?: string;
+      /** A própria tribo do destinatário fez a declaração. */
+      outgoing?: boolean;
     }
   | {
       /** Medalha nova (ou nível novo). `value` é o valor que a fez subir. */
