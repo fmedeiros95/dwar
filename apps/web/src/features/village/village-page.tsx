@@ -3,7 +3,7 @@ import { useEffect, useRef, useState, type CSSProperties, type FormEvent } from 
 import { Link, useNavigate } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { api, ApiError, type Account, type World } from '@dwar/api-client';
-import { Clock, Pencil } from 'lucide-react';
+import { Clock, HeartHandshake, Pencil, Swords } from 'lucide-react';
 import { LegacyFrame, ResourceIcon } from '../../components/legacy-frame.js';
 import { Icon } from '../../components/icons.js';
 import { GameShell } from '../../components/game-shell.js';
@@ -21,6 +21,7 @@ import { MedalsPanel } from './medals/index.js';
 import { TribePanel, TribeProfileScreen } from './tribes/index.js';
 import { RankingScreen } from './ranking/index.js';
 import { SettingsScreen } from './settings/index.js';
+import { IncomingsPanel } from './incomings/incomings-panel.js';
 import { useVillageActions } from './use-village-actions.js';
 import { numbers, resources, speedLabel, timeFormat } from './shared/index.js';
 
@@ -37,6 +38,7 @@ const windowTitles: Record<string, string> = {
   settings: 'Ajustes',
   info_village: 'Aldeia',
   info_player: 'Jogador',
+  incomings: 'Chegando',
 };
 const wideScreens = ['mail', 'reports', 'ranking'];
 function windowSize(screen: string) {
@@ -134,6 +136,12 @@ export function VillagePage({
     enabled: !!data,
     refetchInterval: 5000,
   });
+  const incomings = useQuery({
+    queryKey: ['incomings', worldId],
+    queryFn: () => api.incomings(worldId),
+    enabled: !!data,
+    refetchInterval: 3000,
+  });
   const {
     build,
     recruitment,
@@ -205,6 +213,10 @@ export function VillagePage({
     }
     const villageId = params.get('village') ?? String(canonicalVillageId ?? '');
     openWindow(new URLSearchParams({ village: villageId, screen: value }).toString());
+  }
+  function openIncomings(mode: 'attack' | 'support') {
+    const villageId = params.get('village') ?? String(canonicalVillageId ?? '');
+    openWindow(new URLSearchParams({ village: villageId, screen: 'incomings', mode }).toString());
   }
   /** Navegação feita de dentro de uma janela: outra tela na própria janela, ou o fundo. */
   function navigateWindow(id: number, search: string) {
@@ -304,11 +316,11 @@ export function VillagePage({
           onClick: () => setScreen('overview'),
         },
         {
-          key: 'buildings',
-          label: 'Construir',
-          icon: <Icon name="build" size={26} />,
-          active: section === 'buildings',
-          onClick: () => setScreen('main'),
+          key: 'attacks',
+          label: 'Ataques',
+          icon: <Swords size={25} aria-hidden="true" />,
+          badge: incomings.data?.attacks,
+          onClick: () => openIncomings('attack'),
         },
         {
           key: 'map',
@@ -356,11 +368,11 @@ export function VillagePage({
           onClick: () => setScreen('notes'),
         },
         {
-          key: 'activity',
-          label: 'Atividade',
-          icon: <Icon name="activity" size={26} />,
-          active: section === 'activity',
-          onClick: () => setScreen('activity'),
+          key: 'supports',
+          label: 'Apoios',
+          icon: <HeartHandshake size={25} aria-hidden="true" />,
+          badge: incomings.data?.supports,
+          onClick: () => openIncomings('support'),
         },
         {
           key: 'ranking',
@@ -651,6 +663,15 @@ export function VillagePage({
           if (code === 'info_tribe') return <TribeProfileScreen snapshot={data} />;
           if (code === 'ranking') return <RankingScreen snapshot={data} />;
           if (code === 'settings') return <SettingsScreen snapshot={data} />;
+          if (code === 'incomings')
+            return (
+              <IncomingsPanel
+                snapshot={data}
+                data={incomings.data}
+                clock={clock}
+                mode={new URLSearchParams(win.search).get('mode') === 'support' ? 'support' : 'attack'}
+              />
+            );
           if (code === 'activity') return activityView;
           return null;
         }}

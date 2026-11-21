@@ -407,6 +407,21 @@ export type RallySnapshot = {
     endsAt: string;
   }[];
 };
+export type IncomingCommand = {
+  id: number;
+  kind: 'attack' | 'support';
+  from: PublicVillage;
+  to: PublicVillage;
+  sender: string;
+  startsAt: string;
+  endsAt: string;
+};
+export type IncomingOverview = {
+  serverTime: string;
+  attacks: number;
+  supports: number;
+  commands: IncomingCommand[];
+};
 
 export type MailStatus = 'answered' | 'new' | 'read';
 export type MailPerson = { id: number; username: string };
@@ -887,6 +902,7 @@ export const api = {
     ),
   rally: (worldId: number, villageId: number) =>
     request<RallySnapshot>(`/worlds/${worldId}/villages/${villageId}/rally`),
+  incomings: (worldId: number) => request<IncomingOverview>(`/worlds/${worldId}/incomings`),
   previewSupport: (
     worldId: number,
     villageId: number,

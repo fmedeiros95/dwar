@@ -1,7 +1,7 @@
 import { Body, Controller, Get, Param, Post, Query, UseGuards } from '@nestjs/common';
 import { ApiCookieAuth, ApiTags } from '@nestjs/swagger';
 import { z } from 'zod';
-import { createVillage, readVillage, renameVillage } from '@dwar/game-server';
+import { createVillage, readIncomings, readVillage, renameVillage } from '@dwar/game-server';
 import type { Account } from '@dwar/api-client';
 import { CurrentAccount } from '../common/current-account.decorator.js';
 import { cookieName } from '../common/cookies.js';
@@ -13,6 +13,11 @@ import { SessionGuard } from '../common/session.guard.js';
 @ApiCookieAuth(cookieName)
 @UseGuards(SessionGuard)
 export class VillagesController {
+  @Get('incomings')
+  async incomings(@CurrentAccount() account: Account, @Param('worldId') worldId: string) {
+    return readIncomings(account.id, id.parse(worldId));
+  }
+
   @Post('villages')
   async create(@CurrentAccount() account: Account, @Param('worldId') worldId: string) {
     return createVillage(account.id, account.username, id.parse(worldId));

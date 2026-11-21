@@ -32,6 +32,7 @@ import type {
   RallyAction,
   SupportPreview,
   TroopCounts,
+  IncomingOverview,
 } from '@dwar/api-client';
 import { lockWorld, ownedVillage, settleVillage } from './village-engine.js';
 import {
@@ -696,6 +697,67 @@ export async function readRally(accountId: number, worldId: number, villageId: n
       owned = await ownedVillage(tx, accountId, worldId, villageId),
       now = new Date();
     return rallyView(tx, await settleVillage(tx, owned, world, now), now);
+  });
+}
+
+export async function readIncomings(accountId: number, worldId: number): Promise<IncomingOverview> {
+  return db.transaction(async (tx) => {
+    const world = await lockWorld(tx, worldId);
+    const current = await ownedVillage(tx, accountId, worldId);
+    const ownVillages = await tx
+      .select({ id: villages.id, playerId: villages.playerId })
+      .from(villages)
+      .where(and(eq(villages.worldId, world.id), eq(villages.playerId, current.playerId)));
+    const ownIds = ownVillages.map((row) => row.id);
+    if (!ownIds.length) return { serverTime: new Date().toISOString(), attacks: 0, supports: 0, commands: [] };
+    const rows = await tx
+      .select()
+      .from(troopMovements)
+      .where(
+        and(
+          eq(troopMovements.worldId, world.id),
+          inArray(troopMovements.toVillageId, ownIds),
+          inArray(troopMovements.kind, ['attack', 'support']),
+          isNull(troopMovements.arrivedAt),
+        ),
+      )
+      .orderBy(asc(troopMovements.endsAt), asc(troopMovements.id));
+    const foreign = rows.filter((row) => row.ownerPlayerId !== current.playerId);
+    const playerIds = [...new Set(foreign.map((row) => row.ownerPlayerId))];
+    const senders = playerIds.length
+      ? await tx
+          .select({ id: players.id, username: accounts.username })
+          .from(players)
+          .innerJoin(accounts, eq(accounts.id, players.accountId))
+          .where(inArray(players.id, playerIds))
+      : [];
+    const senderNames = new Map(senders.map((row) => [row.id, row.username]));
+    const villageIds = [...new Set(foreign.flatMap((row) => [row.fromVillageId, row.toVillageId]))];
+    const known = new Map(
+      (await publicVillages(tx, current, undefined, villageIds)).map((row) => [row.id, row]),
+    );
+    const commands = foreign.flatMap((row) => {
+      const from = known.get(row.fromVillageId);
+      const to = known.get(row.toVillageId);
+      if (!from || !to) return [];
+      return [
+        {
+          id: row.id,
+          kind: row.kind as 'attack' | 'support',
+          from,
+          to,
+          sender: senderNames.get(row.ownerPlayerId) ?? from.username,
+          startsAt: row.startsAt!.toISOString(),
+          endsAt: row.endsAt!.toISOString(),
+        },
+      ];
+    });
+    return {
+      serverTime: new Date().toISOString(),
+      attacks: commands.filter((row) => row.kind === 'attack').length,
+      supports: commands.filter((row) => row.kind === 'support').length,
+      commands,
+    };
   });
 }
 

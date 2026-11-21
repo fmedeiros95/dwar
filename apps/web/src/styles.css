@@ -454,6 +454,9 @@ p {
 .activity-table {
   min-width: 530px;
 }
+.incoming-table {
+  min-width: 760px;
+}
 .activity-table th:last-child,
 .activity-table td:last-child {
   width: 180px;

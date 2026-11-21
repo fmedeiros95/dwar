@@ -20,7 +20,7 @@ export { enqueueRecruitment, cancelRecruitment } from './recruitment.js';
 export { academyAction } from './academy.js';
 export { readMarket, previewMarketTrade, mutateMarket } from './market.js';
 export { mutateMap, readMap, readMapVillage, readMapPlayer, readMapPopup } from './map.js';
-export { readRally, previewRallySupport, mutateRally } from './rally.js';
+export { readRally, readIncomings, previewRallySupport, mutateRally } from './rally.js';
 export {
   readMailbox,
   readMailThread,
