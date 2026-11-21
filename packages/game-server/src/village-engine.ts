@@ -23,7 +23,7 @@ import {
 import {
   accrueResources,
   loyaltyAt,
-  addedPoints,
+  villagePoints,
   buildingCodes,
   buildingCost,
   buildingDuration,
@@ -122,12 +122,12 @@ async function settleVillageBase(
       current.updatedAt,
       event.endsAt,
     );
-    const points = current.points + addedPoints(code, current.buildings[code]);
+    const levels = { ...current.buildings, [code]: event.targetLevel };
     current = {
       ...current,
       ...resources,
-      points,
-      buildings: { ...current.buildings, [code]: event.targetLevel },
+      points: villagePoints(levels),
+      buildings: levels,
       updatedAt: event.endsAt,
     };
     await tx
@@ -148,7 +148,8 @@ async function settleVillageBase(
     current.updatedAt,
     now,
   );
-  current = { ...current, ...resources, updatedAt: now };
+  // Os pontos são sempre recontados a partir dos níveis; isso também corrige aldeias antigas.
+  current = { ...current, ...resources, points: villagePoints(current.buildings), updatedAt: now };
   await tx
     .update(villages)
     .set({ ...resources, buildings: current.buildings, points: current.points, updatedAt: now })

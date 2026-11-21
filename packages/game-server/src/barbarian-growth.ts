@@ -1,6 +1,6 @@
 import { and, asc, eq, isNotNull, isNull, lte } from 'drizzle-orm';
 import { villages, worlds, type Transaction } from '@dwar/database';
-import { buildingDuration, chooseBarbarianUpgrade } from '@dwar/game-core';
+import { buildingDuration, chooseBarbarianUpgrade, villagePoints } from '@dwar/game-core';
 import { settleVillage } from './village-engine.js';
 
 type World = typeof worlds.$inferSelect;
@@ -64,7 +64,7 @@ export async function growBarbarian(
   const grown = {
     ...village,
     buildings,
-    points: village.points + upgrade.points,
+    points: villagePoints(buildings),
     populationUsed: village.populationUsed + upgrade.population,
   };
   await tx

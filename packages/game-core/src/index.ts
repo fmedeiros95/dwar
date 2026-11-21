@@ -76,19 +76,30 @@ export function initialPopulation(levels: BuildingLevels): number {
   );
 }
 
-export function initialPoints(levels: BuildingLevels): number {
-  return buildingCodes.reduce(
-    (sum, code) =>
-      levels[code] === 0
-        ? sum
-        : sum + Math.round(buildings[code].basePoints * Math.round(1.2 ** (levels[code] - 1))),
-    0,
-  );
+/**
+ * Pontos de uma construção no nível dado: nível 0 vale 0, o nível 1 vale o valor-base e cada
+ * nível seguinte multiplica por 1,2 (arredondado para cima). Fórmula de get_points do Speed Wars.
+ */
+export function buildingPoints(code: BuildingCode, level: number): number {
+  if (level <= 0) return 0;
+  const { basePoints } = buildings[code];
+  return Math.ceil((basePoints / 1.2) * 1.2 ** level);
 }
 
+/**
+ * Pontos da aldeia: a soma dos pontos de cada construção no nível atual. É sempre recalculada a
+ * partir dos níveis (nunca acumulada), então não se afasta do correto por erro de arredondamento.
+ * Os pontos do jogador são a soma dos pontos das suas aldeias.
+ */
+export function villagePoints(levels: BuildingLevels): number {
+  return buildingCodes.reduce((sum, code) => sum + buildingPoints(code, levels[code]), 0);
+}
+
+export const initialPoints = villagePoints;
+
+/** Pontos que a aldeia ganha ao subir a construção do nível atual para o seguinte. */
 export function addedPoints(code: BuildingCode, currentLevel: number): number {
-  const base = buildings[code].basePoints;
-  return Math.round(base * 1.2 ** currentLevel - base * 1.2 ** (currentLevel - 1));
+  return buildingPoints(code, currentLevel + 1) - buildingPoints(code, currentLevel);
 }
 
 export function capacity(levels: BuildingLevels): number {

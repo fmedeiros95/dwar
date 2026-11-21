@@ -34,7 +34,7 @@ import {
   emptyTroops,
   resourceCodes,
   capacity,
-  addedPoints,
+  villagePoints,
   buildingPopulation,
 } from '@dwar/game-core';
 import { GameError } from './errors.js';
@@ -154,12 +154,9 @@ async function applyDamage(
   at: Date,
 ) {
   if (level === target.buildings[code]) return target;
-  let points = target.points,
-    population = target.populationUsed;
-  for (let old = target.buildings[code]; old > level; old--) {
-    points -= addedPoints(code, old - 1);
+  let population = target.populationUsed;
+  for (let old = target.buildings[code]; old > level; old--)
     population -= buildingPopulation(code, old);
-  }
   const queued = await tx
     .select()
     .from(constructionEvents)
@@ -185,7 +182,7 @@ async function applyDamage(
   const updated = {
     ...target,
     buildings: { ...target.buildings, [code]: level },
-    points: Math.max(0, points),
+    points: villagePoints({ ...target.buildings, [code]: level }),
     populationUsed: population,
     updatedAt: at,
   };
