@@ -136,6 +136,11 @@ export {
   type RecruitmentBuilding,
 } from '@dwar/game-config';
 export { recruitmentDuration, deliveredUnits } from './recruitment.js';
+export {
+  chooseBarbarianUpgrade,
+  barbarianBuildings,
+  type BarbarianUpgrade,
+} from './barbarian-growth.js';
 
 export { requiredNobleCoins } from './academy.js';
 

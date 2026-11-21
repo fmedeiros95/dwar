@@ -1,9 +1,10 @@
 import { db, worlds, pool } from '../packages/database/dist/index.js';
-import { updateWorldBarbarians, updateWorldSpeed } from '../packages/game-server/dist/index.js';
+import { updateBarbarianMaxPoints, updateWorldBarbarians, updateWorldSpeed } from '../packages/game-server/dist/index.js';
 
 const usage =
-  'Uso: pnpm db:world <mundo> [--barbarians N] [--build N] [--production N]\n' +
+  'Uso: pnpm db:world <mundo> [--barbarians N] [--barbarian-max-points N] [--build N] [--production N]\n' +
   '  --barbarians  aldeias bárbaras criadas a cada jogador novo (0 a 20)\n' +
+  '  --barbarian-max-points  pontuação-limite até onde as bárbaras evoluem sozinhas (0 desliga)\n' +
   '  --build       velocidade de construção e recrutamento do mundo\n' +
   '  --production  velocidade de produção de recursos do mundo';
 
@@ -18,9 +19,9 @@ try {
   const options = {};
   for (let index = 0; index < rest.length; index += 2) {
     const flag = rest[index];
-    if (!['--barbarians', '--build', '--production'].includes(flag))
+    if (!['--barbarians', '--barbarian-max-points', '--build', '--production'].includes(flag))
       throw new Error(`Opção desconhecida: ${flag}\n${usage}`);
-    options[flag.slice(2)] = integer(flag, rest[index + 1]);
+    options[flag.slice(2).replace(/-(\w)/g, (_, letter) => letter.toUpperCase())] = integer(flag, rest[index + 1]);
   }
   if (!Object.keys(options).length) throw new Error(usage);
 
@@ -33,6 +34,8 @@ try {
     });
   if (options.barbarians !== undefined)
     world = await updateWorldBarbarians(world.id, options.barbarians);
+  if (options.barbarianMaxPoints !== undefined)
+    world = await updateBarbarianMaxPoints(world.id, options.barbarianMaxPoints);
   console.log(
     JSON.stringify(
       {
@@ -40,6 +43,7 @@ try {
         velocidadeConstrucao: world.buildSpeed,
         velocidadeProducao: world.productionSpeed,
         barbarasPorJogador: world.barbarianVillagesPerPlayer,
+        limiteDePontosDasBarbaras: world.barbarianMaxPoints,
       },
       null,
       2,

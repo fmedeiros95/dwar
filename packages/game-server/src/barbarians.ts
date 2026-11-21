@@ -4,10 +4,12 @@ import { initialBuildings, initialResources } from '@dwar/game-config';
 import { initialPoints, initialPopulation } from '@dwar/game-core';
 import { lockWorld } from './village-engine.js';
 import { nextVillagePosition } from './placement.js';
+import { scheduleGrowth } from './barbarian-growth.js';
 
 // Posição pela espiral do Speed Wars (fluxo próprio das bárbaras); mesmo estado inicial de uma fundação.
 export async function createBarbarian(tx: Transaction, worldId: number, now: Date) {
   const coordinates = await nextVillagePosition(tx, worldId, 'barbarian');
+  const [world] = await tx.select().from(worlds).where(eq(worlds.id, worldId));
   const [village] = await tx
     .insert(villages)
     .values({
@@ -23,7 +25,10 @@ export async function createBarbarian(tx: Transaction, worldId: number, now: Dat
       updatedAt: now,
     })
     .returning();
-  return village!;
+  const growthAt = scheduleGrowth(village!, world!, now);
+  if (!growthAt) return village!;
+  await tx.update(villages).set({ growthAt }).where(eq(villages.id, village!.id));
+  return { ...village!, growthAt };
 }
 
 export async function createBarbarianVillages(

@@ -84,6 +84,8 @@ export const worlds = pgTable(
     maxBuildQueue: integer('max_build_queue').notNull(),
     /** Aldeias bárbaras criadas a cada jogador novo. */
     barbarianVillagesPerPlayer: integer('barbarian_villages_per_player').notNull().default(1),
+    /** Pontuação-limite até onde as aldeias bárbaras evoluem sozinhas; 0 desliga. */
+    barbarianMaxPoints: integer('barbarian_max_points').notNull().default(0),
   },
   (table) => [
     check(
@@ -126,6 +128,8 @@ export const villages = pgTable(
     loyalty: doublePrecision('loyalty').notNull().default(100),
     loyaltyUpdatedAt: time('loyalty_updated_at').defaultNow(),
     foundedAsBarbarian: boolean('founded_as_barbarian').notNull().default(false),
+    /** Quando uma aldeia bárbara sobe o próximo nível; nulo se não há o que evoluir. */
+    growthAt: timestamp('growth_at', { withTimezone: true }),
     name: text('name').notNull(),
     x: integer('x').notNull(),
     y: integer('y').notNull(),

@@ -10,6 +10,7 @@ import {
 } from '@dwar/database';
 import type { WorldEntry } from '@dwar/api-client';
 import { GameError } from './errors.js';
+import { processBarbarianGrowth, scheduleGrowth } from './barbarian-growth.js';
 import { lockWorld, settleVillage, settleWorldEvents, type WorldRow } from './village-engine.js';
 
 export function listWorlds() {
@@ -88,6 +89,37 @@ export async function updateWorldBarbarians(
   });
 }
 
+/**
+ * Define a pontuação-limite até onde as bárbaras evoluem sozinhas (0 desliga) e agenda as que já
+ * podem crescer. Reduzir o limite não rebaixa construções: as aldeias só param de evoluir.
+ */
+export async function updateBarbarianMaxPoints(
+  worldId: number,
+  maxPoints: number,
+): Promise<WorldRow> {
+  if (!Number.isInteger(maxPoints) || maxPoints < 0 || maxPoints > 1000000)
+    throw new GameError('Use uma pontuação-limite inteira de 0 a 1.000.000.');
+  return db.transaction(async (tx) => {
+    await lockWorld(tx, worldId);
+    const now = new Date();
+    const [world] = await tx
+      .update(worlds)
+      .set({ barbarianMaxPoints: maxPoints })
+      .where(eq(worlds.id, worldId))
+      .returning();
+    const barbarians = await tx
+      .select()
+      .from(villages)
+      .where(and(eq(villages.worldId, worldId), isNull(villages.playerId)));
+    for (const village of barbarians)
+      await tx
+        .update(villages)
+        .set({ growthAt: scheduleGrowth(village, world!, now) })
+        .where(eq(villages.id, village.id));
+    return world!;
+  });
+}
+
 export async function processWorldEvents(): Promise<number> {
   const available = await listWorlds();
   let processed = 0;
@@ -144,7 +176,8 @@ export async function processWorldEvents(): Promise<number> {
           .where(and(eq(villages.id, villageId), eq(villages.worldId, world.id)));
         if (village) await settleVillage(tx, village, world, now);
       }
-      return resolvedEvents + due.length + dueResearch.length + dueRecruitment.length;
+      const grown = await processBarbarianGrowth(tx, world, now);
+      return resolvedEvents + due.length + dueResearch.length + dueRecruitment.length + grown;
     });
   }
   return processed;

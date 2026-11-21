@@ -18,6 +18,8 @@ export type World = {
   rulesVersion: string;
   /** Aldeias bárbaras criadas a cada jogador novo. */
   barbarianVillagesPerPlayer: number;
+  /** Pontuação-limite da evolução automática das bárbaras; 0 = desligada. */
+  barbarianMaxPoints: number;
 };
 export type WorldEntry = { world: World; villageId: number | null };
 export type Construction = {

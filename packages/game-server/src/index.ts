@@ -9,6 +9,7 @@ export {
   enterWorld,
   updateWorldSpeed,
   updateWorldBarbarians,
+  updateBarbarianMaxPoints,
   processWorldEvents,
 } from './world.js';
 export { populateBarbarianVillages } from './barbarians.js';
