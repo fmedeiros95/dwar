@@ -3,6 +3,7 @@ import { db, accounts, players, villages, type Transaction } from '@dwar/databas
 import { militaryRank } from '@dwar/game-core';
 import type { RankingBoard, RankingEntry, RankingKillType, RankingPage } from '@dwar/api-client';
 import { lockWorld, ownedVillage } from './village-engine.js';
+import { medalMetrics, stagesOf, totalStages } from './medals.js';
 import { GameError } from './errors.js';
 
 const pageSize = 20;
@@ -25,6 +26,14 @@ const killsOf: Record<RankingKillType, SQL<number>> = {
   all: sql<number>`(${players.unitsKilledAttack} + ${players.unitsKilledDefense})::double precision`,
 };
 
+type Standing = {
+  id: number;
+  username: string;
+  points: number;
+  villageCount: number;
+  joinedAt: Date;
+};
+
 /** Classificação completa de um painel; a posição de cada jogador é o índice + 1. */
 async function standings(
   tx: Transaction,
@@ -32,7 +41,20 @@ async function standings(
   board: RankingBoard,
   type: RankingKillType,
   continent: number,
-) {
+): Promise<Standing[]> {
+  if (board === 'medals') {
+    // Total de níveis de medalha (como no Speed Wars): cada nível conquistado vale 1 ponto.
+    const base = await standings(tx, worldId, 'player', type, continent);
+    const metrics = await medalMetrics(tx, worldId);
+    return base
+      .map((row) => ({
+        ...row,
+        points: totalStages(stagesOf(metrics.get(row.id)!)),
+      }))
+      .sort(
+        (a, b) => b.points - a.points || a.joinedAt.getTime() - b.joinedAt.getTime() || a.id - b.id,
+      );
+  }
   const select = {
     id: players.id,
     username: accounts.username,
@@ -70,12 +92,7 @@ async function standings(
     .orderBy(desc(points), asc(players.createdAt), asc(players.id));
 }
 
-function entry(
-  row: Awaited<ReturnType<typeof standings>>[number],
-  rank: number,
-  own: boolean,
-  board: RankingBoard,
-): RankingEntry {
+function entry(row: Standing, rank: number, own: boolean, board: RankingBoard): RankingEntry {
   // A patente vem dos pontos do jogador; nos outros painéis o número é outra medida.
   const { tier, title } = board === 'player' ? militaryRank(row.points) : militaryRank(0);
   return {

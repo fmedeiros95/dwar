@@ -37,6 +37,15 @@ export { merchantCapacity, merchantCounts, legacyUnitSpeed } from './market.js';
 export { defaultMapSettings, type MapSettings } from './map.js';
 
 export {
+  medals,
+  medalCodes,
+  medalTiers,
+  medalStage,
+  type MedalCode,
+  type MedalDefinition,
+} from './medals.js';
+
+export {
   combatStats,
   combatRules,
   wallBonuses,

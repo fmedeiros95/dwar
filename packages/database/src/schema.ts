@@ -740,7 +740,23 @@ export const playerNotes = pgTable(
   ],
 );
 
-/** Relatórios de comércio e de chegada de apoio, um por destinatário. */
+/** Último nível conhecido de cada medalha de cada jogador (para avisar só quando sobe). */
+export const playerMedals = pgTable(
+  'player_medals',
+  {
+    playerId: integer('player_id').notNull(),
+    worldId: integer('world_id').notNull(),
+    code: text('code').notNull(),
+    stage: integer('stage').notNull().default(0),
+    updatedAt: time('updated_at').defaultNow(),
+  },
+  (t) => [
+    primaryKey({ columns: [t.playerId, t.code] }),
+    foreignKey({ columns: [t.playerId, t.worldId], foreignColumns: [players.id, players.worldId] }),
+  ],
+);
+
+/** Relatórios de comércio, de chegada de apoio e de medalhas, um por destinatário. */
 export const noticeReports = pgTable(
   'notice_reports',
   {
@@ -749,10 +765,10 @@ export const noticeReports = pgTable(
       .notNull()
       .references(() => worlds.id),
     playerId: integer('player_id').notNull(),
-    kind: text('kind').$type<'trade' | 'support'>().notNull(),
+    kind: text('kind').$type<'trade' | 'support' | 'medal'>().notNull(),
     occurredAt: time('occurred_at'),
-    fromVillageId: integer('from_village_id').notNull(),
-    toVillageId: integer('to_village_id').notNull(),
+    fromVillageId: integer('from_village_id'),
+    toVillageId: integer('to_village_id'),
     payload: jsonb('payload').$type<NoticePayload>().notNull(),
     readAt: timestamp('read_at', { withTimezone: true }),
     deletedAt: timestamp('deleted_at', { withTimezone: true }),

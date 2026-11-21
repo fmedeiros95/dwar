@@ -17,6 +17,7 @@ import { PublicVillageScreen, PublicPlayerScreen } from './public-info/index.js'
 import { ReportsPanel } from './reports/index.js';
 import { MailPanel } from './mail/index.js';
 import { NotesPanel } from './notes/index.js';
+import { MedalsPanel } from './medals/index.js';
 import { RankingScreen } from './ranking/index.js';
 import { SettingsScreen } from './settings/index.js';
 import { useVillageActions } from './use-village-actions.js';
@@ -27,6 +28,7 @@ const windowTitles: Record<string, string> = {
   reports: 'Relatórios',
   mail: 'Mensagens',
   notes: 'Notas',
+  medals: 'Medalhas',
   activity: 'Atividade da aldeia',
   ranking: 'Ranking',
   settings: 'Ajustes',
@@ -318,6 +320,13 @@ export function VillagePage({
           onClick: () => setScreen('mail'),
         },
         {
+          key: 'medals',
+          label: 'Medalhas',
+          icon: <Icon name="medal" size={26} />,
+          active: section === 'medals',
+          onClick: () => setScreen('medals'),
+        },
+        {
           key: 'notes',
           label: 'Notas',
           icon: <Icon name="notes" size={26} />,
@@ -602,6 +611,7 @@ export function VillagePage({
           if (code === 'reports') return <ReportsPanel snapshot={data} clock={clock} />;
           if (code === 'mail') return <MailPanel snapshot={data} clock={clock} />;
           if (code === 'notes') return <NotesPanel snapshot={data} />;
+          if (code === 'medals') return <MedalsPanel snapshot={data} />;
           if (code === 'ranking') return <RankingScreen snapshot={data} />;
           if (code === 'settings') return <SettingsScreen snapshot={data} />;
           if (code === 'activity') return activityView;

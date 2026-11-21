@@ -162,6 +162,13 @@ export type NoticePayload =
       from: BattleSide;
       to: BattleSide;
       troops: Troops;
+    }
+  | {
+      /** Medalha nova (ou nível novo). `value` é o valor que a fez subir. */
+      kind: 'medal';
+      code: string;
+      stage: number;
+      value: number;
     };
 export type BattleRecord = {
   from: BattleSide;

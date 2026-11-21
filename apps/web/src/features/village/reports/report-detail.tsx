@@ -9,6 +9,7 @@ import type {
 import { ResourceIcon } from '../../../components/legacy-frame.js';
 import { numbers, completionDate } from '../shared/index.js';
 import { Marks, TroopTable, lossPercent, roleLabel } from './report-parts.js';
+import { MedalBadge } from '../medals/index.js';
 
 const lootCodes = [
   { code: 'wood', label: 'Madeira' },
@@ -309,10 +310,27 @@ export function NoticeDetail({
           {data.mode === 'offer' ? ' · oferta do mercado' : ''}
         </span>
       </div>
-      <dl className="report-parties">
-        <Party label={sender} side={data.from} onTarget={onTarget} />
-        <Party label={receiver} side={data.to} onTarget={onTarget} />
-      </dl>
+      {data.from && data.to ? (
+        <dl className="report-parties">
+          <Party label={sender} side={data.from} onTarget={onTarget} />
+          <Party label={receiver} side={data.to} onTarget={onTarget} />
+        </dl>
+      ) : null}
+      {data.medal ? (
+        <section className="medal-notice" aria-label="Medalha">
+          <MedalBadge code={data.medal.code} stage={data.medal.stage} size={72} />
+          <div>
+            <h2>
+              {data.medal.name}
+              {data.medal.tier ? ` · ${data.medal.tier}` : ''}
+            </h2>
+            <p>{data.medal.current ?? data.medal.description}</p>
+            <p className="muted">
+              {data.medal.next ? `Próximo nível: ${data.medal.next}.` : 'Nível máximo atingido.'}
+            </p>
+          </div>
+        </section>
+      ) : null}
       {data.resources ? (
         <section className="report-side" aria-label="Recursos">
           <h2>Recursos</h2>

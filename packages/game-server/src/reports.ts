@@ -4,10 +4,9 @@ import {
   battleReports,
   battleReportRecipients,
   noticeReports,
-  players,
   type Transaction,
 } from '@dwar/database';
-import { units, unitCodes } from '@dwar/game-config';
+import { units, unitCodes, medals, medalTiers } from '@dwar/game-config';
 import type {
   ReportsSnapshot,
   BattleReportSummary,
@@ -20,21 +19,15 @@ import type {
   ReportRef,
 } from '@dwar/api-client';
 import { GameError } from './errors.js';
+import { medalMetrics, medalViews } from './medals.js';
 import { lockWorld, settleWorldEvents } from './village-engine.js';
-export async function memberPlayer(tx: Transaction, accountId: number, worldId: number) {
-  const [player] = await tx
-    .select()
-    .from(players)
-    .where(and(eq(players.accountId, accountId), eq(players.worldId, worldId)));
-  if (!player) throw new GameError('Entre neste mundo antes de consultar os relatórios.', 403);
-  return player;
-}
-
+export { memberPlayer } from './member.js';
+import { memberPlayer } from './member.js';
 const groupOfRole = { attacker: 'attack', defender: 'defense', support: 'support' } as const;
 const sum = (troops: Record<string, number>) => Object.values(troops).reduce((a, b) => a + b, 0);
 const place = (side: { name: string; x: number; y: number }) =>
   `${side.name} (${side.x}|${side.y})`;
-const groups: ReportGroup[] = ['all', 'attack', 'defense', 'support', 'trade'];
+const groups: ReportGroup[] = ['all', 'attack', 'defense', 'support', 'trade', 'other'];
 
 type Notice = typeof noticeReports.$inferSelect;
 
@@ -85,6 +78,10 @@ function battleSummary(
 
 function noticeTitle(notice: Notice): string {
   const { payload } = notice;
+  if (payload.kind === 'medal') {
+    const medal = medals.find((m) => m.code === payload.code);
+    return `Medalha ${medal?.name ?? payload.code}: ${medalTiers[payload.stage - 1] ?? ''}`;
+  }
   const [from, to] = [place(payload.from), place(payload.to)];
   if (payload.kind === 'support')
     return payload.role === 'sender'
@@ -101,20 +98,25 @@ function noticeTitle(notice: Notice): string {
 
 function noticeSummary(notice: Notice): NoticeReportSummary {
   const { payload } = notice;
-  const pick = (s: typeof payload.from) => ({
+  const pick = (s: { name: string; username: string; x: number; y: number }) => ({
     name: s.name,
     username: s.username,
     x: s.x,
     y: s.y,
   });
-  return {
-    source: 'notice',
+  const base = {
+    source: 'notice' as const,
     id: notice.id,
-    kind: notice.kind,
-    group: notice.kind,
     title: noticeTitle(notice),
     occurredAt: notice.occurredAt.toISOString(),
     read: notice.readAt !== null,
+  };
+  if (payload.kind === 'medal')
+    return { ...base, kind: 'medal', group: 'other', role: null, origin: null, target: null };
+  return {
+    ...base,
+    kind: payload.kind,
+    group: payload.kind,
     role: payload.role,
     origin: pick(payload.from),
     target: pick(payload.to),
@@ -142,7 +144,8 @@ function visible(playerId: number, worldId: number, villageId?: number): SQL {
     WHERE rec.player_id = ${playerId} AND r.world_id = ${worldId}
       AND rec.deleted_at IS NULL ${battleVillage}
     UNION ALL
-    SELECT 'notice'::text, n.id, n.occurred_at, n.kind, n.read_at
+    SELECT 'notice'::text, n.id, n.occurred_at,
+      CASE n.kind WHEN 'medal' THEN 'other' ELSE n.kind END, n.read_at
     FROM notice_reports n
     WHERE n.player_id = ${playerId} AND n.world_id = ${worldId}
       AND n.deleted_at IS NULL ${noticeVillage}`;
@@ -341,18 +344,32 @@ export async function noticeView(
     await tx.update(noticeReports).set({ readAt: new Date() }).where(eq(noticeReports.id, id));
   const { payload } = notice;
   const ref: ReportRef = { source: 'notice', id };
+  const medal =
+    payload.kind === 'medal'
+      ? (medalViews(await medalValuesFor(tx, worldId, playerId)).find(
+          (view) => view.code === payload.code,
+        ) ?? null)
+      : null;
   return {
     ...noticeSummary(notice),
     read: true,
     previous: await neighbour(tx, worldId, playerId, ref, 'older'),
     next: await neighbour(tx, worldId, playerId, ref, 'newer'),
-    from: payload.from,
-    to: payload.to,
+    from: payload.kind === 'medal' ? null : payload.from,
+    to: payload.kind === 'medal' ? null : payload.to,
+    medal,
     mode: payload.kind === 'trade' ? payload.mode : null,
     resources: payload.kind === 'trade' ? payload.resources : null,
     troops: payload.kind === 'support' ? payload.troops : null,
     unitTypes: unitCodes.map((code) => ({ code, name: units[code].name })),
   };
+}
+
+/** Valores atuais das medalhas do jogador, para mostrar o progresso dentro do relatório. */
+async function medalValuesFor(tx: Transaction, worldId: number, playerId: number) {
+  const metrics = (await medalMetrics(tx, worldId, playerId)).get(playerId);
+  if (!metrics) throw new GameError('Jogador não encontrado.', 404);
+  return metrics;
 }
 
 const chunk = <T>(list: T[], size = 5000) =>

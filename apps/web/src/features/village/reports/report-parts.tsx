@@ -3,6 +3,7 @@ import {
   Crown,
   Eye,
   HeartHandshake,
+  Medal,
   PackageCheck,
   Shield,
   ShieldCheck,
@@ -20,6 +21,7 @@ export const tabs: { code: ReportGroup; label: string }[] = [
   { code: 'defense', label: 'Defesas' },
   { code: 'support', label: 'Apoios' },
   { code: 'trade', label: 'Mercado' },
+  { code: 'other', label: 'Outros' },
 ];
 
 export const kindIcon: Record<ReportSummary['group'], LucideIcon> = {
@@ -27,6 +29,7 @@ export const kindIcon: Record<ReportSummary['group'], LucideIcon> = {
   defense: Shield,
   support: HeartHandshake,
   trade: Coins,
+  other: Medal,
 };
 
 /** Frase curta que diz o que o relatório significa para quem lê. */
@@ -37,6 +40,7 @@ export function roleLabel(report: ReportSummary): string {
     ];
     return `${role} · ${outcome[report.outcome]}`;
   }
+  if (report.kind === 'medal') return 'Nova medalha';
   if (report.kind === 'support')
     return report.role === 'sender' ? 'Seu apoio chegou' : 'Você recebeu apoio';
   return report.role === 'sender' ? 'Remessa enviada' : 'Remessa recebida';

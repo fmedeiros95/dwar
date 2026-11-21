@@ -26,6 +26,7 @@ const boards: { code: RankingBoard; label: string }[] = [
   { code: 'player', label: 'Jogadores' },
   { code: 'continent', label: 'Continente' },
   { code: 'kills', label: 'Batalha' },
+  { code: 'medals', label: 'Medalhas' },
 ];
 const killTypes: { code: RankingKillType; label: string }[] = [
   { code: 'att', label: 'Como atacante' },
@@ -133,15 +134,19 @@ export function RankingScreen({ snapshot }: { snapshot: VillageSnapshot }) {
   const metric =
     board === 'kills'
       ? 'Unidades derrotadas'
-      : board === 'continent'
-        ? `Pontos em ${continentLabel(continent)}`
-        : 'Pontos';
+      : board === 'medals'
+        ? 'Níveis de medalha'
+        : board === 'continent'
+          ? `Pontos em ${continentLabel(continent)}`
+          : 'Pontos';
   const heading =
     board === 'kills'
       ? 'Pontos de batalha'
-      : board === 'continent'
-        ? `Ranking do continente ${continentLabel(continent)}`
-        : 'Ranking de jogadores';
+      : board === 'medals'
+        ? 'Ranking de medalhas'
+        : board === 'continent'
+          ? `Ranking do continente ${continentLabel(continent)}`
+          : 'Ranking de jogadores';
   return (
     <div className="legacy-content page-card">
       <header className="page-head">

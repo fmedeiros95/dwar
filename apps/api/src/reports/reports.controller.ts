@@ -8,7 +8,7 @@ import { cookieName } from '../common/cookies.js';
 import { id } from '../common/schemas.js';
 import { SessionGuard } from '../common/session.guard.js';
 
-const group = z.enum(['all', 'attack', 'defense', 'support', 'trade']);
+const group = z.enum(['all', 'attack', 'defense', 'support', 'trade', 'other']);
 const reportRefs = z
   .array(z.object({ source: z.enum(['battle', 'notice']), id }))
   .min(1)

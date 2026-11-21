@@ -12,6 +12,7 @@ import { RankingModule } from './ranking/ranking.module.js';
 import { RecruitmentModule } from './recruitment/recruitment.module.js';
 import { ReportsModule } from './reports/reports.module.js';
 import { NotesModule } from './notes/notes.module.js';
+import { MedalsModule } from './medals/medals.module.js';
 import { ResearchModule } from './research/research.module.js';
 import { VillagesModule } from './villages/villages.module.js';
 import { WorldsModule } from './worlds/worlds.module.js';
@@ -32,6 +33,7 @@ import { WorldsModule } from './worlds/worlds.module.js';
     MailModule,
     ReportsModule,
     NotesModule,
+    MedalsModule,
     RankingModule,
     ProfileModule,
   ],

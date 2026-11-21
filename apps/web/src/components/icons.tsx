@@ -118,6 +118,16 @@ const paths: Record<string, ReactNode> = {
       />
     </>
   ),
+  medal: (
+    <>
+      <path d="M9 3 H14.5 L16 10 L11.5 12 Z M23 3 H17.5 L16 10 L20.5 12 Z" />
+      <circle cx="16" cy="20" r="8.5" />
+      <path
+        d="M16 15.2 L17.5 18.4 L21 18.8 L18.4 21.1 L19.1 24.5 L16 22.8 L12.9 24.5 L13.6 21.1 L11 18.8 L14.5 18.4 Z"
+        fill={L}
+      />
+    </>
+  ),
   notes: (
     <>
       <path d="M6 5.5 H23 L27 9.5 V26.5 H6 Z" />

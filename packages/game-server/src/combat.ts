@@ -38,6 +38,7 @@ import {
   buildingPopulation,
 } from '@dwar/game-core';
 import { GameError } from './errors.js';
+import { syncMedals } from './medals.js';
 export type Village = typeof villages.$inferSelect;
 export type World = typeof worlds.$inferSelect;
 export type Movement = typeof troopMovements.$inferSelect;
@@ -523,6 +524,7 @@ export async function resolveAttack(
       .insert(battleReportRecipients)
       .values({ worldId: world.id, reportId: report!.id, playerId, ...access });
   await tx.update(troopMovements).set({ arrivedAt: at }).where(eq(troopMovements.id, movement.id));
+  await syncMedals(tx, world.id, [...recipients.keys()], at);
   await tx.insert(activity).values([
     {
       worldId: world.id,

@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 
 import { api, type VillageSnapshot } from '@dwar/api-client';
 import { numbers } from '../shared/index.js';
+import { MedalBadge } from '../medals/index.js';
 
 export function PublicPlayerScreen({ snapshot }: { snapshot: VillageSnapshot }) {
   const [params, setParams] = useSearchParams(),
@@ -12,6 +13,14 @@ export function PublicPlayerScreen({ snapshot }: { snapshot: VillageSnapshot }) 
     queryFn: () => api.publicPlayer(snapshot.world.id, snapshot.village.id, playerId),
     enabled: !!playerId,
   });
+  const medals = useQuery({
+    queryKey: ['player-medals', snapshot.world.id, playerId],
+    queryFn: () => api.playerMedals(snapshot.world.id, playerId),
+    enabled: !!playerId,
+  });
+  const earned = (medals.data?.medals ?? [])
+    .filter((medal) => medal.stage > 0)
+    .sort((a, b) => b.stage - a.stage);
   const data = target.data;
   if (!data)
     return (
@@ -39,6 +48,24 @@ export function PublicPlayerScreen({ snapshot }: { snapshot: VillageSnapshot }) 
             <tr>
               <td>Classificação:</td>
               <td colSpan={2}>{numbers.format(data.rank)}</td>
+            </tr>
+            <tr>
+              <td>Medalhas:</td>
+              <td colSpan={2}>
+                {medals.data
+                  ? `${medals.data.total} de ${medals.data.maximum} níveis`
+                  : 'Carregando…'}
+                {earned.length ? (
+                  <ul className="medal-strip" aria-label="Medalhas conquistadas">
+                    {earned.map((medal) => (
+                      <li key={medal.code} title={medal.current ?? medal.name}>
+                        <MedalBadge code={medal.code} stage={medal.stage} size={40} />
+                        {medal.name}
+                      </li>
+                    ))}
+                  </ul>
+                ) : null}
+              </td>
             </tr>
             <tr>
               <td>Tribo:</td>

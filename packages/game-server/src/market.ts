@@ -14,6 +14,7 @@ import {
 } from '@dwar/database';
 import { merchantCapacity, merchantCounts, type Resources } from '@dwar/game-config';
 import { addNotices } from './notices.js';
+import { syncMedals } from './medals.js';
 import { capacity, requiredMerchants, resourceCodes, tradeDuration } from '@dwar/game-core';
 import type {
   MarketAction,
@@ -140,6 +141,11 @@ export async function settleTransports(
       .update(tradeShipments)
       .set({ deliveredAt: now })
       .where(eq(tradeShipments.id, shipment.id));
+    const [sender] = await tx
+      .select({ playerId: villages.playerId })
+      .from(villages)
+      .where(eq(villages.id, shipment.fromVillageId));
+    if (sender?.playerId) await syncMedals(tx, world.id, [sender.playerId], shipment.endsAt);
     await addNotices(
       tx,
       world.id,

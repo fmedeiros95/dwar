@@ -24,7 +24,7 @@ export class RankingController {
     @Query('continent') continent?: string,
   ) {
     return readRanking(account.id, id.parse(worldId), {
-      board: board ? z.enum(['player', 'continent', 'kills']).parse(board) : undefined,
+      board: board ? z.enum(['player', 'continent', 'kills', 'medals']).parse(board) : undefined,
       type: type ? z.enum(['att', 'def', 'all']).parse(type) : undefined,
       continent: continent ? z.coerce.number().int().min(0).max(99).parse(continent) : undefined,
       page: page ? z.coerce.number().int().min(1).max(1000000).parse(page) : undefined,

@@ -224,7 +224,7 @@ export type RankingEntry = {
   rankTitle: string;
 };
 /** Painéis do ranking: jogadores, jogadores de um continente e pontos de batalha. */
-export type RankingBoard = 'player' | 'continent' | 'kills';
+export type RankingBoard = 'player' | 'continent' | 'kills' | 'medals';
 /** Pontos de batalha: unidades derrotadas atacando, defendendo ou as duas somadas. */
 export type RankingKillType = 'att' | 'def' | 'all';
 export type RankingPage = {
@@ -423,7 +423,31 @@ export type NotesOverview = {
     updatedAt: string;
   }[];
 };
-export type ReportGroup = 'all' | 'attack' | 'defense' | 'support' | 'trade';
+/** Uma medalha de um jogador: nível (0 a 4), valor atual e o que falta para o próximo nível. */
+export type MedalView = {
+  code: string;
+  name: string;
+  description: string;
+  kind: 'count' | 'rank';
+  unit: string;
+  stage: number;
+  tier: string | null;
+  value: number;
+  needs: number[];
+  /** Frase do nível que já tem; nulo sem medalha. */
+  current: string | null;
+  /** Objetivo do próximo nível; nulo no nível máximo. */
+  next: string | null;
+  nextValue: number | null;
+};
+export type MedalsOverview = {
+  playerId: number;
+  username: string;
+  total: number;
+  maximum: number;
+  medals: MedalView[];
+};
+export type ReportGroup = 'all' | 'attack' | 'defense' | 'support' | 'trade' | 'other';
 /** Relatórios de batalha e avisos (comércio, chegada de apoio) têm numerações separadas. */
 export type ReportRef = { source: 'battle' | 'notice'; id: number };
 export type ReportAction =
@@ -455,15 +479,15 @@ export type BattleReportSummary = {
 export type NoticeReportSummary = {
   source: 'notice';
   id: number;
-  kind: 'trade' | 'support';
-  group: 'trade' | 'support';
+  kind: 'trade' | 'support' | 'medal';
+  group: 'trade' | 'support' | 'other';
   title: string;
   occurredAt: string;
   read: boolean;
-  /** Se quem lê enviou ou recebeu os recursos ou o apoio. */
-  role: 'sender' | 'receiver';
-  origin: ReportPlace;
-  target: ReportPlace;
+  /** Se quem lê enviou ou recebeu os recursos ou o apoio; nulo nas medalhas. */
+  role: 'sender' | 'receiver' | null;
+  origin: ReportPlace | null;
+  target: ReportPlace | null;
 };
 export type ReportSummary = BattleReportSummary | NoticeReportSummary;
 export type BattleReportView = BattleReportSummary & {
@@ -494,8 +518,9 @@ export type BattleReportView = BattleReportSummary & {
 export type NoticeReportView = NoticeReportSummary & {
   previous: ReportRef | null;
   next: ReportRef | null;
-  from: ReportSide;
-  to: ReportSide;
+  from: ReportSide | null;
+  to: ReportSide | null;
+  medal: MedalView | null;
   mode: 'normal' | 'offer' | null;
   resources: Resources | null;
   troops: TroopCounts | null;
@@ -573,6 +598,9 @@ export const api = {
     }),
   report: (worldId: number, reportId: number) =>
     request<BattleReportView>(`/worlds/${worldId}/reports/${reportId}`),
+  medals: (worldId: number) => request<MedalsOverview>(`/worlds/${worldId}/medals`),
+  playerMedals: (worldId: number, playerId: number) =>
+    request<MedalsOverview>(`/worlds/${worldId}/medals/players/${playerId}`),
   notes: (worldId: number) => request<NotesOverview>(`/worlds/${worldId}/notes`),
   note: (worldId: number, villageId: number) =>
     request<PlayerNote>(`/worlds/${worldId}/notes/villages/${villageId}`),
