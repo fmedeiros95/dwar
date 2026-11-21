@@ -6,6 +6,9 @@ import type {
   RankingEntry,
   RankingKillType,
   RankingPage,
+  TribeRankingEntry,
+  TribeRankingMetric,
+  TribeRankingPage,
   TribeRef,
 } from '@dwar/api-client';
 import { tribesOf } from './tribe-lookup.js';
@@ -182,6 +185,111 @@ export async function rankingPage(
       ),
     ),
   };
+}
+
+const tribePageSize = 20;
+
+/** Ranking de tribos: soma dos pontos dos membros ou das unidades derrotadas por eles. */
+export async function tribeRankingPage(
+  tx: Transaction,
+  worldId: number,
+  ownTribeId: number | null,
+  options: { page?: number; search?: string; metric?: TribeRankingMetric },
+): Promise<TribeRankingPage> {
+  const metric = options.metric ?? 'points';
+  const rows = (
+    await tx.execute(sql`
+      SELECT t.id AS id, t.name AS name, t.tag AS tag, t.created_at AS created_at,
+        (SELECT count(*) FROM tribe_members m WHERE m.tribe_id = t.id)::integer AS members,
+        (SELECT count(*) FROM villages v JOIN tribe_members m ON m.player_id = v.player_id
+          WHERE m.tribe_id = t.id)::integer AS villages,
+        (SELECT coalesce(sum(v.points), 0) FROM villages v JOIN tribe_members m ON m.player_id = v.player_id
+          WHERE m.tribe_id = t.id)::integer AS points,
+        (SELECT coalesce(sum(p.units_killed_attack), 0) FROM players p JOIN tribe_members m ON m.player_id = p.id
+          WHERE m.tribe_id = t.id)::double precision AS att,
+        (SELECT coalesce(sum(p.units_killed_defense), 0) FROM players p JOIN tribe_members m ON m.player_id = p.id
+          WHERE m.tribe_id = t.id)::double precision AS def
+      FROM tribes t WHERE t.world_id = ${worldId}`)
+  ).rows as {
+    id: number;
+    name: string;
+    tag: string;
+    created_at: Date;
+    members: number;
+    villages: number;
+    points: number;
+    att: number;
+    def: number;
+  }[];
+  const valueOf = (row: (typeof rows)[number]) =>
+    metric === 'points'
+      ? row.points
+      : metric === 'att'
+        ? row.att
+        : metric === 'def'
+          ? row.def
+          : row.att + row.def;
+  const ordered = rows
+    .map((row) => ({ row, value: valueOf(row) }))
+    .sort(
+      (a, b) =>
+        b.value - a.value ||
+        new Date(a.row.created_at).getTime() - new Date(b.row.created_at).getTime() ||
+        a.row.id - b.row.id,
+    )
+    .map(({ row, value }, index): TribeRankingEntry => ({
+      rank: index + 1,
+      id: row.id,
+      name: row.name,
+      tag: row.tag,
+      value,
+      members: row.members,
+      villages: row.villages,
+      own: row.id === ownTribeId,
+    }));
+  const ownIndex = ordered.findIndex((entry) => entry.own);
+  const ownPage = ownIndex >= 0 ? Math.floor(ownIndex / tribePageSize) + 1 : 1;
+  const search = options.search?.trim().toLowerCase() ?? '';
+  if (search) {
+    if (search.length < 2) throw new GameError('Digite pelo menos 2 caracteres para buscar.');
+    const matches = ordered.filter(
+      (entry) =>
+        entry.name.toLowerCase().includes(search) || entry.tag.toLowerCase().includes(search),
+    );
+    return {
+      metric,
+      mode: 'search',
+      page: 1,
+      pageCount: 1,
+      ownPage,
+      total: matches.length,
+      entries: matches,
+    };
+  }
+  const pageCount = Math.max(1, Math.ceil(ordered.length / tribePageSize));
+  const page = Math.max(1, Math.min(pageCount, options.page ?? ownPage));
+  return {
+    metric,
+    mode: 'list',
+    page,
+    pageCount,
+    ownPage,
+    total: ordered.length,
+    entries: ordered.slice((page - 1) * tribePageSize, page * tribePageSize),
+  };
+}
+
+export async function readTribeRanking(
+  accountId: number,
+  worldId: number,
+  options: { page?: number; search?: string; metric?: TribeRankingMetric },
+) {
+  return db.transaction(async (tx) => {
+    await lockWorld(tx, worldId);
+    const village = await ownedVillage(tx, accountId, worldId);
+    const own = (await tribesOf(tx, [village.playerId])).get(village.playerId);
+    return tribeRankingPage(tx, worldId, own?.id ?? null, options);
+  });
 }
 
 export async function readRanking(accountId: number, worldId: number, options: RankingOptions) {

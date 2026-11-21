@@ -1,7 +1,7 @@
 import { Controller, Get, Param, Query, UseGuards } from '@nestjs/common';
 import { ApiCookieAuth, ApiTags } from '@nestjs/swagger';
 import { z } from 'zod';
-import { readRanking } from '@dwar/game-server';
+import { readRanking, readTribeRanking } from '@dwar/game-server';
 import type { Account } from '@dwar/api-client';
 import { CurrentAccount } from '../common/current-account.decorator.js';
 import { cookieName } from '../common/cookies.js';
@@ -29,6 +29,21 @@ export class RankingController {
       continent: continent ? z.coerce.number().int().min(0).max(99).parse(continent) : undefined,
       page: page ? z.coerce.number().int().min(1).max(1000000).parse(page) : undefined,
       search: search ? z.string().trim().max(24).parse(search) : undefined,
+    });
+  }
+
+  @Get('tribes')
+  async tribes(
+    @CurrentAccount() account: Account,
+    @Param('worldId') worldId: string,
+    @Query('page') page?: string,
+    @Query('search') search?: string,
+    @Query('metric') metric?: string,
+  ) {
+    return readTribeRanking(account.id, id.parse(worldId), {
+      metric: metric ? z.enum(['points', 'att', 'def', 'all']).parse(metric) : undefined,
+      page: page ? z.coerce.number().int().min(1).max(1000000).parse(page) : undefined,
+      search: search ? z.string().trim().max(25).parse(search) : undefined,
     });
   }
 }

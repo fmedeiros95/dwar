@@ -10,24 +10,18 @@ import {
 import { ChevronLeft, ChevronRight, Search, Trophy } from 'lucide-react';
 import { numbers } from '../shared/index.js';
 import { TribeTag } from '../tribes/index.js';
+import { pageWindow } from './page-window.js';
+import { TribeRanking } from './tribe-ranking.js';
 
-/** Páginas a mostrar: primeira, última e vizinhas da atual, com lacunas (null). */
-export function pageWindow(current: number, count: number): (number | null)[] {
-  const keep = new Set([1, count, current - 1, current, current + 1]);
-  const sorted = [...keep].filter((page) => page >= 1 && page <= count).sort((a, b) => a - b);
-  const out: (number | null)[] = [];
-  sorted.forEach((page, index) => {
-    if (index && page - sorted[index - 1]! > 1) out.push(null);
-    out.push(page);
-  });
-  return out;
-}
+export { pageWindow };
 
-const boards: { code: RankingBoard; label: string }[] = [
+type ScreenBoard = RankingBoard | 'tribes';
+const boards: { code: ScreenBoard; label: string }[] = [
   { code: 'player', label: 'Jogadores' },
   { code: 'continent', label: 'Continente' },
   { code: 'kills', label: 'Batalha' },
   { code: 'medals', label: 'Medalhas' },
+  { code: 'tribes', label: 'Tribos' },
 ];
 const killTypes: { code: RankingKillType; label: string }[] = [
   { code: 'att', label: 'Como atacante' },
@@ -45,9 +39,11 @@ export function RankingScreen({ snapshot }: { snapshot: VillageSnapshot }) {
   const rpage = params.get('rpage'),
     rsearch = params.get('rsearch');
   const requestedBoard = params.get('board');
-  const board: RankingBoard = boards.some((b) => b.code === requestedBoard)
-    ? (requestedBoard as RankingBoard)
+  const board: ScreenBoard = boards.some((b) => b.code === requestedBoard)
+    ? (requestedBoard as ScreenBoard)
     : 'player';
+  // A aba de tribos tem tela própria; os jogadores seguem como painel de base.
+  const playerBoard: RankingBoard = board === 'tribes' ? 'player' : board;
   const requestedType = params.get('rtype');
   const type: RankingKillType = killTypes.some((t) => t.code === requestedType)
     ? (requestedType as RankingKillType)
@@ -62,12 +58,13 @@ export function RankingScreen({ snapshot }: { snapshot: VillageSnapshot }) {
     [goInput, setGoInput] = useState(''),
     [continentInput, setContinentInput] = useState(String(continent));
   const ranking = useQuery({
-    queryKey: ['ranking', worldId, board, type, continent, rpage, rsearch],
+    queryKey: ['ranking', worldId, playerBoard, type, continent, rpage, rsearch],
+    enabled: board !== 'tribes',
     queryFn: () =>
       api.ranking(worldId, {
         page: rpage ? Number(rpage) : undefined,
         search: rsearch ?? undefined,
-        board,
+        board: playerBoard,
         type,
         continent,
       }),
@@ -89,7 +86,7 @@ export function RankingScreen({ snapshot }: { snapshot: VillageSnapshot }) {
     );
   }
   useEffect(() => {
-    if (data && data.mode === 'list' && !rpage && !rsearch)
+    if (board !== 'tribes' && data && data.mode === 'list' && !rpage && !rsearch)
       setParams(
         {
           village: snapshot.village.id,
@@ -114,7 +111,7 @@ export function RankingScreen({ snapshot }: { snapshot: VillageSnapshot }) {
     const rank = parseInt(goInput, 10);
     if (Number.isFinite(rank) && rank > 0) goToPage(Math.ceil(rank / 20));
   }
-  function chooseBoard(next: RankingBoard) {
+  function chooseBoard(next: ScreenBoard) {
     setParams({
       village: snapshot.village.id,
       screen: 'ranking',
@@ -148,6 +145,21 @@ export function RankingScreen({ snapshot }: { snapshot: VillageSnapshot }) {
         : board === 'continent'
           ? `Ranking do continente ${continentLabel(continent)}`
           : 'Ranking de jogadores';
+  const tabsNav = (
+    <nav className="report-tabs" aria-label="Tipo de ranking">
+      {boards.map((tab) => (
+        <button
+          key={tab.code}
+          className={tab.code === board ? 'active' : undefined}
+          aria-current={tab.code === board ? 'page' : undefined}
+          onClick={() => chooseBoard(tab.code)}
+        >
+          {tab.label}
+        </button>
+      ))}
+    </nav>
+  );
+  if (board === 'tribes') return <TribeRanking snapshot={snapshot} tabs={tabsNav} />;
   return (
     <div className="legacy-content page-card">
       <header className="page-head">
@@ -165,18 +177,7 @@ export function RankingScreen({ snapshot }: { snapshot: VillageSnapshot }) {
           <button className="button">Buscar</button>
         </form>
       </header>
-      <nav className="report-tabs" aria-label="Tipo de ranking">
-        {boards.map((tab) => (
-          <button
-            key={tab.code}
-            className={tab.code === board ? 'active' : undefined}
-            aria-current={tab.code === board ? 'page' : undefined}
-            onClick={() => chooseBoard(tab.code)}
-          >
-            {tab.label}
-          </button>
-        ))}
-      </nav>
+      {tabsNav}
       {board === 'kills' ? (
         <nav className="rank-subtabs" aria-label="Pontos de batalha">
           {killTypes.map((tab) => (

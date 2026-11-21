@@ -26,7 +26,7 @@ export { readMedals, readPlayerMedals } from './medals.js';
 export { readTribes, readTribe, mutateTribes } from './tribes.js';
 export { notesOverview, readPlayerNote, savePlayerNote } from './player-notes.js';
 export { readReports, readReport, readNotice, mutateReports } from './reports.js';
-export { readRanking } from './ranking.js';
+export { readRanking, readTribeRanking } from './ranking.js';
 export {
   readProfile,
   mutateProfile,

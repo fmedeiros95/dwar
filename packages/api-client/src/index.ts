@@ -241,6 +241,28 @@ export type RankingEntry = {
   rankTitle: string;
 };
 /** Painéis do ranking: jogadores, jogadores de um continente e pontos de batalha. */
+/** Ranking de tribos: por pontos ou por unidades derrotadas pelos membros (atacando, defendendo ou total). */
+export type TribeRankingMetric = 'points' | 'att' | 'def' | 'all';
+export type TribeRankingEntry = {
+  rank: number;
+  id: number;
+  name: string;
+  tag: string;
+  /** Pontos ou unidades derrotadas, conforme a medida escolhida. */
+  value: number;
+  members: number;
+  villages: number;
+  own: boolean;
+};
+export type TribeRankingPage = {
+  metric: TribeRankingMetric;
+  mode: 'list' | 'search';
+  page: number;
+  pageCount: number;
+  ownPage: number;
+  total: number;
+  entries: TribeRankingEntry[];
+};
 export type RankingBoard = 'player' | 'continent' | 'kills' | 'medals';
 /** Pontos de batalha: unidades derrotadas atacando, defendendo ou as duas somadas. */
 export type RankingKillType = 'att' | 'def' | 'all';
@@ -756,6 +778,17 @@ export const api = {
   medals: (worldId: number) => request<MedalsOverview>(`/worlds/${worldId}/medals`),
   playerMedals: (worldId: number, playerId: number) =>
     request<MedalsOverview>(`/worlds/${worldId}/medals/players/${playerId}`),
+  tribeRanking: (
+    worldId: number,
+    options: { page?: number; search?: string; metric?: TribeRankingMetric } = {},
+  ) => {
+    const query = new URLSearchParams();
+    if (options.metric && options.metric !== 'points') query.set('metric', options.metric);
+    if (options.search) query.set('search', options.search);
+    else if (options.page) query.set('page', String(options.page));
+    const text = query.toString();
+    return request<TribeRankingPage>(`/worlds/${worldId}/ranking/tribes${text ? `?${text}` : ''}`);
+  },
   tribes: (worldId: number) => request<TribeHome>(`/worlds/${worldId}/tribes`),
   tribe: (worldId: number, tribeId: number) =>
     request<TribeProfile>(`/worlds/${worldId}/tribes/${tribeId}`),
