@@ -16,6 +16,8 @@ export const initialBuildings: BuildingLevels = {
   storage: 2,
   hide: 1,
   wall: 0,
+  treasury: 0,
+  mill: 0,
 };
 export const initialResources: Resources = { wood: 500, stone: 500, iron: 500 };
 export const worldDefaults = {

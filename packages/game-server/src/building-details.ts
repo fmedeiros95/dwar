@@ -1,14 +1,15 @@
 import {
   buildings,
-  farmCapacity,
   hideCapacity,
+  millEffect,
+  treasuryEffect,
   storageCapacity,
   wallDefense,
   type BuildingCode,
   type BuildingLevels,
 } from '@dwar/game-config';
 import type { BuildingView } from '@dwar/api-client';
-import { productionRates } from '@dwar/game-core';
+import { populationCapacity, productionRates } from '@dwar/game-core';
 
 export function buildingDetails(
   code: BuildingCode,
@@ -38,16 +39,43 @@ export function buildingDetails(
     rows.push({
       label: 'População atual',
       value: populationUsed,
-      unit: `/ ${farmCapacity[level] ?? 0} habitantes`,
+      unit: `/ ${populationCapacity(levels)} habitantes`,
       icon: 'peasants',
     });
     if (next)
       rows.push({
         label: `Capacidade no nível ${next}`,
-        value: farmCapacity[next] ?? 0,
+        value: populationCapacity({ ...levels, farm: next }),
         unit: 'habitantes',
         icon: 'peasants',
       });
+  } else if (code === 'mill') {
+    const percent = (n: number) => Math.round(millEffect.populationBonusPerLevel * n * 100);
+    rows.push({
+      label: 'Bônus de população atual',
+      value: percent(level),
+      unit: '%',
+      icon: 'peasants',
+    });
+    if (next)
+      rows.push({
+        label: `Bônus no nível ${next}`,
+        value: percent(next),
+        unit: '%',
+        icon: 'peasants',
+      });
+  } else if (code === 'treasury') {
+    const troops = (n: number) => Math.round(treasuryEffect.troopDiscountPerLevel * n * 100);
+    const coins = (n: number) => Math.round(treasuryEffect.coinDiscountPerLevel * n * 100);
+    rows.push(
+      { label: 'Desconto em tropas atual', value: troops(level), unit: '%' },
+      { label: 'Desconto em moedas atual', value: coins(level), unit: '%' },
+    );
+    if (next)
+      rows.push(
+        { label: `Desconto em tropas no nível ${next}`, value: troops(next), unit: '%' },
+        { label: `Desconto em moedas no nível ${next}`, value: coins(next), unit: '%' },
+      );
   } else if (code === 'storage' || code === 'hide') {
     const table = code === 'storage' ? storageCapacity : hideCapacity;
     const label = code === 'storage' ? 'Capacidade' : 'Recursos protegidos';

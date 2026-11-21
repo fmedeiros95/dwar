@@ -15,6 +15,7 @@ import {
   technologies,
   type UnitCode,
   type RecruitmentBuilding,
+  type Resources,
 } from '@dwar/game-config';
 import {
   capacity,
@@ -22,6 +23,8 @@ import {
   recruitmentDuration,
   deliveredUnits,
   resourceCodes,
+  troopCost,
+  scaleCost,
 } from '@dwar/game-core';
 import type { UnitView, AcademyView, VillageSnapshot } from '@dwar/api-client';
 import { GameError } from './errors.js';
@@ -41,6 +44,7 @@ export function unitViews(
 ): UnitView[] {
   return unitCodes.map((code) => {
     const definition = units[code];
+    const cost = troopCost(code, village.buildings);
     const known =
       code === 'noble' || technologies[code].initiallyResearched || researched.has(code);
     const freePopulation = populationCapacity(village.buildings) - village.populationUsed;
@@ -54,11 +58,9 @@ export function unitViews(
             ? 'Unidade não pesquisada.'
             : freePopulation < definition.population
               ? 'Amplie a fazenda para liberar população.'
-              : resourceCodes.some(
-                    (resource) => definition.cost[resource] > capacity(village.buildings),
-                  )
+              : resourceCodes.some((resource) => cost[resource] > capacity(village.buildings))
                 ? 'Amplie o armazém para comportar o custo.'
-                : resourceCodes.some((resource) => definition.cost[resource] > village[resource])
+                : resourceCodes.some((resource) => cost[resource] > village[resource])
                   ? 'Recursos insuficientes.'
                   : null;
     const counts = placements.filter((placement) => placement.unitCode === code);
@@ -66,7 +68,7 @@ export function unitViews(
       code,
       name: definition.name,
       building: definition.building,
-      cost: definition.cost,
+      cost,
       population: definition.population,
       durationSeconds:
         village.buildings[definition.building] > 0
@@ -84,9 +86,7 @@ export function unitViews(
             : Math.min(
                 99999,
                 Math.floor(freePopulation / definition.population),
-                ...resourceCodes.map((resource) =>
-                  Math.floor(village[resource] / definition.cost[resource]),
-                ),
+                ...resourceCodes.map((resource) => Math.floor(village[resource] / cost[resource])),
               ),
       indoors: counts
         .filter(
@@ -260,11 +260,7 @@ export async function recruit(
       startsAt: cursor,
       endsAt,
       requestId,
-      cost: {
-        wood: definition.cost.wood * order.quantity,
-        stone: definition.cost.stone * order.quantity,
-        iron: definition.cost.iron * order.quantity,
-      },
+      cost: scaleCost(troopCost(order.unitCode, village.buildings), order.quantity),
       population: definition.population * order.quantity,
     });
     cursor = endsAt;
@@ -330,11 +326,15 @@ export async function cancelRecruit(
   const remaining = event.quantity - event.deliveredQuantity;
   const definition = units[event.unitCode as UnitCode];
   const maximum = capacity(village.buildings);
+  // O reembolso usa o custo realmente pago (com o desconto da Tesouraria da época do pedido).
+  const paid = event.cost as Resources;
+  const refund = (resource: (typeof resourceCodes)[number]) =>
+    Math.floor((paid[resource] / event.quantity) * remaining);
   const updated = {
     ...village,
-    wood: Math.min(maximum, village.wood + definition.cost.wood * remaining),
-    stone: Math.min(maximum, village.stone + definition.cost.stone * remaining),
-    iron: Math.min(maximum, village.iron + definition.cost.iron * remaining),
+    wood: Math.min(maximum, village.wood + refund('wood')),
+    stone: Math.min(maximum, village.stone + refund('stone')),
+    iron: Math.min(maximum, village.iron + refund('iron')),
     populationUsed: village.populationUsed - definition.population * remaining,
   };
   await tx

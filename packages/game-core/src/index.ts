@@ -5,6 +5,7 @@ import {
   production,
   storageCapacity,
   farmCapacity,
+  millEffect,
   type BuildingCode,
   type BuildingDefinition,
   type BuildingLevels,
@@ -108,8 +109,10 @@ export function addedPoints(code: BuildingCode, currentLevel: number): number {
 export function capacity(levels: BuildingLevels): number {
   return storageCapacity[levels.storage] ?? 0;
 }
+/** Capacidade da fazenda, ampliada pelo Moleiro (+2% por nível). */
 export function populationCapacity(levels: BuildingLevels): number {
-  return farmCapacity[levels.farm] ?? 0;
+  const base = farmCapacity[levels.farm] ?? 0;
+  return Math.floor(base * (1 + millEffect.populationBonusPerLevel * (levels.mill ?? 0)));
 }
 
 export function productionRates(levels: BuildingLevels, speed: number): Resources {
@@ -158,6 +161,7 @@ export {
 } from './barbarian-growth.js';
 
 export { requiredNobleCoins } from './academy.js';
+export { troopCost, coinMintCost, scaleCost } from './treasury.js';
 
 export { requiredMerchants, tradeDuration } from './market.js';
 export { troopDuration } from './troops.js';

@@ -334,7 +334,64 @@ export const buildings = {
       barracks: 1,
     },
   },
+  treasury: {
+    name: 'Tesouraria',
+    description: 'Reduz o custo das tropas e da cunhagem de moedas.',
+    baseCost: {
+      wood: 600,
+      stone: 700,
+      iron: 500,
+    },
+    costFactor: {
+      wood: 1.26,
+      stone: 1.275,
+      iron: 1.26,
+    },
+    basePopulation: 25,
+    populationFactor: 1.17,
+    baseTime: 5400,
+    basePoints: 14,
+    maxLevel: 15,
+    requirements: {
+      main: 10,
+      market: 5,
+    },
+  },
+  mill: {
+    name: 'Moleiro',
+    description: 'Amplia a população máxima da aldeia.',
+    baseCost: {
+      wood: 150,
+      stone: 180,
+      iron: 120,
+    },
+    costFactor: {
+      wood: 1.26,
+      stone: 1.275,
+      iron: 1.26,
+    },
+    basePopulation: 12,
+    populationFactor: 1.17,
+    baseTime: 4200,
+    basePoints: 12,
+    maxLevel: 15,
+    requirements: {
+      farm: 10,
+    },
+  },
 } as const;
 export type BuildingCode = keyof typeof buildings;
 export const buildingCodes = Object.keys(buildings) as BuildingCode[];
 export type BuildingLevels = Record<BuildingCode, number>;
+
+/** Efeitos das construções próprias do DWar, por nível. */
+export const treasuryEffect = {
+  /** Desconto no custo em recursos das tropas, por nível (−1%, máximo −15%). */
+  troopDiscountPerLevel: 0.01,
+  /** Desconto no custo em recursos da cunhagem de moedas, por nível (−2%, máximo −30%). */
+  coinDiscountPerLevel: 0.02,
+} as const;
+export const millEffect = {
+  /** Aumento da população máxima por nível (+2%, máximo +30%). */
+  populationBonusPerLevel: 0.02,
+} as const;

@@ -9,7 +9,7 @@ import {
   worlds,
   type Transaction,
 } from '@dwar/database';
-import { units, coinCost, type Resources } from '@dwar/game-config';
+import { units, type Resources } from '@dwar/game-config';
 import {
   capacity,
   populationCapacity,
@@ -17,6 +17,8 @@ import {
   recruitmentDuration,
   requiredNobleCoins,
   resourceCodes,
+  troopCost,
+  coinMintCost,
 } from '@dwar/game-core';
 import type { AcademyView, VillageSnapshot } from '@dwar/api-client';
 import { GameError } from './errors.js';
@@ -94,7 +96,8 @@ export async function academyView(
     orders.reduce((sum, row) => sum + row.quantity, 0),
   );
   const coinsMissing = Math.max(0, coinsRequired - coins);
-  const cost = units.noble.cost;
+  const cost = troopCost('noble', village.buildings);
+  const coinCost = coinMintCost(village.buildings);
   const recruitUnavailableReason =
     village.buildings.noble === 0
       ? 'Academia não construída.'
@@ -187,11 +190,11 @@ export async function mintCoin(
     worldId: world.id,
     playerId: village.playerId,
     villageId: village.id,
-    cost: coinCost,
+    cost: coinMintCost(village.buildings),
     requestId,
     createdAt: now,
   });
-  return pay(tx, village, coinCost, 0);
+  return pay(tx, village, coinMintCost(village.buildings), 0);
 }
 
 export async function recruitNoble(
@@ -237,11 +240,11 @@ export async function recruitNoble(
     unitSeconds,
     startsAt,
     endsAt: new Date(startsAt.getTime() + unitSeconds * 1000),
-    cost: units.noble.cost,
+    cost: troopCost('noble', village.buildings),
     population: units.noble.population,
     requestId,
   });
-  return pay(tx, village, units.noble.cost, units.noble.population);
+  return pay(tx, village, troopCost('noble', village.buildings), units.noble.population);
 }
 
 export async function academyAction(
