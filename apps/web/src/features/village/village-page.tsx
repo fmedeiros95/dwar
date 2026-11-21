@@ -489,10 +489,12 @@ export function VillagePage({
               <span className="shell-avatar" aria-hidden="true">
                 {account.username.slice(0, 1).toUpperCase()}
               </span>
-              {account.username}
-              <small>
-                #{data.player.rank} · {numbers.format(data.player.points)} pts
-              </small>
+              <span className="shell-player-info">
+                <span className="shell-player-name">{account.username}</span>
+                <small>
+                  #{data.player.rank} · {numbers.format(data.player.points)} pts
+                </small>
+              </span>
             </span>
           </div>
         </>

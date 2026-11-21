@@ -978,6 +978,19 @@ input:focus {
   color: var(--text);
   font-weight: 600;
 }
+.shell-player {
+  gap: 10px;
+}
+.shell-player-info {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  line-height: 1.2;
+}
+.shell-player-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
 .shell-player small {
   font-size: 11px;
   font-weight: 500;
