@@ -67,7 +67,18 @@ export function PublicVillageScreen({ snapshot }: { snapshot: VillageSnapshot })
           </tr>
           <tr>
             <td>Tribo:</td>
-            <td>—</td>
+            <td>
+              {data.tribe ? (
+                <button
+                  className="text-button"
+                  onClick={() => go('info_tribe', { id: data.tribe!.id })}
+                >
+                  {data.tribe.name} <span className="tribe-tag static">{data.tribe.tag}</span>
+                </button>
+              ) : (
+                '—'
+              )}
+            </td>
           </tr>
           <tr>
             <td colSpan={2}>

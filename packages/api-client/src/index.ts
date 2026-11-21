@@ -208,6 +208,7 @@ export type MarketAction =
 export type TroopCounts = Record<string, number>;
 export type PublicVillage = TradeTarget & {
   playerId: number | null;
+  tribe: TribeRef | null;
   playerPoints: number;
   points: number;
   own: boolean;
@@ -216,6 +217,7 @@ export type Gender = 'm' | 'f' | 'x';
 export type PublicPlayer = {
   id: number;
   username: string;
+  tribe: TribeRef | null;
   points: number;
   rank: number;
   own: boolean;
@@ -230,6 +232,7 @@ export type RankingEntry = {
   rank: number;
   id: number;
   username: string;
+  tribe: TribeRef | null;
   points: number;
   villageCount: number;
   joinedAt: string;
@@ -327,6 +330,8 @@ export type MapSnapshot = {
   villages: PublicVillage[];
   commands: MapCommand[];
   reports: MapReportDot[];
+  /** Tribo de quem consulta; as aldeias dela são pintadas de azul no mapa. */
+  ownTribeId: number | null;
   settings: MapSettings;
   marks: MapMark[];
 };
@@ -390,7 +395,9 @@ export type MessageNode =
   | { type: 'list'; items: MessageNode[][] }
   | { type: 'link'; href: string; children: MessageNode[] }
   | { type: 'image'; src: string }
-  | { type: 'player' | 'village'; id: number; label: string };
+  | { type: 'player' | 'village' | 'tribe'; id: number; label: string };
+/** Tipos de destino que um link dentro de uma mensagem pode abrir. */
+export type MessageTarget = 'player' | 'village' | 'tribe';
 export type MailSummary = {
   id: number;
   title: string;
@@ -433,6 +440,80 @@ export type ReportSide = {
   x: number;
   y: number;
 };
+/** Referência curta a uma tribo (nome e tag), usada junto aos nomes dos jogadores. */
+export type TribeRef = { id: number; name: string; tag: string };
+export type TribeRightsView = {
+  isFounder: boolean;
+  canLead: boolean;
+  canInvite: boolean;
+  canDiplomacy: boolean;
+  canMassMail: boolean;
+  canModerate: boolean;
+  canHiddenForum: boolean;
+};
+export type TribeMemberView = {
+  playerId: number;
+  username: string;
+  title: string;
+  points: number;
+  villages: number;
+  rank: number;
+  joinedAt: string;
+  rights: TribeRightsView;
+};
+/** Perfil público de uma tribo. */
+export type TribeProfile = {
+  id: number;
+  name: string;
+  tag: string;
+  points: number;
+  rank: number;
+  villages: number;
+  createdAt: string;
+  description: MessageNode[];
+  members: { playerId: number; username: string; title: string; points: number; rank: number }[];
+  /** O jogador que consulta faz parte desta tribo. */
+  isMember: boolean;
+};
+export type TribeInviteView = {
+  id: number;
+  player: { id: number; username: string };
+  invitedBy: string;
+  createdAt: string;
+};
+export type MyTribeInvite = { id: number; tribe: TribeRef; invitedBy: string; createdAt: string };
+export type TribeEventView = { id: number; createdAt: string; content: MessageNode[] };
+/** A tribo do próprio jogador, com tudo o que só os membros veem. */
+export type TribeOverview = {
+  profile: TribeProfile;
+  /** Texto bruto (BBCode) para edição. */
+  descriptionText: string;
+  internalText: string;
+  internalContent: MessageNode[];
+  me: { playerId: number; rights: TribeRightsView };
+  members: TribeMemberView[];
+  invites: TribeInviteView[];
+  events: TribeEventView[];
+  limits: { members: number };
+};
+export type TribeHome = { tribe: TribeOverview | null; invites: MyTribeInvite[] };
+export type TribeAction =
+  | { type: 'create'; name: string; tag: string }
+  | { type: 'leave' }
+  | { type: 'disband' }
+  | { type: 'invite'; username: string }
+  | { type: 'cancel_invite'; inviteId: number }
+  | { type: 'accept_invite'; inviteId: number }
+  | { type: 'decline_invite'; inviteId: number }
+  | { type: 'kick'; playerId: number }
+  | { type: 'rights'; playerId: number; title: string; rights: Partial<TribeRightsView> }
+  | {
+      type: 'edit';
+      name?: string;
+      tag?: string;
+      description?: string;
+      internalText?: string;
+    };
 export type PlayerNote = {
   /** Aldeia da nota; nulo na nota geral. */
   villageId: number | null;
@@ -508,7 +589,7 @@ export type BattleReportSummary = {
 export type NoticeReportSummary = {
   source: 'notice';
   id: number;
-  kind: 'trade' | 'support' | 'medal';
+  kind: 'trade' | 'support' | 'medal' | 'tribe';
   group: 'trade' | 'support' | 'other';
   title: string;
   occurredAt: string;
@@ -630,6 +711,14 @@ export const api = {
   medals: (worldId: number) => request<MedalsOverview>(`/worlds/${worldId}/medals`),
   playerMedals: (worldId: number, playerId: number) =>
     request<MedalsOverview>(`/worlds/${worldId}/medals/players/${playerId}`),
+  tribes: (worldId: number) => request<TribeHome>(`/worlds/${worldId}/tribes`),
+  tribe: (worldId: number, tribeId: number) =>
+    request<TribeProfile>(`/worlds/${worldId}/tribes/${tribeId}`),
+  tribeAction: (worldId: number, action: TribeAction) =>
+    request<TribeHome>(`/worlds/${worldId}/tribes/actions`, {
+      method: 'POST',
+      body: JSON.stringify(action),
+    }),
   notes: (worldId: number) => request<NotesOverview>(`/worlds/${worldId}/notes`),
   note: (worldId: number, villageId: number) =>
     request<PlayerNote>(`/worlds/${worldId}/notes/villages/${villageId}`),

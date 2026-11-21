@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from 'react';
-import type { MailAction, MessageNode } from '@dwar/api-client';
+import type { MailAction, MessageNode, MessageTarget } from '@dwar/api-client';
 import { BBEditor } from '../../../components/bbcode-editor.js';
 import { MailContent } from './mail-content.js';
 
@@ -16,7 +16,7 @@ export function ComposeMail({
   onSend: (action: MailAction) => void;
   onPreview: (text: string) => void;
   preview: MessageNode[] | null;
-  onTarget: (type: 'player' | 'village', id: number) => void;
+  onTarget: (type: MessageTarget, id: number) => void;
 }) {
   const [to, setTo] = useState(recipient),
     [subject, setSubject] = useState(''),

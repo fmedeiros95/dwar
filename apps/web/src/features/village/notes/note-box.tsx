@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { api, type MessageNode } from '@dwar/api-client';
+import { api, type MessageNode, type MessageTarget } from '@dwar/api-client';
 import { BBEditor } from '../../../components/bbcode-editor.js';
 import { MailContent } from '../mail/mail-content.js';
 
@@ -18,7 +18,7 @@ export function NoteBox({
 }: {
   worldId: number;
   villageId?: number;
-  onTarget: (type: 'player' | 'village', id: number) => void;
+  onTarget: (type: MessageTarget, id: number) => void;
   emptyText: string;
 }) {
   const client = useQueryClient();

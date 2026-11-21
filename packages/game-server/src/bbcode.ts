@@ -1,5 +1,5 @@
 import { and, eq, sql } from 'drizzle-orm';
-import { accounts, players, villages, type Transaction } from '@dwar/database';
+import { accounts, players, tribes, villages, type Transaction } from '@dwar/database';
 import {
   messageColor,
   messageHttpUrl,
@@ -83,6 +83,21 @@ async function nodes(
         row
           ? { type: 'player', id: row.id, label: row.username }
           : { type: 'text', text: token.value },
+      );
+      continue;
+    }
+    if (token.tag === 'ally') {
+      const [row] = await tx
+        .select({ id: tribes.id, tag: tribes.tag })
+        .from(tribes)
+        .where(
+          and(
+            eq(tribes.worldId, worldId),
+            sql`lower(${tribes.tag}) = lower(${token.value.trim()})`,
+          ),
+        );
+      result.push(
+        row ? { type: 'tribe', id: row.id, label: row.tag } : { type: 'text', text: token.value },
       );
       continue;
     }

@@ -174,3 +174,4 @@ export {
 
 export { battle, morale, loyaltyAt, plunder, distributeLosses, emptyTroops } from './combat.js';
 export { militaryRank } from './military-rank.js';
+export { normalizeRights, noRights, founderRights, canManageMember } from './tribe-rights.js';

@@ -36,6 +36,8 @@ export { merchantCapacity, merchantCounts, legacyUnitSpeed } from './market.js';
 
 export { defaultMapSettings, type MapSettings } from './map.js';
 
+export { tribeLimits, tribeTagPattern, type TribeRights } from './tribes.js';
+
 export {
   medals,
   medalCodes,

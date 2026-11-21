@@ -29,7 +29,8 @@ export function useMapNavigation(
   } | null>(null);
   useEffect(() => {
     // a URL alcançou a câmera: a rota antiga deixa de valer (voltar no navegador reposiciona)
-    if (camera && camera.to === route && camera.from !== route) setCamera({ ...camera, from: route });
+    if (camera && camera.to === route && camera.from !== route)
+      setCamera({ ...camera, from: route });
   }, [camera, route]);
   useEffect(
     () => () => {

@@ -9,6 +9,7 @@ import {
 } from '@dwar/api-client';
 import { ChevronLeft, ChevronRight, Search, Trophy } from 'lucide-react';
 import { numbers } from '../shared/index.js';
+import { TribeTag } from '../tribes/index.js';
 
 /** Páginas a mostrar: primeira, última e vizinhas da atual, com lacunas (null). */
 export function pageWindow(current: number, count: number): (number | null)[] {
@@ -267,6 +268,16 @@ export function RankingScreen({ snapshot }: { snapshot: VillageSnapshot }) {
                     >
                       {entry.username}
                     </button>
+                    <TribeTag
+                      tribe={entry.tribe}
+                      onOpen={(tribeId) =>
+                        setParams({
+                          village: snapshot.village.id,
+                          screen: 'info_tribe',
+                          id: tribeId,
+                        })
+                      }
+                    />
                     {entry.own ? <em className="rank-you">você</em> : null}
                   </span>
                 </td>

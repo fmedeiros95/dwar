@@ -78,6 +78,12 @@ function battleSummary(
 
 function noticeTitle(notice: Notice): string {
   const { payload } = notice;
+  if (payload.kind === 'tribe') {
+    const tribe = `${payload.tribeName} (${payload.tribeTag})`;
+    if (payload.event === 'invited') return `Convite para a tribo ${tribe}, de ${payload.by}`;
+    if (payload.event === 'kicked') return `Você foi expulso da tribo ${tribe} por ${payload.by}`;
+    return `A tribo ${tribe} foi dissolvida por ${payload.by}`;
+  }
   if (payload.kind === 'medal') {
     const medal = medals.find((m) => m.code === payload.code);
     return `Medalha ${medal?.name ?? payload.code}: ${medalTiers[payload.stage - 1] ?? ''}`;
@@ -111,8 +117,8 @@ function noticeSummary(notice: Notice): NoticeReportSummary {
     occurredAt: notice.occurredAt.toISOString(),
     read: notice.readAt !== null,
   };
-  if (payload.kind === 'medal')
-    return { ...base, kind: 'medal', group: 'other', role: null, origin: null, target: null };
+  if (payload.kind === 'medal' || payload.kind === 'tribe')
+    return { ...base, kind: payload.kind, group: 'other', role: null, origin: null, target: null };
   return {
     ...base,
     kind: payload.kind,
@@ -145,7 +151,7 @@ function visible(playerId: number, worldId: number, villageId?: number): SQL {
       AND rec.deleted_at IS NULL ${battleVillage}
     UNION ALL
     SELECT 'notice'::text, n.id, n.occurred_at,
-      CASE n.kind WHEN 'medal' THEN 'other' ELSE n.kind END, n.read_at
+      CASE WHEN n.kind IN ('medal', 'tribe') THEN 'other' ELSE n.kind END, n.read_at
     FROM notice_reports n
     WHERE n.player_id = ${playerId} AND n.world_id = ${worldId}
       AND n.deleted_at IS NULL ${noticeVillage}`;
@@ -355,8 +361,8 @@ export async function noticeView(
     read: true,
     previous: await neighbour(tx, worldId, playerId, ref, 'older'),
     next: await neighbour(tx, worldId, playerId, ref, 'newer'),
-    from: payload.kind === 'medal' ? null : payload.from,
-    to: payload.kind === 'medal' ? null : payload.to,
+    from: payload.kind === 'trade' || payload.kind === 'support' ? payload.from : null,
+    to: payload.kind === 'trade' || payload.kind === 'support' ? payload.to : null,
     medal,
     mode: payload.kind === 'trade' ? payload.mode : null,
     resources: payload.kind === 'trade' ? payload.resources : null,

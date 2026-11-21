@@ -331,7 +331,12 @@ function MapCanvas({ snapshot, options }: { snapshot: VillageSnapshot; options: 
                       className="world-map-village"
                       aria-label={`${village.name} (${x}|${y})`}
                       style={{
-                        backgroundColor: ownerColor(village, snapshot.village.id, options.marks),
+                        backgroundColor: ownerColor(
+                          village,
+                          snapshot.village.id,
+                          options.marks,
+                          map.data?.ownTribeId ?? null,
+                        ),
                       }}
                       onClick={(event) => {
                         if (event.detail === 0) select(village);
@@ -595,7 +600,12 @@ function MapCanvas({ snapshot, options }: { snapshot: VillageSnapshot; options: 
                   y={(row.y - miniTop) * 5}
                   width="6"
                   height="6"
-                  fill={ownerColor(row, snapshot.village.id, options.marks)}
+                  fill={ownerColor(
+                    row,
+                    snapshot.village.id,
+                    options.marks,
+                    map.data?.ownTribeId ?? null,
+                  )}
                 />
               ))}
               {Array.from({ length: minimapSize + 1 }, (_, index) => {

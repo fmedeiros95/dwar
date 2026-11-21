@@ -164,6 +164,14 @@ export type NoticePayload =
       troops: Troops;
     }
   | {
+      /** Aviso de tribo: convite recebido, expulsão ou tribo dissolvida. */
+      kind: 'tribe';
+      event: 'invited' | 'kicked' | 'disbanded';
+      tribeName: string;
+      tribeTag: string;
+      by: string;
+    }
+  | {
       /** Medalha nova (ou nível novo). `value` é o valor que a fez subir. */
       kind: 'medal';
       code: string;

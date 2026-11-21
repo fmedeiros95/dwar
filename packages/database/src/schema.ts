@@ -742,6 +742,98 @@ export const playerNotes = pgTable(
   ],
 );
 
+/** Tribos: nome e tag únicos por mundo, texto público e texto só para os membros. */
+export const tribes = pgTable(
+  'tribes',
+  {
+    id: integer('id').primaryKey().generatedAlwaysAsIdentity(),
+    worldId: integer('world_id')
+      .notNull()
+      .references(() => worlds.id),
+    name: text('name').notNull(),
+    tag: text('tag').notNull(),
+    description: text('description').notNull().default(''),
+    internalText: text('internal_text').notNull().default(''),
+    createdAt: time('created_at').defaultNow(),
+  },
+  (t) => [
+    uniqueIndex('tribes_id_world_idx').on(t.id, t.worldId),
+    uniqueIndex('tribes_name_idx').on(t.worldId, sql`lower(${t.name})`),
+    uniqueIndex('tribes_tag_idx').on(t.worldId, sql`lower(${t.tag})`),
+  ],
+);
+
+/** Um jogador pertence a no máximo uma tribo; a chave é o jogador. */
+export const tribeMembers = pgTable(
+  'tribe_members',
+  {
+    playerId: integer('player_id').primaryKey(),
+    worldId: integer('world_id').notNull(),
+    tribeId: integer('tribe_id').notNull(),
+    title: text('title').notNull().default(''),
+    isFounder: boolean('is_founder').notNull().default(false),
+    canLead: boolean('can_lead').notNull().default(false),
+    canInvite: boolean('can_invite').notNull().default(false),
+    canDiplomacy: boolean('can_diplomacy').notNull().default(false),
+    canMassMail: boolean('can_mass_mail').notNull().default(false),
+    canModerate: boolean('can_moderate').notNull().default(false),
+    canHiddenForum: boolean('can_hidden_forum').notNull().default(false),
+    joinedAt: time('joined_at').defaultNow(),
+  },
+  (t) => [
+    foreignKey({ columns: [t.playerId, t.worldId], foreignColumns: [players.id, players.worldId] }),
+    foreignKey({
+      columns: [t.tribeId, t.worldId],
+      foreignColumns: [tribes.id, tribes.worldId],
+    }).onDelete('cascade'),
+    index('tribe_members_tribe_idx').on(t.tribeId),
+  ],
+);
+
+export const tribeInvites = pgTable(
+  'tribe_invites',
+  {
+    id: integer('id').primaryKey().generatedAlwaysAsIdentity(),
+    worldId: integer('world_id').notNull(),
+    tribeId: integer('tribe_id').notNull(),
+    playerId: integer('player_id').notNull(),
+    invitedBy: integer('invited_by').notNull(),
+    createdAt: time('created_at').defaultNow(),
+  },
+  (t) => [
+    foreignKey({
+      columns: [t.tribeId, t.worldId],
+      foreignColumns: [tribes.id, tribes.worldId],
+    }).onDelete('cascade'),
+    foreignKey({ columns: [t.playerId, t.worldId], foreignColumns: [players.id, players.worldId] }),
+    foreignKey({
+      columns: [t.invitedBy, t.worldId],
+      foreignColumns: [players.id, players.worldId],
+    }),
+    uniqueIndex('tribe_invites_tribe_id_player_id_unique').on(t.tribeId, t.playerId),
+    index('tribe_invites_player_idx').on(t.playerId),
+  ],
+);
+
+/** Registro de eventos da tribo; a mensagem usa BBCode ([player]Nome[/player]). */
+export const tribeEvents = pgTable(
+  'tribe_events',
+  {
+    id: integer('id').primaryKey().generatedAlwaysAsIdentity(),
+    worldId: integer('world_id').notNull(),
+    tribeId: integer('tribe_id').notNull(),
+    message: text('message').notNull(),
+    createdAt: time('created_at').defaultNow(),
+  },
+  (t) => [
+    foreignKey({
+      columns: [t.tribeId, t.worldId],
+      foreignColumns: [tribes.id, tribes.worldId],
+    }).onDelete('cascade'),
+    index('tribe_events_recent_idx').on(t.tribeId, t.createdAt, t.id),
+  ],
+);
+
 /** Último nível conhecido de cada medalha de cada jogador (para avisar só quando sobe). */
 export const playerMedals = pgTable(
   'player_medals',
@@ -767,7 +859,7 @@ export const noticeReports = pgTable(
       .notNull()
       .references(() => worlds.id),
     playerId: integer('player_id').notNull(),
-    kind: text('kind').$type<'trade' | 'support' | 'medal'>().notNull(),
+    kind: text('kind').$type<'trade' | 'support' | 'medal' | 'tribe'>().notNull(),
     occurredAt: time('occurred_at'),
     fromVillageId: integer('from_village_id'),
     toVillageId: integer('to_village_id'),

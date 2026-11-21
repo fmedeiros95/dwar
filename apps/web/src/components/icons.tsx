@@ -118,6 +118,19 @@ const paths: Record<string, ReactNode> = {
       />
     </>
   ),
+  tribe: (
+    <>
+      <path d="M6 3.5 H8 V29 H6 Z" />
+      <path d="M8 5 C12 3.2 15.5 7 20 5.2 C22.5 4.2 24.5 4.4 26.5 5.4 V16.5 C24.5 15.5 22.5 15.3 20 16.3 C15.5 18.1 12 14.3 8 16 Z" />
+      <path
+        d="M12.5 8.5 L15.8 10.8 L19 8.8"
+        stroke={L}
+        strokeWidth="1.4"
+        fill="none"
+        strokeLinecap="round"
+      />
+    </>
+  ),
   medal: (
     <>
       <path d="M9 3 H14.5 L16 10 L11.5 12 Z M23 3 H17.5 L16 10 L20.5 12 Z" />

@@ -20,6 +20,7 @@ import './bbcode.css';
 import './reports.css';
 import './medals.css';
 import './travel.css';
+import './tribes.css';
 
 const client = new QueryClient({
   defaultOptions: { queries: { retry: false, refetchOnWindowFocus: true } },

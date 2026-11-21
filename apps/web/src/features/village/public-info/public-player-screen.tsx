@@ -69,7 +69,24 @@ export function PublicPlayerScreen({ snapshot }: { snapshot: VillageSnapshot }) 
             </tr>
             <tr>
               <td>Tribo:</td>
-              <td colSpan={2}>Sem tribo</td>
+              <td colSpan={2}>
+                {data.tribe ? (
+                  <button
+                    className="text-button"
+                    onClick={() =>
+                      setParams({
+                        village: snapshot.village.id,
+                        screen: 'info_tribe',
+                        id: data.tribe!.id,
+                      })
+                    }
+                  >
+                    {data.tribe.name} <span className="tribe-tag static">{data.tribe.tag}</span>
+                  </button>
+                ) : (
+                  'Sem tribo'
+                )}
+              </td>
             </tr>
             {!data.own ? (
               <tr>

@@ -1,322 +1,148 @@
 {
- "buildings": {
-  "1": {
-   "tiers": [
-    1,
-    2,
-    3,
-    4,
-    5,
-    6
-   ],
-   "road": true,
-   "roadWinter": false,
-   "phases": [
-    25,
-    50,
-    75
-   ],
-   "winter": true,
-   "halloween": false
-  },
-  "2": {
-   "tiers": [
-    1,
-    2,
-    3,
-    4,
-    5,
-    6
-   ],
-   "road": true,
-   "roadWinter": false,
-   "phases": [
-    25,
-    50,
-    75
-   ],
-   "winter": true,
-   "halloween": false
-  },
-  "3": {
-   "tiers": [
-    1
-   ],
-   "road": false,
-   "roadWinter": false,
-   "phases": [],
-   "winter": true,
-   "halloween": true
-  },
-  "4": {
-   "tiers": [
-    1,
-    2,
-    3,
-    4,
-    5,
-    6
-   ],
-   "road": true,
-   "roadWinter": false,
-   "phases": [
-    25,
-    50,
-    75
-   ],
-   "winter": true,
-   "halloween": false
-  },
-  "5": {
-   "tiers": [
-    1,
-    2,
-    3,
-    4,
-    5,
-    6
-   ],
-   "road": true,
-   "roadWinter": false,
-   "phases": [
-    25,
-    50,
-    75
-   ],
-   "winter": true,
-   "halloween": false
-  },
-  "6": {
-   "tiers": [
-    1,
-    2,
-    3,
-    4,
-    5,
-    6
-   ],
-   "road": true,
-   "roadWinter": false,
-   "phases": [
-    25,
-    50,
-    75
-   ],
-   "winter": true,
-   "halloween": false
-  },
-  "7": {
-   "tiers": [
-    1,
-    2,
-    3,
-    4,
-    5,
-    6
-   ],
-   "road": true,
-   "roadWinter": false,
-   "phases": [
-    25,
-    50,
-    75
-   ],
-   "winter": true,
-   "halloween": false
-  },
-  "8": {
-   "tiers": [
-    1,
-    2,
-    3,
-    4,
-    5,
-    6
-   ],
-   "road": true,
-   "roadWinter": false,
-   "phases": [
-    25,
-    50,
-    75
-   ],
-   "winter": true,
-   "halloween": false
-  },
-  "9": {
-   "tiers": [
-    1,
-    2,
-    3,
-    4,
-    5,
-    6
-   ],
-   "road": true,
-   "roadWinter": true,
-   "phases": [
-    25,
-    50,
-    75
-   ],
-   "winter": true,
-   "halloween": false
-  },
-  "10": {
-   "tiers": [
-    1,
-    2,
-    3,
-    4,
-    5,
-    6
-   ],
-   "road": true,
-   "roadWinter": false,
-   "phases": [
-    25,
-    50,
-    75
-   ],
-   "winter": true,
-   "halloween": false
-  },
-  "11": {
-   "tiers": [
-    1,
-    2,
-    3,
-    4
-   ],
-   "road": true,
-   "roadWinter": false,
-   "phases": [
-    25,
-    50,
-    75
-   ],
-   "winter": true,
-   "halloween": false
-  },
-  "12": {
-   "tiers": [
-    1,
-    2,
-    3
-   ],
-   "road": false,
-   "roadWinter": false,
-   "phases": [
-    25,
-    50,
-    75
-   ],
-   "winter": true,
-   "halloween": false
-  },
-  "13": {
-   "tiers": [
-    1,
-    2,
-    3,
-    4,
-    5
-   ],
-   "road": true,
-   "roadWinter": false,
-   "phases": [
-    25,
-    50,
-    75
-   ],
-   "winter": true,
-   "halloween": false
-  },
-  "14": {
-   "tiers": [
-    1,
-    2,
-    3,
-    4,
-    5,
-    6
-   ],
-   "road": true,
-   "roadWinter": true,
-   "phases": [
-    25,
-    50,
-    75
-   ],
-   "winter": true,
-   "halloween": false
-  },
-  "15": {
-   "tiers": [
-    1,
-    2,
-    3,
-    4,
-    5
-   ],
-   "road": true,
-   "roadWinter": false,
-   "phases": [
-    25,
-    50,
-    75
-   ],
-   "winter": true,
-   "halloween": false
-  },
-  "16": {
-   "tiers": [
-    1,
-    2,
-    3,
-    4,
-    5,
-    6
-   ],
-   "road": false,
-   "roadWinter": false,
-   "phases": [
-    25,
-    50,
-    75
-   ],
-   "winter": true,
-   "halloween": false
-  },
-  "17": {
-   "tiers": [
-    1,
-    2,
-    3
-   ],
-   "road": true,
-   "roadWinter": false,
-   "phases": [
-    25,
-    50,
-    75
-   ],
-   "winter": true,
-   "halloween": false
-  },
-  "18": {
-   "tiers": [
-    1
-   ],
-   "road": true,
-   "roadWinter": true,
-   "phases": [
-    25,
-    50,
-    75
-   ],
-   "winter": true,
-   "halloween": false
+  "buildings": {
+    "1": {
+      "tiers": [1, 2, 3, 4, 5, 6],
+      "road": true,
+      "roadWinter": false,
+      "phases": [25, 50, 75],
+      "winter": true,
+      "halloween": false
+    },
+    "2": {
+      "tiers": [1, 2, 3, 4, 5, 6],
+      "road": true,
+      "roadWinter": false,
+      "phases": [25, 50, 75],
+      "winter": true,
+      "halloween": false
+    },
+    "3": {
+      "tiers": [1],
+      "road": false,
+      "roadWinter": false,
+      "phases": [],
+      "winter": true,
+      "halloween": true
+    },
+    "4": {
+      "tiers": [1, 2, 3, 4, 5, 6],
+      "road": true,
+      "roadWinter": false,
+      "phases": [25, 50, 75],
+      "winter": true,
+      "halloween": false
+    },
+    "5": {
+      "tiers": [1, 2, 3, 4, 5, 6],
+      "road": true,
+      "roadWinter": false,
+      "phases": [25, 50, 75],
+      "winter": true,
+      "halloween": false
+    },
+    "6": {
+      "tiers": [1, 2, 3, 4, 5, 6],
+      "road": true,
+      "roadWinter": false,
+      "phases": [25, 50, 75],
+      "winter": true,
+      "halloween": false
+    },
+    "7": {
+      "tiers": [1, 2, 3, 4, 5, 6],
+      "road": true,
+      "roadWinter": false,
+      "phases": [25, 50, 75],
+      "winter": true,
+      "halloween": false
+    },
+    "8": {
+      "tiers": [1, 2, 3, 4, 5, 6],
+      "road": true,
+      "roadWinter": false,
+      "phases": [25, 50, 75],
+      "winter": true,
+      "halloween": false
+    },
+    "9": {
+      "tiers": [1, 2, 3, 4, 5, 6],
+      "road": true,
+      "roadWinter": true,
+      "phases": [25, 50, 75],
+      "winter": true,
+      "halloween": false
+    },
+    "10": {
+      "tiers": [1, 2, 3, 4, 5, 6],
+      "road": true,
+      "roadWinter": false,
+      "phases": [25, 50, 75],
+      "winter": true,
+      "halloween": false
+    },
+    "11": {
+      "tiers": [1, 2, 3, 4],
+      "road": true,
+      "roadWinter": false,
+      "phases": [25, 50, 75],
+      "winter": true,
+      "halloween": false
+    },
+    "12": {
+      "tiers": [1, 2, 3],
+      "road": false,
+      "roadWinter": false,
+      "phases": [25, 50, 75],
+      "winter": true,
+      "halloween": false
+    },
+    "13": {
+      "tiers": [1, 2, 3, 4, 5],
+      "road": true,
+      "roadWinter": false,
+      "phases": [25, 50, 75],
+      "winter": true,
+      "halloween": false
+    },
+    "14": {
+      "tiers": [1, 2, 3, 4, 5, 6],
+      "road": true,
+      "roadWinter": true,
+      "phases": [25, 50, 75],
+      "winter": true,
+      "halloween": false
+    },
+    "15": {
+      "tiers": [1, 2, 3, 4, 5],
+      "road": true,
+      "roadWinter": false,
+      "phases": [25, 50, 75],
+      "winter": true,
+      "halloween": false
+    },
+    "16": {
+      "tiers": [1, 2, 3, 4, 5, 6],
+      "road": false,
+      "roadWinter": false,
+      "phases": [25, 50, 75],
+      "winter": true,
+      "halloween": false
+    },
+    "17": {
+      "tiers": [1, 2, 3],
+      "road": true,
+      "roadWinter": false,
+      "phases": [25, 50, 75],
+      "winter": true,
+      "halloween": false
+    },
+    "18": {
+      "tiers": [1],
+      "road": true,
+      "roadWinter": true,
+      "phases": [25, 50, 75],
+      "winter": true,
+      "halloween": false
+    }
   }
- }
 }

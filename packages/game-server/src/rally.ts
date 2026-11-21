@@ -45,6 +45,7 @@ import { capacity, resourceCodes } from '@dwar/game-core';
 import { combatRules, catapultTargets, buildings } from '@dwar/game-config';
 import { mapOptions } from './map-options.js';
 import { addNotices } from './notices.js';
+import { tribesOf } from './tribe-lookup.js';
 import { GameError } from './errors.js';
 
 type Village = typeof villages.$inferSelect;
@@ -57,7 +58,7 @@ export async function publicVillages(
   bounds?: { x: number; y: number; radius?: number },
   ids?: number[],
 ): Promise<PublicVillage[]> {
-  return tx
+  const rows = await tx
     .select({
       id: villages.id,
       name: villages.name,
@@ -86,6 +87,15 @@ export async function publicVillages(
           : undefined,
       ),
     );
+  // A tag da tribo do dono aparece junto ao nome (aldeias abandonadas não têm tribo).
+  const tribesByPlayer = await tribesOf(
+    tx,
+    rows.flatMap((row) => (row.playerId === null ? [] : [row.playerId])),
+  );
+  return rows.map((row) => ({
+    ...row,
+    tribe: row.playerId === null ? null : (tribesByPlayer.get(row.playerId) ?? null),
+  }));
 }
 export async function publicVillageView(
   tx: Transaction,
@@ -148,6 +158,7 @@ export async function publicPlayerView(
   return {
     id: row.id,
     username: row.username,
+    tribe: (await tribesOf(tx, [row.id])).get(row.id) ?? null,
     points: row.points,
     rank: rank + 1,
     own: playerId === village.playerId,
@@ -185,6 +196,7 @@ export async function mapView(
     villages: visible,
     commands: await mapCommands(tx, village, visible),
     reports: await mapReports(tx, village, visible),
+    ownTribeId: (await tribesOf(tx, [village.playerId])).get(village.playerId)?.id ?? null,
     ...options,
   };
 }

@@ -1,6 +1,7 @@
 import { ChevronLeft, ChevronRight, EyeOff, Shield, Swords, Trash2 } from 'lucide-react';
 import type {
   BattleReportView,
+  MessageTarget,
   NoticeReportView,
   ReportRef,
   ReportSide,
@@ -17,7 +18,7 @@ const lootCodes = [
   { code: 'iron', label: 'Ferro' },
 ] as const;
 
-type Target = (type: 'player' | 'village', id: number) => void;
+type Target = (type: MessageTarget, id: number) => void;
 
 function Party({ label, side, onTarget }: { label: string; side: ReportSide; onTarget: Target }) {
   return (

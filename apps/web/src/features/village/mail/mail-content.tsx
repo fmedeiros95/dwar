@@ -1,7 +1,7 @@
 import { Fragment } from 'react';
-import type { MessageNode } from '@dwar/api-client';
+import type { MessageNode, MessageTarget } from '@dwar/api-client';
 
-type Target = (type: 'player' | 'village', id: number) => void;
+type Target = (type: MessageTarget, id: number) => void;
 
 /** Mostra o BBCode já resolvido pelo servidor (mensagens, notas e descrições). */
 export function MailContent({ nodes, onTarget }: { nodes: MessageNode[]; onTarget: Target }) {

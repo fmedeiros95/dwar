@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { ChevronLeft } from 'lucide-react';
-import { api, type VillageSnapshot } from '@dwar/api-client';
+import { api, type MessageTarget, type VillageSnapshot } from '@dwar/api-client';
+import { targetScreen } from '../shared/index.js';
 import { Icon } from '../../../components/icons.js';
 import { useGameSearchParams } from '../../../routing.js';
 import { NoteBox } from './note-box.js';
@@ -18,10 +19,10 @@ export function NotesPanel({ snapshot }: { snapshot: VillageSnapshot }) {
   function go(extra: Record<string, string | number> = {}) {
     setParams({ village: snapshot.village.id, screen: 'notes', ...extra });
   }
-  function onTarget(type: 'player' | 'village', id: number) {
+  function onTarget(type: MessageTarget, id: number) {
     setParams({
       village: snapshot.village.id,
-      screen: type === 'player' ? 'info_player' : 'info_village',
+      screen: targetScreen[type],
       id,
     });
   }

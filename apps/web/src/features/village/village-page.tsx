@@ -18,6 +18,7 @@ import { ReportsPanel } from './reports/index.js';
 import { MailPanel } from './mail/index.js';
 import { NotesPanel } from './notes/index.js';
 import { MedalsPanel } from './medals/index.js';
+import { TribePanel, TribeProfileScreen } from './tribes/index.js';
 import { RankingScreen } from './ranking/index.js';
 import { SettingsScreen } from './settings/index.js';
 import { useVillageActions } from './use-village-actions.js';
@@ -29,6 +30,8 @@ const windowTitles: Record<string, string> = {
   mail: 'Mensagens',
   notes: 'Notas',
   medals: 'Medalhas',
+  tribe: 'Tribo',
+  info_tribe: 'Tribo',
   activity: 'Atividade da aldeia',
   ranking: 'Ranking',
   settings: 'Ajustes',
@@ -113,6 +116,12 @@ export function VillagePage({
     queryFn: () => api.reports(worldId, 1),
     enabled: !!data,
     refetchInterval: 5000,
+  });
+  const tribes = useQuery({
+    queryKey: ['tribes', worldId],
+    queryFn: () => api.tribes(worldId),
+    enabled: !!data,
+    refetchInterval: 30000,
   });
   const mail = useQuery({
     queryKey: ['mailbox', worldId, 1],
@@ -318,6 +327,14 @@ export function VillagePage({
           active: section === 'mail',
           badge: mail.data?.unread,
           onClick: () => setScreen('mail'),
+        },
+        {
+          key: 'tribe',
+          label: 'Tribo',
+          icon: <Icon name="tribe" size={26} />,
+          active: section === 'tribe',
+          badge: tribes.data?.invites.length || undefined,
+          onClick: () => setScreen('tribe'),
         },
         {
           key: 'medals',
@@ -619,6 +636,8 @@ export function VillagePage({
           if (code === 'mail') return <MailPanel snapshot={data} clock={clock} />;
           if (code === 'notes') return <NotesPanel snapshot={data} />;
           if (code === 'medals') return <MedalsPanel snapshot={data} />;
+          if (code === 'tribe') return <TribePanel snapshot={data} />;
+          if (code === 'info_tribe') return <TribeProfileScreen snapshot={data} />;
           if (code === 'ranking') return <RankingScreen snapshot={data} />;
           if (code === 'settings') return <SettingsScreen snapshot={data} />;
           if (code === 'activity') return activityView;

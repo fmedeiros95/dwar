@@ -1,7 +1,14 @@
 import { asc, desc, eq, sql, type SQL } from 'drizzle-orm';
 import { db, accounts, players, villages, type Transaction } from '@dwar/database';
 import { militaryRank } from '@dwar/game-core';
-import type { RankingBoard, RankingEntry, RankingKillType, RankingPage } from '@dwar/api-client';
+import type {
+  RankingBoard,
+  RankingEntry,
+  RankingKillType,
+  RankingPage,
+  TribeRef,
+} from '@dwar/api-client';
+import { tribesOf } from './tribe-lookup.js';
 import { lockWorld, ownedVillage } from './village-engine.js';
 import { medalMetrics, stagesOf, totalStages } from './medals.js';
 import { GameError } from './errors.js';
@@ -92,13 +99,20 @@ async function standings(
     .orderBy(desc(points), asc(players.createdAt), asc(players.id));
 }
 
-function entry(row: Standing, rank: number, own: boolean, board: RankingBoard): RankingEntry {
+function entry(
+  row: Standing,
+  rank: number,
+  own: boolean,
+  board: RankingBoard,
+  tribe: TribeRef | null,
+): RankingEntry {
   // A patente vem dos pontos do jogador; nos outros painéis o número é outra medida.
   const { tier, title } = board === 'player' ? militaryRank(row.points) : militaryRank(0);
   return {
     rank,
     id: row.id,
     username: row.username,
+    tribe,
     points: row.points,
     villageCount: row.villageCount,
     joinedAt: row.joinedAt.toISOString(),
@@ -121,6 +135,10 @@ export async function rankingPage(
   if (!Number.isInteger(continent) || continent < 0 || continent > 99)
     throw new GameError('Continente inválido.');
   const all = await standings(tx, worldId, board, type, continent);
+  const tribes = await tribesOf(
+    tx,
+    all.map((row) => row.id),
+  );
   const ownIndex = all.findIndex((row) => row.id === ownId);
   const ownPage = ownIndex >= 0 ? Math.floor(ownIndex / pageSize) + 1 : 1;
   const context = { board, type, continent };
@@ -139,7 +157,9 @@ export async function rankingPage(
       pageCount: 1,
       ownPage,
       total: matches.length,
-      entries: matches.map(({ row, index }) => entry(row, index + 1, row.id === ownId, board)),
+      entries: matches.map(({ row, index }) =>
+        entry(row, index + 1, row.id === ownId, board, tribes.get(row.id) ?? null),
+      ),
     };
   }
   const pageCount = Math.max(1, Math.ceil(all.length / pageSize));
@@ -153,7 +173,13 @@ export async function rankingPage(
     ownPage,
     total: all.length,
     entries: slice.map((row, index) =>
-      entry(row, (page - 1) * pageSize + index + 1, row.id === ownId, board),
+      entry(
+        row,
+        (page - 1) * pageSize + index + 1,
+        row.id === ownId,
+        board,
+        tribes.get(row.id) ?? null,
+      ),
     ),
   };
 }

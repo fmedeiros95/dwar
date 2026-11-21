@@ -4,6 +4,7 @@ import {
   api,
   type ReportAction,
   type ReportGroup,
+  type MessageTarget,
   type ReportRef,
   type VillageSnapshot,
 } from '@dwar/api-client';
@@ -11,6 +12,7 @@ import { useGameSearchParams } from '../../../routing.js';
 import { ReportList } from './report-list.js';
 import { BattleDetail, NoticeDetail } from './report-detail.js';
 import { tabs } from './report-parts.js';
+import { targetScreen } from '../shared/index.js';
 
 export function ReportsPanel({ snapshot, clock }: { snapshot: VillageSnapshot; clock: number }) {
   const [params, setParams] = useGameSearchParams(),
@@ -62,10 +64,10 @@ export function ReportsPanel({ snapshot, clock }: { snapshot: VillageSnapshot; c
   }
   const open = (ref: ReportRef) =>
     go({ id: ref.id, ...(ref.source === 'notice' ? { kind: 'notice' } : {}) });
-  function onTarget(type: 'player' | 'village', targetId: number) {
+  function onTarget(type: MessageTarget, targetId: number) {
     setParams({
       village: snapshot.village.id,
-      screen: type === 'player' ? 'info_player' : 'info_village',
+      screen: targetScreen[type],
       id: targetId,
     });
   }

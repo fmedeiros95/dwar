@@ -99,7 +99,9 @@ export function MailList({
               disabled={pending}
               onChange={(event) =>
                 setSelected(
-                  event.target.checked ? [...visible, row.id] : visible.filter((id) => id !== row.id),
+                  event.target.checked
+                    ? [...visible, row.id]
+                    : visible.filter((id) => id !== row.id),
                 )
               }
             />

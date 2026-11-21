@@ -20,13 +20,22 @@ export function villageGraphic(points: number): number {
             : 6;
 }
 
-export function ownerColor(village: PublicVillage, currentId: number, marks: MapSnapshot['marks']) {
+export function ownerColor(
+  village: PublicVillage,
+  currentId: number,
+  marks: MapSnapshot['marks'],
+  ownTribeId: number | null = null,
+) {
   return village.id === currentId
     ? '#ffffff'
     : village.own
       ? '#f0c800'
       : (marks.find((mark) => mark.playerId === village.playerId)?.color ??
-        (village.playerId ? '#823c0a' : '#969696'));
+        (ownTribeId !== null && village.tribe?.id === ownTribeId
+          ? '#0000f4'
+          : village.playerId
+            ? '#823c0a'
+            : '#969696'));
 }
 
 const villageLegend = [
@@ -50,10 +59,22 @@ export function MapLegend() {
           <td>Ordens:</td>
           <td colSpan={6}>
             <span className="legend-commands">
-              <span className="map-command attack"><Icon name="sword" size={12} /></span> Seu ataque
-              <span className="map-command support"><Icon name="shield" size={12} /></span> Seu apoio
-              <span className="map-command return"><Icon name="return" size={12} /></span> Tropas voltando
-              <span className="map-command attack incoming"><Icon name="sword" size={12} /></span> Ataque inimigo
+              <span className="map-command attack">
+                <Icon name="sword" size={12} />
+              </span>{' '}
+              Seu ataque
+              <span className="map-command support">
+                <Icon name="shield" size={12} />
+              </span>{' '}
+              Seu apoio
+              <span className="map-command return">
+                <Icon name="return" size={12} />
+              </span>{' '}
+              Tropas voltando
+              <span className="map-command attack incoming">
+                <Icon name="sword" size={12} />
+              </span>{' '}
+              Ataque inimigo
             </span>
           </td>
         </tr>
@@ -134,8 +155,7 @@ export function VillagePopup({
       <header>
         <strong>{village.name}</strong>
         <span>
-          ({village.x}|{village.y}){' '}
-          K{Math.floor(village.y / 100)}
+          ({village.x}|{village.y}) K{Math.floor(village.y / 100)}
           {Math.floor(village.x / 100)}
         </span>
       </header>
@@ -174,7 +194,9 @@ export function VillagePopup({
       {detail?.own && !detail.current ? <p className="pop-tag">Sua aldeia</p> : null}
       {blocked ? <p className="pop-warn">{blocked}</p> : null}
       {!detail ? (
-        <p className="pop-loading">{info.isError ? 'Detalhes indisponíveis.' : 'Carregando detalhes…'}</p>
+        <p className="pop-loading">
+          {info.isError ? 'Detalhes indisponíveis.' : 'Carregando detalhes…'}
+        </p>
       ) : null}
       {showUnits && detail?.own ? (
         <section aria-label="Tropas na aldeia">

@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from 'react';
-import type { MailThreadView } from '@dwar/api-client';
+import type { MailThreadView, MessageTarget } from '@dwar/api-client';
 import { completionDate } from '../shared/index.js';
 import { BBEditor } from '../../../components/bbcode-editor.js';
 import { MailContent } from './mail-content.js';
@@ -17,7 +17,7 @@ export function Conversation({
   clock: number;
   onReply: (text: string) => void;
   onDelete: () => void;
-  onTarget: (type: 'player' | 'village', id: number) => void;
+  onTarget: (type: MessageTarget, id: number) => void;
 }) {
   const [replying, setReplying] = useState(false),
     [text, setText] = useState('');

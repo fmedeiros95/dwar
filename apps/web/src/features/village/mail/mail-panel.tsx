@@ -9,8 +9,10 @@ import {
   ApiError,
   type MailAction,
   type MessageNode,
+  type MessageTarget,
   type VillageSnapshot,
 } from '@dwar/api-client';
+import { targetScreen } from '../shared/index.js';
 import { MailList } from './mail-list.js';
 import { ComposeMail } from './mail-compose.js';
 import { Conversation } from './mail-conversation.js';
@@ -108,10 +110,10 @@ export function MailPanel({ snapshot, clock }: { snapshot: VillageSnapshot; cloc
     intent.current = input;
     action.mutate(input);
   }
-  function onTarget(type: 'player' | 'village', id: number) {
+  function onTarget(type: MessageTarget, id: number) {
     setParams({
       village: villageId,
-      screen: type === 'player' ? 'info_player' : 'info_village',
+      screen: targetScreen[type],
       id,
     });
   }
