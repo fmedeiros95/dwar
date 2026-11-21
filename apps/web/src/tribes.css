@@ -199,3 +199,12 @@
   border: 1px solid var(--line-soft);
   border-radius: 6px;
 }
+.tribe-sent {
+  margin: 0;
+  padding: 8px 12px;
+  font-weight: 700;
+  color: #2e6b35;
+  background: rgba(63, 143, 74, 0.12);
+  border: 1px solid #3f8f4a;
+  border-radius: 6px;
+}

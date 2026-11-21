@@ -21,7 +21,13 @@ export { academyAction } from './academy.js';
 export { readMarket, previewMarketTrade, mutateMarket } from './market.js';
 export { mutateMap, readMap, readMapVillage, readMapPlayer, readMapPopup } from './map.js';
 export { readRally, previewRallySupport, mutateRally } from './rally.js';
-export { readMailbox, readMailThread, previewMailMessage, mutateMail } from './mail.js';
+export {
+  readMailbox,
+  readMailThread,
+  previewMailMessage,
+  mutateMail,
+  sendMassMail,
+} from './mail.js';
 export { readMedals, readPlayerMedals } from './medals.js';
 export { readTribes, readTribe, mutateTribes } from './tribes.js';
 export { notesOverview, readPlayerNote, savePlayerNote } from './player-notes.js';

@@ -329,6 +329,81 @@ export async function performMailAction(
   return { threadId };
 }
 
+/**
+ * Envia a mesma mensagem a vários jogadores (uma conversa para cada um, como se fosse enviada
+ * individualmente). Quem bloqueou o remetente é pulado. O `requestId` evita reenvio: repetir o
+ * mesmo pedido não cria conversas novas.
+ */
+export async function sendMassMail(
+  tx: Transaction,
+  worldId: number,
+  senderId: number,
+  recipientIds: number[],
+  title: string,
+  text: string,
+  requestId: string,
+  now: Date,
+): Promise<{ sent: number; skipped: number; repeated: boolean }> {
+  const fingerprint = JSON.stringify({
+    kind: 'mass',
+    recipientIds: [...recipientIds].sort(),
+    title,
+    text,
+  });
+  const [prior] = await tx
+    .select()
+    .from(mailOperations)
+    .where(and(eq(mailOperations.playerId, senderId), eq(mailOperations.requestId, requestId)));
+  if (prior) {
+    if (prior.fingerprint !== fingerprint)
+      throw new GameError('Esta solicitação já foi usada para outra ação.', 409);
+    return { sent: 0, skipped: 0, repeated: true };
+  }
+  const subject = validText(title, true),
+    body = validText(text);
+  let sent = 0,
+    skipped = 0;
+  for (const recipientId of new Set(recipientIds)) {
+    if (recipientId === senderId) continue;
+    try {
+      await canSend(tx, worldId, senderId, recipientId);
+    } catch (error) {
+      if (error instanceof GameError && error.status === 403) {
+        skipped += 1;
+        continue;
+      }
+      throw error;
+    }
+    const [thread] = await tx
+      .insert(mailThreads)
+      .values({
+        worldId,
+        senderPlayerId: senderId,
+        recipientPlayerId: recipientId,
+        title: subject,
+        lastPostAt: now,
+      })
+      .returning();
+    await tx.insert(mailPosts).values({
+      worldId,
+      threadId: thread!.id,
+      authorPlayerId: senderId,
+      text: body,
+      createdAt: now,
+    });
+    sent += 1;
+  }
+  await tx.insert(mailOperations).values({
+    worldId,
+    playerId: senderId,
+    requestId,
+    fingerprint,
+    resultThreadId: null,
+    createdAt: now,
+  });
+  return { sent, skipped, repeated: false };
+}
+
 export async function readMailbox(accountId: number, worldId: number, page: number) {
   return db.transaction(async (tx) => {
     await lockWorld(tx, worldId);

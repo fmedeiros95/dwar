@@ -38,6 +38,12 @@ const tribeAction = z.discriminatedUnion('type', [
   z.object({ type: z.literal('withdraw_peace'), warId: id }),
   z.object({ type: z.literal('accept_peace'), warId: id }),
   z.object({ type: z.literal('reject_peace'), warId: id }),
+  z.object({
+    type: z.literal('mass_mail'),
+    title: text,
+    text,
+    requestId: z.string().min(8).max(100),
+  }),
   z.object({ type: z.literal('kick'), playerId: id }),
   z.object({ type: z.literal('rights'), playerId: id, title: text, rights }),
   z.object({

@@ -556,7 +556,12 @@ export type TribeOverview = {
   events: TribeEventView[];
   limits: { members: number };
 };
-export type TribeHome = { tribe: TribeOverview | null; invites: MyTribeInvite[] };
+export type TribeHome = {
+  tribe: TribeOverview | null;
+  invites: MyTribeInvite[];
+  /** Resultado da última ação, quando ela tem um (mensagem em massa). */
+  result?: { massMail: { sent: number; skipped: number; repeated: boolean } };
+};
 export type TribeAction =
   | { type: 'create'; name: string; tag: string }
   | { type: 'leave' }
@@ -572,6 +577,7 @@ export type TribeAction =
   | { type: 'withdraw_peace'; warId: number }
   | { type: 'accept_peace'; warId: number }
   | { type: 'reject_peace'; warId: number }
+  | { type: 'mass_mail'; title: string; text: string; requestId: string }
   | { type: 'kick'; playerId: number }
   | { type: 'rights'; playerId: number; title: string; rights: Partial<TribeRightsView> }
   | {

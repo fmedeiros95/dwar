@@ -24,6 +24,7 @@ import { GameError } from './errors.js';
 import { memberPlayer } from './member.js';
 import { lockWorld } from './village-engine.js';
 import { renderBBCode } from './bbcode.js';
+import { sendMassMail } from './mail.js';
 import {
   diplomacyOf,
   isDiplomacyAction,
@@ -445,6 +446,36 @@ export async function performTribeAction(
     return;
   }
 
+  if (action.type === 'mass_mail') {
+    const member = requireRight(
+      'canMassMail',
+      'Você não tem permissão para enviar mensagem em massa.',
+    );
+    const roster = await tx
+      .select({ playerId: tribeMembers.playerId })
+      .from(tribeMembers)
+      .where(eq(tribeMembers.tribeId, member.tribeId));
+    const title = plain(action.title);
+    const massMail = await sendMassMail(
+      tx,
+      worldId,
+      playerId,
+      roster.map((row) => row.playerId),
+      title,
+      typeof action.text === 'string' ? action.text : '',
+      action.requestId,
+      new Date(),
+    );
+    if (!massMail.repeated)
+      await logEvent(
+        tx,
+        worldId,
+        member.tribeId,
+        `[player]${me}[/player] enviou uma mensagem para a tribo: ${safe(title)}.`,
+      );
+    return { massMail };
+  }
+
   if (action.type === 'kick' || action.type === 'rights') {
     const actor = requireRight('canLead', 'Você não tem permissão para administrar os membros.');
     const [target] = await tx
@@ -572,7 +603,8 @@ export async function mutateTribes(
   return db.transaction(async (tx) => {
     await lockWorld(tx, worldId);
     const player = await memberPlayer(tx, accountId, worldId);
-    await performTribeAction(tx, worldId, player.id, action);
-    return homeOf(tx, worldId, player.id);
+    const result = await performTribeAction(tx, worldId, player.id, action);
+    const home = await homeOf(tx, worldId, player.id);
+    return result ? { ...home, result } : home;
   });
 }

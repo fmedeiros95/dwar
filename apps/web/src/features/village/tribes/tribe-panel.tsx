@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { api, type MessageTarget, type TribeAction, type VillageSnapshot } from '@dwar/api-client';
 import { Icon } from '../../../components/icons.js';
@@ -5,6 +6,7 @@ import { useGameSearchParams } from '../../../routing.js';
 import { numbers, targetScreen } from '../shared/index.js';
 import { NoTribe } from './no-tribe.js';
 import { Diplomacy } from './tribe-diplomacy.js';
+import { MassMail } from './tribe-mass-mail.js';
 import { EditProfile, Invites, Members, Options, Overview } from './tribe-sections.js';
 
 const tabs = [
@@ -12,6 +14,7 @@ const tabs = [
   { code: 'members', label: 'Membros' },
   { code: 'invites', label: 'Convites' },
   { code: 'diplomacy', label: 'Diplomacia' },
+  { code: 'mail', label: 'Mensagem' },
   { code: 'edit', label: 'Perfil e texto' },
   { code: 'options', label: 'Sair' },
 ] as const;
@@ -23,6 +26,11 @@ export function TribePanel({ snapshot }: { snapshot: VillageSnapshot }) {
   const [params, setParams] = useGameSearchParams();
   const requested = params.get('tab');
   const tab: Tab = tabs.some((item) => item.code === requested) ? (requested as Tab) : 'overview';
+  const [massMail, setMassMail] = useState<{
+    sent: number;
+    skipped: number;
+    repeated: boolean;
+  } | null>(null);
   const home = useQuery({
     queryKey: ['tribes', worldId],
     queryFn: () => api.tribes(worldId),
@@ -32,6 +40,7 @@ export function TribePanel({ snapshot }: { snapshot: VillageSnapshot }) {
     mutationFn: (input: TribeAction) => api.tribeAction(worldId, input),
     onSuccess: (data, input) => {
       client.setQueryData(['tribes', worldId], data);
+      if (data.result) setMassMail(data.result.massMail);
       // Posição e tag aparecem em outras telas; elas se atualizam na próxima consulta.
       void client.invalidateQueries({ queryKey: ['ranking', worldId] });
       void client.invalidateQueries({ queryKey: ['village', worldId] });
@@ -90,23 +99,25 @@ export function TribePanel({ snapshot }: { snapshot: VillageSnapshot }) {
       ) : (
         <>
           <nav className="report-tabs" aria-label="Seções da tribo">
-            {tabs.map((item) => (
-              <button
-                key={item.code}
-                className={item.code === tab ? 'active' : undefined}
-                aria-current={item.code === tab ? 'page' : undefined}
-                onClick={() => go(item.code)}
-              >
-                {item.label}
-                {item.code === 'diplomacy' &&
-                data.tribe!.diplomacy.wars.some((war) => war.peace && !war.peace.offeredByUs) ? (
-                  <span className="report-count">!</span>
-                ) : null}
-                {item.code === 'invites' && data.tribe!.invites.length ? (
-                  <span className="report-count">{data.tribe!.invites.length}</span>
-                ) : null}
-              </button>
-            ))}
+            {tabs
+              .filter((item) => item.code !== 'mail' || data.tribe!.me.rights.canMassMail)
+              .map((item) => (
+                <button
+                  key={item.code}
+                  className={item.code === tab ? 'active' : undefined}
+                  aria-current={item.code === tab ? 'page' : undefined}
+                  onClick={() => go(item.code)}
+                >
+                  {item.label}
+                  {item.code === 'diplomacy' &&
+                  data.tribe!.diplomacy.wars.some((war) => war.peace && !war.peace.offeredByUs) ? (
+                    <span className="report-count">!</span>
+                  ) : null}
+                  {item.code === 'invites' && data.tribe!.invites.length ? (
+                    <span className="report-count">{data.tribe!.invites.length}</span>
+                  ) : null}
+                </button>
+              ))}
           </nav>
           {(() => {
             const shared = {
@@ -118,6 +129,15 @@ export function TribePanel({ snapshot }: { snapshot: VillageSnapshot }) {
             if (tab === 'members') return <Members {...shared} />;
             if (tab === 'invites') return <Invites {...shared} />;
             if (tab === 'diplomacy') return <Diplomacy {...shared} />;
+            if (tab === 'mail')
+              return (
+                <MassMail
+                  data={shared.data}
+                  pending={shared.pending}
+                  result={massMail}
+                  onAction={shared.onAction}
+                />
+              );
             if (tab === 'edit') return <EditProfile {...shared} />;
             if (tab === 'options') return <Options {...shared} />;
             return <Overview data={data.tribe!} onTarget={onTarget} />;
