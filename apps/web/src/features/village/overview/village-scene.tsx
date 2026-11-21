@@ -1,8 +1,9 @@
 import { useMemo, type ReactNode } from 'react';
-import { Ghost, LocateFixed, Minus, Plus, Snowflake, Sun } from 'lucide-react';
+import { Ghost, LocateFixed, Minus, Moon, Plus, Snowflake, Sun } from 'lucide-react';
 import type { BuildingView, Construction } from '@dwar/api-client';
 import { usePanZoom } from '../../../components/use-pan-zoom.js';
 import { duration } from '../shared/index.js';
+import { isNight, nightHours } from '../shared/night.js';
 import {
   backingUrl,
   phaseFor,
@@ -38,6 +39,7 @@ export function VillageScene({
   children?: ReactNode;
 }) {
   const pan = usePanZoom({ width: sceneSize.width, height: sceneSize.height, focus });
+  const night = isNight(clock);
 
   const layers = useMemo(
     () =>
@@ -60,7 +62,7 @@ export function VillageScene({
   return (
     <div
       ref={pan.viewportRef}
-      className={`scene-viewport${pan.dragging ? ' dragging' : ''}`}
+      className={`scene-viewport${pan.dragging ? ' dragging' : ''}${night ? ' night' : ''}`}
       tabIndex={0}
       role="application"
       aria-label="Vista da aldeia. Arraste para mover, use a roda para ampliar e selecione um edifício."
@@ -163,6 +165,17 @@ export function VillageScene({
             </g>
           );
         })}
+        {night ? (
+          /* Noite: escurece e esfria o cenário sem filtro (barato ao arrastar); os selos ficam por cima */
+          <g className="scene-night-shade" pointerEvents="none" aria-hidden="true">
+            <rect
+              className="scene-night-desaturate"
+              width={sceneSize.width}
+              height={sceneSize.height}
+            />
+            <rect className="scene-night-tint" width={sceneSize.width} height={sceneSize.height} />
+          </g>
+        ) : null}
         {layers.map(({ building, placed }) => {
           if (!placed.label) return null;
           const timedEvent =
@@ -241,6 +254,14 @@ export function VillageScene({
             );
           })}
         </div>
+        {night ? (
+          <span
+            className="scene-night-chip"
+            title={`É noite no mundo (${nightHours.start}h às ${nightHours.end}h)`}
+          >
+            <Moon size={13} aria-hidden="true" /> Noite
+          </span>
+        ) : null}
       </div>
       {children}
     </div>

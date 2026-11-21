@@ -973,6 +973,40 @@ th {
 .map-stage.night .world-minimap-surface {
   filter: brightness(0.75) saturate(0.7) hue-rotate(-14deg);
 }
+/* ---- Aldeia: a mesma noite do mapa ----
+   Sem `filter` no SVG (ele se move a cada arrasto/zoom): duas camadas com blend,
+   uma tira 30% da saturação e a outra escurece puxando para o azul. Os selos de nível
+   e os cronômetros são desenhados depois e ficam legíveis. */
+.scene-viewport.night {
+  background: #0d1410;
+}
+.scene-viewport.night .scene-ambient {
+  filter: blur(40px) saturate(0.8) brightness(0.32) hue-rotate(-14deg);
+}
+.scene-night-desaturate {
+  fill: #808080;
+  opacity: 0.3;
+  mix-blend-mode: saturation;
+}
+.scene-night-tint {
+  fill: rgb(132 142 178);
+  mix-blend-mode: multiply;
+}
+.scene-tools {
+  justify-items: end;
+}
+.scene-night-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 9px;
+  font-family: var(--font-ui);
+  font-size: 12px;
+  color: #b9c8e8;
+  background: rgb(16 11 7 / 0.78);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius);
+}
 .map-night {
   display: inline-flex;
   align-items: center;

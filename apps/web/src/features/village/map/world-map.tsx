@@ -31,14 +31,7 @@ import { MapResize } from './map-resize.js';
 import { MapOptions } from './map-options.js';
 import { MapLegend, VillagePopup, ownerColor, villageGraphic } from './map-legend.js';
 import { Icon } from '../../../components/icons.js';
-
-/** Noite do jogo: das 20h às 8h, no horário de Brasília, como no Speed Wars. */
-function isNight(now = new Date()) {
-  const hour = Number(
-    new Intl.DateTimeFormat('en-GB', { hour: '2-digit', hour12: false, timeZone: 'America/Sao_Paulo' }).format(now),
-  );
-  return hour >= 20 || hour <= 8;
-}
+import { isNight } from '../shared/night.js';
 const commandLabel = {
   attack: 'Ataque seu a caminho',
   support: 'Apoio seu a caminho',
