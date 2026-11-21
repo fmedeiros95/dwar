@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { ChevronLeft, ChevronRight, Trash2 } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Inbox, Trash2 } from 'lucide-react';
+import { EmptyState } from '../../../components/empty-state.js';
 import type { MailboxSnapshot } from '@dwar/api-client';
 import { completionDate } from '../shared/index.js';
 import { pageWindow } from '../ranking/ranking-screen.js';
@@ -67,7 +68,11 @@ export function MailList({
   const ids = data.threads.map((row) => row.id),
     visible = selected.filter((id) => ids.includes(id));
   if (!data.threads.length)
-    return <p className="empty-state">Nenhuma mensagem. Escreva a primeira em “Nova mensagem”.</p>;
+    return (
+      <EmptyState icon={<Inbox size={30} />} title="Caixa de entrada vazia">
+        Escreva a primeira em “Nova mensagem”.
+      </EmptyState>
+    );
   return (
     <div className="mail-list">
       <div className="mail-toolbar">

@@ -129,8 +129,17 @@ export function placeBuilding(
 
 export const sceneArtReady = (code: string) => Boolean(buildingArtId[code]);
 
-/** Miniatura do edifício (150x150, com transparência); cai no ícone antigo se não houver arte. */
-export function buildingThumb(code: string): string {
+/**
+ * Arte do edifício para a interface: o mesmo sprite renderizado da aldeia, no estágio do nível
+ * informado (sem nível, o estágio mais alto). Cai no ícone antigo se não houver arte.
+ */
+export function buildingArt(code: string, level?: number, maxLevel?: number): string {
   const artId = buildingArtId[code];
-  return artId && art[artId] ? `/game/buildings/${artId}/thumb.webp` : `/legacy/build/${code}.jpg`;
+  const entry = artId ? art[artId] : undefined;
+  if (!artId || !entry) return `/legacy/build/${code}.jpg`;
+  const tier =
+    level === undefined || maxLevel === undefined
+      ? entry.tiers.length
+      : artTier(artId, Math.max(1, level), maxLevel);
+  return `/game/buildings/${artId}/${artId}_${tier}.webp`;
 }

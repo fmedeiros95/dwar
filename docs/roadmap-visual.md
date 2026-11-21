@@ -22,6 +22,34 @@ texturas legadas, então telas ainda não redesenhadas herdam cores e superfíci
   (`span`).
 - Feedback de ações: notificações (`ToastProvider`), aviso de obra concluída, botão com carregamento.
 - Recrutamento: cartões de unidade com custo total e fila de treinamento com progresso.
+- Aldeia viva (`overview/scene-life.tsx`, `scene-life.css`): aldeões nas estradas, fumaça nas
+  chaminés (brasas na forja), sombras de nuvem, pássaros, brilho na água, amanhecer/entardecer,
+  tochas e vaga-lumes à noite, neve no inverno, névoa e morcegos no Halloween, poeira e martelo
+  nas obras, barra de progresso no selo e comemoração ao subir de nível. Só transform/opacity
+  numa camada própria; botão para desligar e `prefers-reduced-motion` respeitado.
+- Sem madeira: barras e painéis escuros lisos com filete dourado, janelas em marfim liso (a
+  textura em ladrilhos mostrava emendas), sem cantoneiras sobre o conteúdo.
+- HUD: painel da aldeia (produção com barra do armazém, tropas em grade com retrato) e obras
+  (miniatura, vagas da fila, hora de término, barra com brilho).
+- Interface com movimento (`ui.css`): janelas abrem com animação, badges pulam, alerta pulsante
+  de ataque no trilho, recursos avisam armazém quase cheio/cheio, estados vazios explicativos
+  (`EmptyState`), listas de relatórios e mensagens limpas com não lidos destacados.
+- Controles únicos (`controls.css`, carregado por último): botão primário (sem classe, `.green`,
+  `.bcard-action`), secundário (`.button`), perigo (`.button.danger`) e texto (`.text-button`);
+  campos, select com seta própria, caixas de marcar e opções desenhadas, abas segmentadas
+  (`.report-tabs`, `.mail-tabs`, `.rank-subtabs`, `.auth-tabs`) e barra de formatação. Mesma
+  altura (36px) e raio; só as cores mudam entre o contexto escuro e o papel das janelas. As
+  regras antigas por tela foram reduzidas a layout (larguras).
+- Mercado reformulado em duas seções: **Enviar** (carga por recurso com "Máx" limitado à
+  capacidade dos mercadores livres, barra de capacidade, destino X|Y, remessas em trânsito com
+  progresso) e **Trocas** (nova oferta abre no lugar, suas ofertas e as dos outros em cartões
+  "recebe → paga" com proporção). "Situação dos mercadores" virou o indicador do cabeçalho; os
+  endereços antigos (`create_offer`, `other_offer`, `own_offer`, `status`) continuam abrindo.
+- Praça de reunião em página única: tropas da aldeia em cartões, ordem Atacar/Apoiar com
+  ícones, comandos em andamento com progresso e uma seção de apoios só quando existe algo.
+  Peças compartilhadas: `SegmentedTabs`, `PanelHead`/`PanelCard`, `TransitRow` (`trade.css`).
+- Arte dos edifícios na interface (`buildingArt`): cabeçalhos, cartões e filas usam o sprite
+  renderizado da aldeia, no estágio do nível atual, no lugar das ilustrações rabiscadas.
 
 ## Próximos passos (ordem de impacto)
 

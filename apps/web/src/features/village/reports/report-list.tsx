@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { ChevronLeft, ChevronRight, Swords, Trash2 } from 'lucide-react';
+import { EmptyState } from '../../../components/empty-state.js';
 import type { ReportAction, ReportGroup, ReportRef, ReportsSnapshot } from '@dwar/api-client';
 import { completionDate } from '../shared/index.js';
 import { Marks, kindIcon, refKey, roleLabel } from './report-parts.js';
@@ -131,12 +132,12 @@ export function ReportList({
           </ul>
         </>
       ) : (
-        <p className="empty-state">
-          <Swords size={28} aria-hidden="true" />
-          {group === 'all'
-            ? 'Nenhum relatório ainda. Batalhas, remessas e apoios aparecem aqui.'
-            : 'Nenhum relatório nesta categoria.'}
-        </p>
+        <EmptyState
+          icon={<Swords size={30} />}
+          title={group === 'all' ? 'Nenhum relatório ainda' : 'Nada nesta categoria'}
+        >
+          Batalhas, remessas e apoios aparecem aqui assim que acontecem.
+        </EmptyState>
       )}
       {data.pageCount > 1 ? (
         <nav className="pager" aria-label="Páginas de relatórios">

@@ -21,6 +21,11 @@ import './reports.css';
 import './medals.css';
 import './travel.css';
 import './tribes.css';
+import './scene-life.css';
+import './hud.css';
+import './ui.css';
+import './controls.css';
+import './trade.css';
 
 const client = new QueryClient({
   defaultOptions: { queries: { retry: false, refetchOnWindowFocus: true } },

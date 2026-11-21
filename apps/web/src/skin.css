@@ -23,7 +23,12 @@
   --radius-sm: 3px;
   --radius: 4px;
   --radius-lg: 6px;
-  --paper: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='p'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.035' numOctaves='3' seed='4'/%3E%3CfeColorMatrix values='0 0 0 0 .45 0 0 0 0 .3 0 0 0 0 .1 0 0 0 .5 0'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23p)'/%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' seed='9'/%3E%3CfeColorMatrix values='0 0 0 0 .35 0 0 0 0 .22 0 0 0 0 .08 0 0 0 .22 0'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23g)'/%3E%3C/svg%3E");
+  /* Superfícies lisas: sem textura em ladrilhos (as emendas apareciam a cada 300px). */
+  --paper: linear-gradient(transparent, transparent);
+  --bar-bg: linear-gradient(180deg, #2f2218 0%, #1d140d 100%);
+  --panel-bg: linear-gradient(180deg, rgb(38 27 18 / 0.95), rgb(22 15 10 / 0.95));
+  --panel-edge: rgb(214 168 86 / 0.5);
+  --panel-shadow: 0 14px 34px rgb(0 0 0 / 0.55), inset 0 1px 0 rgb(255 228 170 / 0.08);
   font-size: 16px;
 }
 body {
@@ -43,77 +48,12 @@ h2 {
   font-size: 19px;
 }
 
-/* ---- Botões: lacre de cera, com sombra dura que cede ao clique ---- */
-button,
-.button {
-  font-family: var(--font-ui);
-  font-size: 15px;
-  font-weight: 600;
-  letter-spacing: 0.01em;
-  color: #f6e8c8;
-  background: linear-gradient(180deg, #a03a2f 0%, var(--seal) 55%, var(--seal-deep) 100%);
-  border: 1px solid #3a0f0b;
-  border-radius: var(--radius-sm);
-  padding: 7px 16px;
-  box-shadow:
-    inset 0 1px 0 rgb(255 205 175 / 0.4),
-    0 2px 0 #2c0a07,
-    0 4px 8px rgb(0 0 0 / 0.35);
-  text-shadow: 0 1px 1px rgb(0 0 0 / 0.5);
-}
-button:hover:not(:disabled) {
-  filter: brightness(1.12);
-}
-button:active:not(:disabled) {
-  transform: translateY(2px);
-  box-shadow:
-    inset 0 1px 0 rgb(255 205 175 / 0.25),
-    0 0 0 #2c0a07;
-}
-button:disabled {
-  color: rgb(246 232 200 / 0.55);
-  filter: grayscale(0.7) brightness(0.8);
-  cursor: not-allowed;
-}
-button.green,
-.bcard-action.green {
-  color: #f6e8c8;
-  background: linear-gradient(180deg, #a03a2f 0%, var(--seal) 55%, var(--seal-deep) 100%);
-  border-color: #3a0f0b;
-}
-.text-button,
-.text-button:hover:not(:disabled),
-.text-button:active:not(:disabled) {
-  font-family: inherit;
-  font-size: inherit;
-  text-shadow: none;
-  background: none;
-  border: 0;
-  box-shadow: none;
-}
-.pager .button.active,
-.mail-tabs button.active {
-  color: var(--parch);
-  background: var(--ink);
-  border-color: var(--ink);
-  text-shadow: none;
-}
-.mail-tabs button,
-.mail-tabs button:hover:not(:disabled) {
-  box-shadow: none;
-}
-.dock-chip[data-active='true'] {
-  color: #f6e8c8;
-  background: linear-gradient(180deg, #a03a2f, var(--seal-deep));
-}
+/* ---- Botões, campos e abas: ver controls.css ---- */
 
 /* ---- Barra superior: tábua de carvalho com recursos entalhados ---- */
 .shell-topbar {
-  background:
-    linear-gradient(180deg, rgb(0 0 0 / 0.1), rgb(0 0 0 / 0.5)),
-    url('/game/ui/wood-bar.webp') center / 100% 100% no-repeat,
-    var(--oak);
-  border-bottom: 2px solid var(--brass);
+  background: var(--bar-bg);
+  border-bottom: 1px solid rgb(214 168 86 / 0.55);
   box-shadow: 0 4px 14px rgb(0 0 0 / 0.55);
 }
 .legacy-resources .resource-amount {
@@ -143,9 +83,7 @@ button.green,
 
 /* ---- Trilho: ferro e latão ---- */
 .shell-rail {
-  background:
-    var(--noise),
-    linear-gradient(90deg, #171412, var(--iron));
+  background: var(--noise), linear-gradient(90deg, #171412, var(--iron));
   background-blend-mode: soft-light, normal;
   border-right: 2px solid #0b0908;
   box-shadow: 1px 0 0 rgb(185 139 61 / 0.35);
@@ -187,13 +125,10 @@ button.green,
 
 /* ---- Janelas: folha de pergaminho ---- */
 .game-window {
-  background-color: var(--parch);
-  background-image:
-    radial-gradient(ellipse at 50% 40%, transparent 55%, rgb(110 70 25 / 0.28) 100%),
-    var(--paper);
-  background-blend-mode: normal, multiply;
-  border: 2px solid #1b120c;
-  border-radius: var(--radius-lg);
+  background-color: #f2e8d2;
+  background-image: radial-gradient(140% 95% at 50% 0%, #f7efdd 0%, #eee2c6 55%, #e4d4b1 100%);
+  border: 1px solid #1b120c;
+  border-radius: 10px;
   box-shadow:
     0 14px 38px rgb(0 0 0 / 0.6),
     0 0 0 1px rgb(185 139 61 / 0.5);
@@ -204,17 +139,9 @@ button.green,
     0 0 0 1px var(--brass),
     0 0 0 4px rgb(185 139 61 / 0.22);
 }
-.game-window::after {
-  content: '';
-  position: absolute;
-  inset: 6px;
-  z-index: 1;
-  pointer-events: none;
-  border: 1px solid rgb(90 55 20 / 0.4);
-  border-top: 0;
-}
+
 .gw-bar {
-  border-bottom: 2px solid #1b120c;
+  border-radius: 9px 9px 0 0;
 }
 .gw-title {
   font-family: var(--font-caps);
@@ -269,13 +196,6 @@ button.green,
   color: var(--seal-deep);
   text-shadow: 0 1px 0 rgb(255 250 232 / 0.6);
 }
-.gw-body input,
-.gw-body textarea {
-  color: var(--ink);
-  background: rgb(255 250 232 / 0.55);
-  border: 1px solid var(--line);
-  box-shadow: inset 0 1px 3px rgb(70 45 18 / 0.25);
-}
 .gw-body .legacy-table th {
   color: var(--parch);
   background: linear-gradient(180deg, #4a3322, var(--oak));
@@ -309,12 +229,6 @@ select {
   font-feature-settings: 'lnum' 1;
   font-variant-numeric: lining-nums;
 }
-input,
-textarea,
-select {
-  font-family: var(--font-ui);
-  font-size: 16px;
-}
 .gw-body {
   --muted: #55442c;
 }
@@ -336,9 +250,6 @@ select {
   background: linear-gradient(180deg, #3c2b1e, #271b12);
   border-color: #1b120c;
   box-shadow: 0 -6px 14px rgb(60 35 10 / 0.25);
-}
-.gw-body .recruit-bar > button:disabled {
-  color: rgb(246 232 200 / 0.5);
 }
 .legacy-production,
 .legacy-production .legacy-table td,
@@ -497,32 +408,15 @@ th {
   }
 }
 
-/* ---- Placas de madeira sobre a aldeia ---- */
+/* ---- Painéis sobre a aldeia: escuros, lisos, com filete dourado ---- */
 .hud-card,
 .legacy-production {
-  background:
-    linear-gradient(180deg, rgb(0 0 0 / 0.18), rgb(0 0 0 / 0.5)),
-    var(--wood) 0 0 / 900px 72px repeat,
-    var(--oak);
-  border: 2px solid #1b120c;
-  border-radius: var(--radius);
-  box-shadow:
-    0 10px 24px rgb(0 0 0 / 0.55),
-    0 0 0 1px rgb(185 139 61 / 0.5),
-    inset 0 1px 0 rgb(255 215 150 / 0.18);
-  backdrop-filter: none;
-}
-.hud-card::before,
-.legacy-production::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  background:
-    var(--corner-tl) left 2px top 2px / 24px 24px no-repeat,
-    var(--corner-tr) right 2px top 2px / 24px 24px no-repeat,
-    var(--corner-bl) left 2px bottom 2px / 24px 24px no-repeat,
-    var(--corner-br) right 2px bottom 2px / 24px 24px no-repeat;
+  background: var(--panel-bg);
+  border: 1px solid var(--panel-edge);
+  border-radius: 10px;
+  box-shadow: var(--panel-shadow);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
 }
 .hud-card h2,
 .legacy-production h2 {
@@ -538,13 +432,7 @@ th {
 }
 .scene-tools button,
 .scene-tool {
-  background: linear-gradient(180deg, #5a3a24, #34231a);
-  border: 1px solid #1b120c;
-  border-radius: var(--radius-sm);
   color: #f1d28a;
-  box-shadow:
-    0 2px 0 #140a05,
-    inset 0 1px 0 rgb(255 215 150 / 0.25);
 }
 
 /* ---- Mapa: carta de campo ---- */
@@ -592,18 +480,12 @@ th {
 .map-card,
 .map-toolbar,
 .world-map-context {
-  background:
-    linear-gradient(180deg, rgb(0 0 0 / 0.16), rgb(0 0 0 / 0.5)),
-    var(--wood) 0 0 / 900px 72px repeat,
-    var(--oak);
-  border: 2px solid #1b120c;
-  border-radius: var(--radius);
-  box-shadow:
-    0 10px 24px rgb(0 0 0 / 0.55),
-    0 0 0 1px rgb(185 139 61 / 0.5),
-    inset 0 1px 0 rgb(255 215 150 / 0.18);
-  -webkit-backdrop-filter: none;
-  backdrop-filter: none;
+  background: var(--panel-bg);
+  border: 1px solid var(--panel-edge);
+  border-radius: 10px;
+  box-shadow: var(--panel-shadow);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
   color: #efe0bd;
 }
 .map-toolbar button,
@@ -654,8 +536,7 @@ th {
   color-scheme: light;
   background-color: var(--parch);
   background-image:
-    radial-gradient(ellipse at 50% 40%, transparent 55%, rgb(110 70 25 / 0.28) 100%),
-    var(--paper);
+    radial-gradient(ellipse at 50% 40%, transparent 55%, rgb(110 70 25 / 0.28) 100%), var(--paper);
   background-blend-mode: normal, multiply;
   border: 2px solid #1b120c;
   border-radius: var(--radius-lg);
@@ -688,42 +569,11 @@ th {
   color: var(--seal-deep);
   text-shadow: 0 1px 0 rgb(255 250 232 / 0.6);
 }
-.landing-card input,
-.foundation-card input {
-  color: var(--ink);
-  background: rgb(255 250 232 / 0.55);
-  border: 1px solid var(--line);
-  box-shadow: inset 0 1px 3px rgb(70 45 18 / 0.25);
-}
-.auth-tabs {
-  background: linear-gradient(180deg, #4a3322, var(--oak));
-  border-bottom: 2px solid #1b120c;
-}
-.auth-tabs button,
-.auth-tabs button:hover:not(:disabled) {
-  color: #cdb98c;
-  background: transparent;
-  border: 0;
-  box-shadow: none;
-  text-shadow: none;
-  filter: none;
-}
-.auth-tabs [aria-selected='true'],
-.auth-tabs .active {
-  color: #ffe6ad;
-  background: rgb(0 0 0 / 0.28);
-  box-shadow: inset 0 -3px 0 var(--brass);
-}
 .landing-features li {
-  background:
-    linear-gradient(180deg, rgb(0 0 0 / 0.18), rgb(0 0 0 / 0.5)),
-    var(--wood) 0 0 / 900px 72px repeat,
-    var(--oak);
-  border: 2px solid #1b120c;
-  border-radius: var(--radius);
-  box-shadow:
-    0 8px 18px rgb(0 0 0 / 0.5),
-    0 0 0 1px rgb(185 139 61 / 0.45);
+  background: var(--panel-bg);
+  border: 1px solid var(--panel-edge);
+  border-radius: 10px;
+  box-shadow: var(--panel-shadow);
   color: #efe0bd;
 }
 .landing-features strong,
@@ -738,11 +588,8 @@ th {
     0 4px 14px rgb(0 0 0 / 0.7);
 }
 .pregame-bar {
-  background:
-    linear-gradient(180deg, rgb(0 0 0 / 0.12), rgb(0 0 0 / 0.42)),
-    var(--wood) left top / 900px 100% repeat-x,
-    var(--oak);
-  border-bottom: 2px solid var(--brass);
+  background: var(--bar-bg);
+  border-bottom: 1px solid rgb(214 168 86 / 0.55);
   box-shadow: 0 4px 14px rgb(0 0 0 / 0.55);
 }
 .pregame-heading h1 {
@@ -764,18 +611,6 @@ th {
     inset 0 2px 5px rgb(0 0 0 / 0.55);
 }
 
-.landing-card .auth-tabs button,
-.landing-card .auth-tabs button:hover:not(:disabled) {
-  color: #cdb98c;
-}
-.landing-card .auth-tabs button[aria-selected='true'],
-.landing-card .auth-tabs button[aria-current],
-.landing-card .auth-tabs button.active {
-  color: #ffe6ad;
-  background: rgb(0 0 0 / 0.28);
-  box-shadow: inset 0 -3px 0 var(--brass);
-}
-
 @media (max-width: 900px) {
   .gw-actions .gw-maximize,
   .gw-actions button[aria-label='Minimizar'] {
@@ -795,8 +630,7 @@ th {
   color: var(--ink);
   background-color: var(--parch);
   background-image:
-    radial-gradient(ellipse at 50% 40%, transparent 55%, rgb(110 70 25 / 0.28) 100%),
-    var(--paper);
+    radial-gradient(ellipse at 50% 40%, transparent 55%, rgb(110 70 25 / 0.28) 100%), var(--paper);
   background-blend-mode: normal, multiply;
   border: 2px solid #1b120c;
   border-radius: var(--radius);
@@ -811,11 +645,8 @@ th {
   justify-content: space-between;
   gap: 2px 10px;
   padding: 8px 12px;
-  background:
-    linear-gradient(180deg, rgb(0 0 0 / 0.1), rgb(0 0 0 / 0.38)),
-    var(--wood) left top / 900px 100% repeat-x,
-    var(--oak);
-  border-bottom: 2px solid #1b120c;
+  background: var(--bar-bg);
+  border-bottom: 1px solid rgb(214 168 86 / 0.45);
 }
 .village-popup > header strong {
   font-family: var(--font-caps);
@@ -1046,7 +877,8 @@ th {
 
 /* ---- Legibilidade: Inter em toda a interface; a marca mantém o traço histórico ---- */
 :root {
-  --font-ui: 'Inter Variable', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --font-ui:
+    'Inter Variable', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
   --font-display: var(--font-ui);
   --font-caps: var(--font-ui);
   font-size: 14px;
@@ -1110,18 +942,6 @@ h2 {
 }
 .tech-heading {
   font-size: 13px;
-}
-button,
-.button {
-  font-size: 13.5px;
-  font-weight: 650;
-}
-input,
-textarea,
-select,
-.gw-body input,
-.gw-body textarea {
-  font-size: 14px;
 }
 .legacy-resources .resource-amount {
   font-size: 15px;

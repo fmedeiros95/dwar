@@ -8,6 +8,8 @@ export type RailItem = {
   icon: ReactNode;
   active?: boolean;
   badge?: number;
+  /** Algo pede atenção agora (ex.: ataque a caminho): o ícone pulsa em vermelho. */
+  alert?: boolean;
   disabled?: boolean;
   onClick: () => void;
 };
@@ -18,13 +20,16 @@ function RailButton({ item }: { item: RailItem }) {
       type="button"
       className="rail-item"
       aria-current={item.active ? 'page' : undefined}
+      data-alert={item.alert ? 'true' : undefined}
       disabled={item.disabled}
       onClick={item.onClick}
     >
       <span className="rail-icon" aria-hidden="true">
         {item.icon}
         {item.badge ? (
-          <span className="rail-badge">{item.badge > 99 ? '99+' : item.badge}</span>
+          <span key={item.badge} className="rail-badge">
+            {item.badge > 99 ? '99+' : item.badge}
+          </span>
         ) : null}
       </span>
       <span className="rail-label">{item.label}</span>

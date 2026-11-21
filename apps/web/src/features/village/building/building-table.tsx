@@ -3,7 +3,7 @@ import type { BuildingView, VillageSnapshot } from '@dwar/api-client';
 import { ResourceIcon } from '../../../components/legacy-frame.js';
 import { duration, numbers, resources } from '../shared/index.js';
 import { currentResources, type Have } from '../shared/current-resources.js';
-import { buildingThumb } from '../overview/scene-model.js';
+import { buildingArt } from '../overview/scene-model.js';
 
 export function BuildingTable({
   snapshot,
@@ -102,7 +102,11 @@ function BuildingCard({
           aria-label={`Abrir ${building.name}`}
           onClick={() => onSelect(building.code)}
         >
-          <img src={buildingThumb(building.code)} alt="" loading="lazy" />
+          <img
+            src={buildingArt(building.code, building.level, building.maxLevel)}
+            alt=""
+            loading="lazy"
+          />
         </button>
         <div className="bcard-title">
           <h3>

@@ -1,4 +1,6 @@
 import type { IncomingCommand, IncomingOverview, VillageSnapshot } from '@dwar/api-client';
+import { HeartHandshake, ShieldCheck } from 'lucide-react';
+import { EmptyState } from '../../../components/empty-state.js';
 import { numbers, duration } from '../shared/index.js';
 
 function villageLabel(village: IncomingCommand['from']) {
@@ -27,7 +29,15 @@ export function IncomingsPanel({
       {data === undefined ? (
         <p className="muted">Carregando comandos…</p>
       ) : rows.length === 0 ? (
-        <p className="muted">Nenhum {mode === 'attack' ? 'ataque' : 'apoio'} chegando.</p>
+        mode === 'attack' ? (
+          <EmptyState icon={<ShieldCheck size={30} />} title="Nenhum ataque a caminho">
+            Suas aldeias estão em paz. Ataques inimigos aparecem aqui com a hora de chegada.
+          </EmptyState>
+        ) : (
+          <EmptyState icon={<HeartHandshake size={30} />} title="Nenhum apoio a caminho">
+            Tropas enviadas por aliados para defender suas aldeias aparecem aqui.
+          </EmptyState>
+        )
       ) : (
         <div className="table-scroll">
           <table className="legacy-table incoming-table">
@@ -54,7 +64,9 @@ export function IncomingsPanel({
                     </td>
                     <td>{item.sender}</td>
                     <td>{new Date(item.endsAt).toLocaleString('pt-BR')}</td>
-                    <td>{numbers.format(Math.ceil(remaining))}s ({duration(remaining)})</td>
+                    <td>
+                      {numbers.format(Math.ceil(remaining))}s ({duration(remaining)})
+                    </td>
                   </tr>
                 );
               })}

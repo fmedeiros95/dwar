@@ -1,7 +1,8 @@
 import { useGameSearchParams as useSearchParams } from '../../../routing.js';
 import { newRequestKey } from '@dwar/api-client';
 import { useRef, useState } from 'react';
-import { Mail } from 'lucide-react';
+import { Mail, UserX } from 'lucide-react';
+import { EmptyState } from '../../../components/empty-state.js';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import {
@@ -243,7 +244,9 @@ export function MailPanel({ snapshot, clock }: { snapshot: VillageSnapshot; cloc
                 ))}
               </ul>
             ) : (
-              <p className="muted">Você não bloqueou ninguém.</p>
+              <EmptyState icon={<UserX size={28} />} title="Ninguém bloqueado">
+                Jogadores bloqueados não conseguem enviar mensagens para você.
+              </EmptyState>
             )}
             <form
               className="mail-block-form"

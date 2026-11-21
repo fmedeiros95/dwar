@@ -1,0 +1,591 @@
+/*
+ * Controles do DWar: a única fonte de verdade para botões, campos, seleções, caixas de
+ * marcar, opções e abas. Carregado por último.
+ *
+ * Dois contextos, mesmas formas:
+ *   - escuro (padrão): barra superior, painéis sobre a aldeia e o mapa, telas de entrada;
+ *   - papel: dentro das janelas e dos cartões claros (.gw-body, .landing-card…).
+ * Só as cores mudam entre eles (variáveis --ctl-*); altura, raio, fonte e estados são iguais.
+ *
+ * Variantes de botão:
+ *   primário   <button> sem classe, .green, .bcard-action      ação principal (lacre vermelho)
+ *   secundário .button, .ucard-max, .queue-cancel              ação de apoio (neutro)
+ *   perigo     .button.danger                                  destrutivo (contorno vermelho)
+ *   texto      .text-button                                    link
+ */
+:root {
+  --ctl-h: 36px;
+  --ctl-radius: 8px;
+  --ctl-font: 600 14px/18px var(--font-ui);
+  --ctl-ring: 0 0 0 3px rgb(232 190 106 / 0.45);
+
+  --ctl-primary: linear-gradient(180deg, #a63c30 0%, #7d2b22 60%, #6a221b 100%);
+  --ctl-primary-text: #fff3dc;
+  --ctl-primary-edge: #3e0f0a;
+
+  /* contexto escuro */
+  --ctl-text: #f3e6c8;
+  --ctl-muted: rgb(243 230 200 / 0.6);
+  --ctl-field-bg: rgb(0 0 0 / 0.32);
+  --ctl-field-bg-hover: rgb(0 0 0 / 0.42);
+  --ctl-edge: rgb(214 168 86 / 0.35);
+  --ctl-edge-strong: rgb(232 190 106 / 0.75);
+  --ctl-sec-bg: rgb(255 240 200 / 0.07);
+  --ctl-sec-bg-hover: rgb(255 240 200 / 0.14);
+  --ctl-tabs-bg: rgb(0 0 0 / 0.28);
+  --ctl-tab-active-bg: #e8be6a;
+  --ctl-tab-active-text: #2a1a0a;
+  --ctl-link: #ffd98a;
+  --ctl-danger: #ff8f7a;
+  --ctl-chevron: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5l5 5 5-5' fill='none' stroke='%23e8be6a' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+}
+.gw-body,
+.landing-card,
+.world-card,
+.foundation-card,
+.village-popup {
+  --ctl-text: #2a2017;
+  --ctl-muted: rgb(42 32 23 / 0.55);
+  --ctl-field-bg: #fffbf2;
+  --ctl-field-bg-hover: #ffffff;
+  --ctl-edge: rgb(70 45 18 / 0.3);
+  --ctl-edge-strong: #7d2b22;
+  --ctl-sec-bg: linear-gradient(180deg, #fffaf0, #f1e6cd);
+  --ctl-sec-bg-hover: linear-gradient(180deg, #ffffff, #f6ecd6);
+  --ctl-tabs-bg: rgb(70 45 18 / 0.08);
+  --ctl-tab-active-bg: #2a2017;
+  --ctl-tab-active-text: #fbf1da;
+  --ctl-link: #7d2b22;
+  --ctl-danger: #a3261c;
+  --ctl-ring: 0 0 0 3px rgb(125 43 34 / 0.25);
+  --ctl-chevron: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5l5 5 5-5' fill='none' stroke='%237d2b22' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+}
+
+/* ======================================================================
+ * Botões
+ * ====================================================================== */
+button,
+.button {
+  padding: 8px 16px;
+  font: var(--ctl-font);
+  letter-spacing: 0.01em;
+  text-transform: none;
+  color: var(--ctl-primary-text);
+  background: var(--ctl-primary);
+  border: 1px solid var(--ctl-primary-edge);
+  border-radius: var(--ctl-radius);
+  box-shadow:
+    inset 0 1px 0 rgb(255 210 180 / 0.35),
+    0 1px 2px rgb(0 0 0 / 0.3);
+  text-shadow: 0 1px 1px rgb(0 0 0 / 0.35);
+  cursor: pointer;
+  transition:
+    filter 0.15s ease,
+    transform 0.12s ease,
+    box-shadow 0.15s ease,
+    background-color 0.15s ease,
+    border-color 0.15s ease,
+    color 0.15s ease;
+}
+button:hover:not(:disabled),
+.button:hover:not(:disabled) {
+  filter: brightness(1.1);
+}
+button:active:not(:disabled),
+.button:active:not(:disabled) {
+  filter: brightness(0.95);
+  transform: translateY(1px);
+}
+button:focus-visible,
+.button:focus-visible,
+a:focus-visible {
+  outline: none;
+  box-shadow: var(--ctl-ring);
+}
+button.green,
+.bcard-action.green {
+  color: var(--ctl-primary-text);
+  background: var(--ctl-primary);
+  border-color: var(--ctl-primary-edge);
+}
+.button,
+.button:hover:not(:disabled),
+.ucard-max,
+.queue-cancel {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  color: var(--ctl-text);
+  background: var(--ctl-sec-bg);
+  border: 1px solid var(--ctl-edge);
+  text-shadow: none;
+  box-shadow: 0 1px 2px rgb(0 0 0 / 0.12);
+}
+.button:hover:not(:disabled),
+.ucard-max:hover:not(:disabled),
+.queue-cancel:hover:not(:disabled) {
+  filter: none;
+  background: var(--ctl-sec-bg-hover);
+  border-color: var(--ctl-edge-strong);
+}
+.button.danger,
+.button.danger:hover:not(:disabled) {
+  color: var(--ctl-danger);
+  background: transparent;
+  border-color: currentColor;
+}
+.button.danger:hover:not(:disabled) {
+  color: #fff;
+  background: #a3261c;
+  border-color: #a3261c;
+}
+button:not([class]):disabled,
+button.wide:disabled,
+button.green:disabled,
+.bcard-action:disabled,
+.button:disabled,
+.ucard-max:disabled,
+.queue-cancel:disabled {
+  color: var(--ctl-muted);
+  background: var(--ctl-sec-bg);
+  border: 1px solid var(--ctl-edge);
+  box-shadow: none;
+  text-shadow: none;
+  filter: saturate(0.4);
+  opacity: 0.7;
+  cursor: not-allowed;
+  transform: none;
+}
+.text-button,
+.text-button:hover:not(:disabled),
+.text-button:active:not(:disabled),
+.text-button:disabled {
+  padding: 0;
+  font: inherit;
+  font-weight: 600;
+  color: var(--ctl-link);
+  background: none;
+  border: 0;
+  box-shadow: none;
+  text-shadow: none;
+  filter: none;
+  opacity: 1;
+  transform: none;
+}
+.text-button:hover:not(:disabled) {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.text-button:disabled {
+  color: var(--ctl-muted);
+}
+.text-button.village-name {
+  color: inherit;
+}
+.text-button.village-name:hover:not(:disabled) {
+  text-decoration: none;
+}
+
+/* Rodapé escuro dentro da janela (recrutamento): volta às cores do contexto escuro. */
+.gw-body .recruit-bar {
+  --ctl-text: #f3e6c8;
+  --ctl-muted: rgb(243 230 200 / 0.55);
+  --ctl-edge: rgb(214 168 86 / 0.35);
+  --ctl-sec-bg: rgb(255 240 200 / 0.07);
+}
+
+/* ======================================================================
+ * Campos de texto, número, área de texto e seleção
+ * ====================================================================== */
+input:where(
+  :not(
+    [type='checkbox'],
+    [type='radio'],
+    [type='color'],
+    [type='range'],
+    [type='file'],
+    [type='hidden']
+  )
+),
+textarea,
+select {
+  min-height: var(--ctl-h);
+  padding: 8px 12px;
+  font: 500 14px/18px var(--font-ui);
+  color: var(--ctl-text);
+  background: var(--ctl-field-bg);
+  border: 1px solid var(--ctl-edge);
+  border-radius: var(--ctl-radius);
+  box-shadow: inset 0 1px 2px rgb(0 0 0 / 0.12);
+  transition:
+    border-color 0.15s ease,
+    background-color 0.15s ease,
+    box-shadow 0.15s ease;
+}
+textarea {
+  line-height: 1.5;
+}
+input::placeholder,
+textarea::placeholder {
+  color: var(--ctl-muted);
+}
+input:where(
+    :not(
+      [type='checkbox'],
+      [type='radio'],
+      [type='color'],
+      [type='range'],
+      [type='file'],
+      [type='hidden']
+    )
+  ):hover:not(:disabled, :focus),
+textarea:hover:not(:disabled, :focus),
+select:hover:not(:disabled, :focus) {
+  background-color: var(--ctl-field-bg-hover);
+  border-color: var(--ctl-edge-strong);
+}
+input:where(
+    :not(
+      [type='checkbox'],
+      [type='radio'],
+      [type='color'],
+      [type='range'],
+      [type='file'],
+      [type='hidden']
+    )
+  ):focus,
+textarea:focus,
+select:focus {
+  outline: none;
+  background-color: var(--ctl-field-bg-hover);
+  border-color: var(--ctl-edge-strong);
+  box-shadow: var(--ctl-ring);
+}
+input:disabled,
+textarea:disabled,
+select:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+input[type='number'] {
+  font-variant-numeric: tabular-nums;
+}
+select {
+  padding-right: 34px;
+  -webkit-appearance: none;
+  appearance: none;
+  background-image: var(--ctl-chevron);
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  background-size: 12px 8px;
+  cursor: pointer;
+}
+select option {
+  color: #2a2017;
+  background: #fffbf2;
+}
+.stepper {
+  min-height: var(--ctl-h);
+  background: var(--ctl-field-bg);
+  border: 1px solid var(--ctl-edge);
+  border-radius: var(--ctl-radius);
+  box-shadow: inset 0 1px 2px rgb(0 0 0 / 0.12);
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
+}
+.stepper:focus-within {
+  border-color: var(--ctl-edge-strong);
+  box-shadow: var(--ctl-ring);
+}
+.stepper input {
+  color: var(--ctl-text);
+  border-inline-color: var(--ctl-edge);
+}
+.stepper input:focus {
+  outline: none;
+}
+.stepper button,
+.stepper button:hover:not(:disabled),
+.stepper button:disabled {
+  color: var(--ctl-text);
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+  text-shadow: none;
+  filter: none;
+  transform: none;
+}
+.stepper button:hover:not(:disabled) {
+  background: var(--ctl-tabs-bg);
+}
+.stepper button:disabled {
+  opacity: 0.35;
+}
+
+/* ======================================================================
+ * Caixas de marcar e opções
+ * ====================================================================== */
+input[type='checkbox'],
+input[type='radio'] {
+  position: relative;
+  flex: none;
+  width: 18px;
+  height: 18px;
+  margin: 0;
+  vertical-align: -4px;
+  -webkit-appearance: none;
+  appearance: none;
+  background: var(--ctl-field-bg);
+  border: 1.5px solid var(--ctl-edge-strong);
+  border-radius: 5px;
+  box-shadow: inset 0 1px 2px rgb(0 0 0 / 0.15);
+  cursor: pointer;
+  transition:
+    background-color 0.15s ease,
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
+}
+input[type='radio'] {
+  border-radius: 50%;
+}
+input[type='checkbox']::after,
+input[type='radio']::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  opacity: 0;
+  transform: scale(0.4);
+  transition:
+    opacity 0.12s ease,
+    transform 0.18s cubic-bezier(0.3, 1.7, 0.5, 1);
+}
+input[type='checkbox']::after {
+  width: 10px;
+  height: 10px;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 10'%3E%3Cpath d='M1.5 5.2l2.3 2.3L8.6 2.6' fill='none' stroke='%23fff3dc' stroke-width='1.9' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")
+    center / contain no-repeat;
+}
+input[type='radio']::after {
+  width: 8px;
+  height: 8px;
+  background: #fff3dc;
+  border-radius: 50%;
+}
+input[type='checkbox']:checked,
+input[type='radio']:checked,
+input[type='checkbox']:indeterminate {
+  background: #7d2b22;
+  border-color: #5a1b15;
+}
+input[type='checkbox']:checked::after,
+input[type='radio']:checked::after {
+  opacity: 1;
+  transform: none;
+}
+input[type='checkbox']:indeterminate::after {
+  width: 9px;
+  height: 2px;
+  background: #fff3dc;
+  border-radius: 1px;
+  opacity: 1;
+  transform: none;
+}
+input[type='checkbox']:hover:not(:disabled),
+input[type='radio']:hover:not(:disabled) {
+  border-color: #a63c30;
+}
+input[type='checkbox']:focus-visible,
+input[type='radio']:focus-visible {
+  outline: none;
+  box-shadow: var(--ctl-ring);
+}
+input[type='checkbox']:disabled,
+input[type='radio']:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+label:has(> input[type='checkbox']),
+label:has(> input[type='radio']) {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+}
+
+/* ======================================================================
+ * Abas (todas as listas de abas do jogo usam a mesma forma)
+ * ====================================================================== */
+.report-tabs,
+.mail-tabs,
+.rank-subtabs,
+.auth-tabs,
+.seg-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
+  padding: 4px;
+  background: var(--ctl-tabs-bg);
+  border: 1px solid var(--ctl-edge);
+  border-radius: calc(var(--ctl-radius) + 3px);
+}
+.report-tabs button,
+.mail-tabs button,
+.rank-subtabs button,
+.auth-tabs button,
+.seg-tabs button,
+.report-tabs button:hover:not(:disabled),
+.mail-tabs button:hover:not(:disabled),
+.rank-subtabs button:hover:not(:disabled),
+.auth-tabs button:hover:not(:disabled),
+.seg-tabs button:hover:not(:disabled) {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 14px;
+  font: var(--ctl-font);
+  color: var(--ctl-text);
+  background: transparent;
+  border: 0;
+  border-radius: var(--ctl-radius);
+  box-shadow: none;
+  text-shadow: none;
+  filter: none;
+  transform: none;
+  opacity: 0.78;
+}
+.report-tabs button:hover:not(:disabled),
+.mail-tabs button:hover:not(:disabled),
+.rank-subtabs button:hover:not(:disabled),
+.auth-tabs button:hover:not(:disabled),
+.seg-tabs button:hover:not(:disabled) {
+  background: var(--ctl-tabs-bg);
+  opacity: 1;
+}
+.report-tabs button.active,
+.seg-tabs button.active,
+.mail-tabs button.active,
+.rank-subtabs button.active,
+.auth-tabs button.active,
+.auth-tabs button[aria-selected='true'],
+.auth-tabs button[aria-current],
+.landing-card .auth-tabs button.active,
+.landing-card .auth-tabs button[aria-selected='true'],
+.landing-card .auth-tabs button[aria-current],
+.pager .button.active {
+  color: var(--ctl-tab-active-text);
+  background: var(--ctl-tab-active-bg);
+  border-color: var(--ctl-tab-active-bg);
+  box-shadow: 0 1px 3px rgb(0 0 0 / 0.25);
+  opacity: 1;
+}
+.rank-subtabs {
+  margin: -4px 0 12px;
+}
+.auth-tabs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  margin: 0 0 22px;
+}
+.auth-tabs button,
+.auth-tabs button:hover:not(:disabled) {
+  justify-content: center;
+}
+.report-tabs {
+  margin-bottom: 12px;
+}
+/* A caixa "Só desta aldeia" mora dentro da barra de abas de relatórios, à direita. */
+.report-tabs > label {
+  margin-left: auto;
+  padding: 0 8px;
+  font-size: 13.5px;
+  font-weight: 500;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  button,
+  .button,
+  input,
+  textarea,
+  select {
+    transition: none;
+  }
+}
+
+/* ======================================================================
+ * Barras de ferramentas (formatação de texto): botões compactos e discretos
+ * ====================================================================== */
+.bb-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
+  padding: 5px;
+  background: var(--ctl-tabs-bg);
+  border: 1px solid var(--ctl-edge);
+  border-radius: calc(var(--ctl-radius) + 3px);
+}
+.bb-tool,
+.bb-tool:hover:not(:disabled),
+.bb-tool:active:not(:disabled) {
+  min-width: 32px;
+  height: 30px;
+  padding: 0 10px;
+  font: 600 13px/1 var(--font-ui);
+  color: var(--ctl-text);
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: calc(var(--ctl-radius) - 2px);
+  box-shadow: none;
+  text-shadow: none;
+  filter: none;
+  transform: none;
+}
+.bb-tool:hover:not(:disabled) {
+  background: var(--ctl-field-bg);
+  border-color: var(--ctl-edge);
+}
+.bb-tool-italic {
+  font-style: italic;
+}
+.bb-tool-bold {
+  font-weight: 800;
+}
+.bb-swatch,
+.bb-swatch:hover:not(:disabled) {
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.35);
+  text-shadow: none;
+  filter: none;
+}
+.bb-swatch:hover:not(:disabled) {
+  transform: scale(1.15);
+}
+.bb-size {
+  min-height: 30px;
+  padding: 4px 30px 4px 10px;
+  font-size: 13px;
+  background-position: right 10px center;
+}
+
+/* Envio de arquivo: o botão nativo vira um botão secundário. */
+input[type='file'] {
+  font: 500 13.5px var(--font-ui);
+  color: var(--ctl-muted);
+}
+input[type='file']::file-selector-button {
+  margin-right: 10px;
+  padding: 7px 14px;
+  font: var(--ctl-font);
+  color: var(--ctl-text);
+  background: var(--ctl-sec-bg);
+  border: 1px solid var(--ctl-edge);
+  border-radius: var(--ctl-radius);
+  cursor: pointer;
+  transition: border-color 0.15s ease;
+}
+input[type='file']::file-selector-button:hover {
+  border-color: var(--ctl-edge-strong);
+}

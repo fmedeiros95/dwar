@@ -1,44 +1,77 @@
 import { useState, type CSSProperties } from 'react';
 import type { BuildingView, Construction, VillageSnapshot } from '@dwar/api-client';
+import { ChevronDown, Hammer, List } from 'lucide-react';
 import { ResourceIcon } from '../../../components/legacy-frame.js';
 import { VillageScene } from './village-scene.js';
-import { sceneThemes, type SceneTheme } from './scene-model.js';
-import { duration, numbers, resources } from '../shared/index.js';
+import { buildingArt, sceneThemes, type SceneTheme } from './scene-model.js';
+import { completionDate, duration, numbers, resources } from '../shared/index.js';
+import { currentResources } from '../shared/current-resources.js';
 import { unitIconSrc } from '../../../components/unit-icon.js';
 
 function ConstructionCard({
   queue,
+  buildings,
   clock,
   maxQueue,
 }: {
   queue: Construction[];
+  buildings: BuildingView[];
   clock: number;
   maxQueue: number;
 }) {
   return (
-    <section className="hud-card hud-construction" aria-label="Obras em andamento">
+    <section
+      className="hud-card hud-construction"
+      aria-label="Obras em andamento"
+      onPointerDown={(event) => event.stopPropagation()}
+    >
       <h2>
-        Obras
-        <small>
-          {queue.length}/{maxQueue}
+        <span>
+          <Hammer size={15} aria-hidden="true" /> Obras
+        </span>
+        <small className="hud-slots" aria-label={`${queue.length} de ${maxQueue} vagas usadas`}>
+          {Array.from({ length: maxQueue }, (_, slot) => (
+            <i key={slot} data-used={slot < queue.length ? 'true' : undefined} />
+          ))}
         </small>
       </h2>
       {queue.length === 0 ? (
-        <p className="hud-empty">Nenhuma obra em andamento. Passe o mouse sobre um edifício.</p>
+        <p className="hud-empty">
+          Nenhuma obra em andamento.
+          <br />
+          Clique em um edifício para construir.
+        </p>
       ) : (
         <ul>
           {queue.map((item) => {
             const start = new Date(item.startsAt).getTime();
             const end = new Date(item.endsAt).getTime();
+            const running = start <= clock;
             const progress = Math.min(1, Math.max(0, (clock - start) / Math.max(1, end - start)));
             return (
-              <li key={item.id} style={{ '--progress': progress } as CSSProperties}>
+              <li
+                key={item.id}
+                data-running={running ? 'true' : undefined}
+                style={{ '--progress': progress } as CSSProperties}
+              >
+                <img
+                  className="hud-thumb"
+                  src={buildingArt(
+                    item.buildingCode,
+                    item.targetLevel,
+                    buildings.find((b) => b.code === item.buildingCode)?.maxLevel,
+                  )}
+                  alt=""
+                />
                 <span className="hud-row">
                   <strong>{item.name}</strong>
-                  <em>nível {item.targetLevel}</em>
+                  <em>
+                    Nível {item.targetLevel} ·{' '}
+                    {running ? completionDate(item.endsAt, clock) : 'na fila'}
+                  </em>
                 </span>
-                <span className="hud-bar" aria-hidden="true" />
                 <time>{duration((end - clock) / 1000)}</time>
+                <span className="hud-bar" aria-hidden="true" />
               </li>
             );
           })}
@@ -140,6 +173,108 @@ function Troops({ snapshot }: { snapshot: VillageSnapshot }) {
     </table>
   );
 }
+/** Painel da aldeia sobre o cenário: produção (com o quanto o armazém já encheu) e tropas. */
+function VillageLedger({
+  snapshot,
+  clock,
+  collapsed,
+  onToggle,
+  onClassic,
+  classicPending,
+}: {
+  snapshot: VillageSnapshot;
+  clock: number;
+  collapsed: boolean;
+  onToggle: () => void;
+  onClassic: () => void;
+  classicPending: boolean;
+}) {
+  const perMinute = snapshot.world.buildSpeed > 100;
+  const have = currentResources(snapshot, clock);
+  const capacity = Math.max(1, snapshot.village.capacity);
+  const troops = snapshot.units.filter((unit) => unit.present > 0);
+  const total = troops.reduce((sum, unit) => sum + unit.present, 0);
+  return (
+    <aside
+      className="hud-card hud-ledger"
+      data-collapsed={collapsed ? 'true' : undefined}
+      aria-label="Produção e tropas da aldeia"
+      onPointerDown={(event) => event.stopPropagation()}
+    >
+      <header className="hud-ledger-head">
+        <h2>Sua aldeia</h2>
+        <div className="hud-ledger-tools">
+          <button
+            type="button"
+            title="Visão clássica (lista de edifícios)"
+            aria-label="Visão clássica"
+            disabled={classicPending}
+            onClick={onClassic}
+          >
+            <List size={15} aria-hidden="true" />
+          </button>
+          <button
+            type="button"
+            className="hud-ledger-toggle"
+            title={collapsed ? 'Mostrar produção e tropas' : 'Ocultar produção e tropas'}
+            aria-label={collapsed ? 'Mostrar produção e tropas' : 'Ocultar produção e tropas'}
+            aria-expanded={!collapsed}
+            onClick={onToggle}
+          >
+            <ChevronDown size={16} aria-hidden="true" />
+          </button>
+        </div>
+      </header>
+      {collapsed ? null : (
+        <>
+          <section>
+            <h3>
+              Produção <small>por {perMinute ? 'minuto' : 'hora'}</small>
+            </h3>
+            <ul className="ledger-res">
+              {resources.map(({ code, name }) => {
+                const rate = snapshot.village.productionPerHour[code];
+                const fill = Math.min(1, have[code] / capacity);
+                return (
+                  <li
+                    key={code}
+                    data-state={fill >= 1 ? 'full' : fill >= 0.9 ? 'near' : undefined}
+                    style={{ '--fill': fill } as CSSProperties}
+                    title={`${name}: ${numbers.format(have[code])} de ${numbers.format(capacity)} no armazém`}
+                  >
+                    <ResourceIcon code={code} label={name} />
+                    <span className="ledger-name">{name}</span>
+                    <strong>+{numbers.format(perMinute ? Math.ceil(rate / 60) : rate)}</strong>
+                    <span className="ledger-bar" aria-hidden="true" />
+                  </li>
+                );
+              })}
+            </ul>
+          </section>
+          <section>
+            <h3>
+              Tropas <small>{troops.length ? `${numbers.format(total)} na aldeia` : ''}</small>
+            </h3>
+            {troops.length ? (
+              <ul className="ledger-troops">
+                {troops.map((unit) => (
+                  <li key={unit.code} title={`${numbers.format(unit.present)} ${unit.name}`}>
+                    <img src={unitIconSrc(unit.code)} alt="" />
+                    <strong>{numbers.format(unit.present)}</strong>
+                    <span>{unit.name}</span>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="hud-empty">Nenhuma tropa na aldeia. Recrute no quartel.</p>
+            )}
+          </section>
+        </>
+      )}
+    </aside>
+  );
+}
+
 export function Overview({
   snapshot,
   graphical,
@@ -227,6 +362,7 @@ export function Overview({
   const hoveredBuilding = snapshot.buildings.find((building) => building.code === hovered);
   return (
     <VillageScene
+      villageId={snapshot.village.id}
       buildings={snapshot.buildings}
       onSelect={onSelect}
       onHover={setHovered}
@@ -237,36 +373,19 @@ export function Overview({
     >
       <ConstructionCard
         queue={snapshot.queue}
+        buildings={snapshot.buildings}
         clock={clock}
         maxQueue={snapshot.world.maxBuildQueue}
       />
       {hoveredBuilding ? <BuildingCard building={hoveredBuilding} /> : null}
-      <aside
-        className="legacy-production"
-        aria-label="Produção da aldeia"
-        onPointerDown={(event) => event.stopPropagation()}
-      >
-        {!collapsed ? (
-          <>
-            <button
-              className="classic-view-link"
-              disabled={preferencePending}
-              onClick={() => onPreference(false)}
-            >
-              » Visão clássica
-            </button>
-            <Production snapshot={snapshot} />
-            <Troops snapshot={snapshot} />
-          </>
-        ) : null}
-        <button
-          className="production-collapse"
-          onClick={toggle}
-          aria-label={collapsed ? 'Mostrar informações da aldeia' : 'Ocultar informações da aldeia'}
-        >
-          <img src={`/legacy/layout/grip_${collapsed ? 'down' : 'up'}.png`} alt="" />
-        </button>
-      </aside>
+      <VillageLedger
+        snapshot={snapshot}
+        clock={clock}
+        collapsed={collapsed}
+        onToggle={toggle}
+        onClassic={() => onPreference(false)}
+        classicPending={preferencePending}
+      />
     </VillageScene>
   );
 }

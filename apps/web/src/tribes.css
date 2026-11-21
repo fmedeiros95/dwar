@@ -56,15 +56,6 @@
   gap: 4px;
   font-size: 13px;
 }
-.tribe-form input,
-.tribe-rights input[type='text'],
-.tribe-rights input:not([type]) {
-  padding: 8px 10px;
-  font: inherit;
-  background: var(--surface, #fff8);
-  border: 1px solid var(--line-soft);
-  border-radius: 6px;
-}
 .tribe-invites,
 .tribe-events {
   display: grid;
@@ -191,13 +182,6 @@
   cursor: pointer;
   font-size: 13px;
   font-weight: 700;
-}
-.tribe-form select {
-  padding: 8px 10px;
-  font: inherit;
-  background: var(--surface, #fff8);
-  border: 1px solid var(--line-soft);
-  border-radius: 6px;
 }
 .tribe-sent {
   margin: 0;

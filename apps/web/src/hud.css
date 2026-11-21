@@ -1,0 +1,393 @@
+/*
+ * HUD sobre o cenário (placas de madeira): painel da aldeia e obras.
+ * Texto claro e grande o bastante para ler sobre a madeira; números tabulares.
+ */
+.hud-card {
+  --hud-text: #f6ead0;
+  --hud-muted: #d6c299;
+  --hud-gold: #ffd98a;
+  color: var(--hud-text);
+}
+.hud-card h2 {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin: 0 0 10px;
+  padding: 0 0 8px;
+  font-size: 15px;
+  color: var(--hud-gold);
+  border-bottom: 1px solid rgb(241 210 138 / 0.28);
+}
+.hud-card h2 > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+.hud-card h3 {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin: 12px 0 6px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--hud-muted);
+}
+.hud-card h3 small {
+  font-size: 11.5px;
+  font-weight: 600;
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--hud-muted);
+  opacity: 0.85;
+}
+.hud-card .hud-empty {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--hud-muted);
+}
+
+/* ---- Painel da aldeia (canto inferior esquerdo) ---- */
+.scene-viewport .hud-ledger {
+  position: absolute;
+  left: 18px;
+  bottom: 18px;
+  z-index: 3;
+  width: 288px;
+  max-height: calc(100% - 36px);
+  padding: 12px 14px 14px;
+  overflow: auto;
+  cursor: default;
+  animation: hud-rise 0.35s cubic-bezier(0.2, 0.9, 0.3, 1.1) both;
+}
+.hud-ledger[data-collapsed='true'] {
+  width: auto;
+  padding-bottom: 4px;
+}
+.hud-ledger-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+.hud-ledger-head h2 {
+  flex: 1;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+.hud-ledger[data-collapsed='true'] .hud-ledger-head h2 {
+  padding-right: 6px;
+}
+.hud-ledger-tools {
+  display: flex;
+  gap: 4px;
+}
+.hud-ledger-tools button,
+.hud-ledger-tools button:hover:not(:disabled) {
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  color: var(--hud-muted);
+  background: rgb(0 0 0 / 0.25);
+  border: 1px solid rgb(241 210 138 / 0.25);
+  border-radius: 6px;
+  box-shadow: none;
+  text-shadow: none;
+}
+.hud-ledger-tools button:hover:not(:disabled) {
+  color: var(--hud-gold);
+  background: rgb(0 0 0 / 0.45);
+  border-color: rgb(241 210 138 / 0.55);
+}
+.hud-ledger-toggle svg {
+  transition: transform 0.25s ease;
+  transform: rotate(180deg);
+}
+.hud-ledger-toggle[aria-expanded='false'] svg {
+  transform: none;
+}
+.hud-ledger section {
+  animation: hud-fade 0.3s ease both;
+}
+.hud-ledger section:first-of-type h3 {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid rgb(241 210 138 / 0.22);
+}
+.ledger-res,
+.ledger-troops {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.ledger-res {
+  gap: 7px;
+}
+.ledger-res li {
+  display: grid;
+  grid-template-columns: 22px 1fr auto;
+  grid-template-rows: auto 4px;
+  align-items: center;
+  column-gap: 8px;
+  row-gap: 4px;
+  font-size: 14px;
+}
+.ledger-res .resource-icon {
+  grid-row: 1 / span 2;
+}
+.ledger-name {
+  color: var(--hud-text);
+}
+.ledger-res strong {
+  font-size: 14px;
+  font-weight: 750;
+  font-variant-numeric: tabular-nums;
+  color: #c9ec9a;
+}
+.ledger-bar {
+  grid-column: 2 / -1;
+  position: relative;
+  height: 4px;
+  overflow: hidden;
+  background: rgb(0 0 0 / 0.45);
+  border-radius: 999px;
+  box-shadow: 0 0 0 1px rgb(241 210 138 / 0.14);
+}
+.ledger-bar::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  width: calc(var(--fill, 0) * 100%);
+  background: linear-gradient(90deg, #8a6a2c, #e8be6a);
+  border-radius: inherit;
+  transition: width 1s linear;
+}
+.ledger-res li[data-state='near'] .ledger-bar::after {
+  background: linear-gradient(90deg, #a3611c, #f3a64a);
+}
+.ledger-res li[data-state='full'] .ledger-bar::after {
+  background: linear-gradient(90deg, #8e2a1e, #ef6a4e);
+  animation: storage-full 1.4s ease-in-out infinite;
+}
+.ledger-res li[data-state='full'] strong {
+  color: #ffb39f;
+}
+@keyframes storage-full {
+  50% {
+    opacity: 0.55;
+  }
+}
+.ledger-troops {
+  grid-template-columns: 1fr 1fr;
+  gap: 5px;
+}
+.ledger-troops li {
+  display: grid;
+  grid-template-columns: 30px 1fr;
+  grid-template-rows: auto auto;
+  align-items: center;
+  column-gap: 7px;
+  padding: 4px 6px 4px 4px;
+  background: rgb(0 0 0 / 0.28);
+  border: 1px solid rgb(241 210 138 / 0.16);
+  border-radius: 6px;
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease;
+}
+.ledger-troops li:hover {
+  background: rgb(0 0 0 / 0.42);
+  border-color: rgb(241 210 138 / 0.4);
+}
+.ledger-troops img {
+  grid-row: 1 / span 2;
+  width: 30px;
+  height: 30px;
+  object-fit: cover;
+  border-radius: 5px;
+  box-shadow: 0 0 0 1px rgb(0 0 0 / 0.6);
+}
+.ledger-troops strong {
+  font-size: 14px;
+  font-weight: 750;
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+  color: var(--hud-text);
+}
+.ledger-troops span {
+  overflow: hidden;
+  font-size: 11.5px;
+  line-height: 1.2;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  color: var(--hud-muted);
+}
+
+/* ---- Obras (canto inferior direito) ---- */
+.scene-viewport .hud-construction {
+  right: 16px;
+  bottom: 16px;
+  width: 300px;
+  cursor: default;
+  animation: hud-rise 0.35s 0.05s cubic-bezier(0.2, 0.9, 0.3, 1.1) both;
+}
+.hud-slots {
+  display: inline-flex;
+  gap: 4px;
+}
+.hud-slots i {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: rgb(0 0 0 / 0.4);
+  box-shadow: inset 0 0 0 1px rgb(241 210 138 / 0.35);
+}
+.hud-slots i[data-used='true'] {
+  background: radial-gradient(circle at 35% 30%, #ffe6a3, #d69a35);
+  box-shadow: 0 0 6px rgb(255 200 90 / 0.6);
+}
+.hud-construction ul {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.hud-construction li {
+  display: grid;
+  grid-template-columns: 38px 1fr auto;
+  grid-template-rows: auto 6px;
+  align-items: center;
+  column-gap: 9px;
+  row-gap: 6px;
+  animation: hud-fade 0.3s ease both;
+}
+.hud-thumb {
+  grid-row: 1 / span 2;
+  width: 42px;
+  height: 38px;
+  object-fit: contain;
+  filter: drop-shadow(0 2px 3px rgb(0 0 0 / 0.6));
+}
+.hud-construction .hud-row {
+  display: grid;
+  gap: 1px;
+  min-width: 0;
+  font-size: 14px;
+}
+.hud-construction .hud-row strong {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.hud-construction .hud-row em {
+  font-size: 12px;
+  font-style: normal;
+  color: var(--hud-muted);
+}
+.hud-construction li time {
+  grid-column: 3;
+  grid-row: 1;
+  font-size: 14px;
+  font-weight: 750;
+  font-variant-numeric: tabular-nums;
+  color: var(--hud-gold);
+}
+.hud-construction .hud-bar {
+  grid-column: 2 / -1;
+  grid-row: 2;
+  height: 6px;
+  background: rgb(0 0 0 / 0.45);
+}
+.hud-construction li:not([data-running]) {
+  opacity: 0.72;
+}
+.hud-construction li:not([data-running]) time {
+  color: var(--hud-muted);
+}
+
+/* Barras de progresso: brilho correndo enquanto a obra avança. */
+.hud-bar::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  width: calc(var(--progress, 0) * 100%);
+  background: linear-gradient(
+    100deg,
+    transparent 20%,
+    rgb(255 255 255 / 0.55) 50%,
+    transparent 80%
+  );
+  background-size: 60px 100%;
+  background-repeat: no-repeat;
+  animation: bar-shine 1.8s linear infinite;
+}
+li:not([data-running]) > .hud-bar::before {
+  display: none;
+}
+@keyframes bar-shine {
+  from {
+    background-position: -60px 0;
+  }
+  to {
+    background-position: calc(100% + 60px) 0;
+  }
+}
+
+/* ---- Edifício sob o mouse ---- */
+.hud-building {
+  width: min(500px, calc(100% - 32px));
+}
+.hud-building p {
+  font-size: 13.5px;
+  line-height: 1.45;
+  color: var(--hud-muted);
+}
+.hud-building h2 {
+  font-size: 17px;
+}
+.hud-cost li {
+  font-size: 13px;
+  color: var(--hud-text);
+  background: rgb(0 0 0 / 0.35);
+  border-color: rgb(241 210 138 / 0.2);
+}
+.hud-next {
+  font-size: 12px;
+  color: var(--hud-gold);
+}
+
+@keyframes hud-rise {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+}
+@keyframes hud-fade {
+  from {
+    opacity: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hud-card,
+  .hud-card *,
+  .hud-bar::before {
+    animation: none !important;
+  }
+}
+@media (max-width: 760px) {
+  .scene-viewport .hud-ledger {
+    width: min(288px, calc(100% - 36px));
+  }
+  .scene-viewport .hud-construction {
+    width: min(300px, calc(100% - 32px));
+  }
+}

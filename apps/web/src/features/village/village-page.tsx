@@ -23,7 +23,8 @@ import { RankingScreen } from './ranking/index.js';
 import { SettingsScreen } from './settings/index.js';
 import { IncomingsPanel } from './incomings/incomings-panel.js';
 import { useVillageActions } from './use-village-actions.js';
-import { numbers, resources, speedLabel, timeFormat } from './shared/index.js';
+import { duration, numbers, resources, speedLabel, timeFormat } from './shared/index.js';
+import { currentResources } from './shared/current-resources.js';
 
 const backgroundScreens = ['overview', 'map'];
 const windowTitles: Record<string, string> = {
@@ -245,7 +246,7 @@ export function VillagePage({
       </LegacyFrame>
     );
   const clock = new Date(data.serverTime).getTime() + Math.max(0, now - village.dataUpdatedAt);
-  const elapsed = Math.max(0, now - village.dataUpdatedAt) / 3_600_000;
+  const have = currentResources(data, clock);
   const buildingFor = (code: string) => data.buildings.find((building) => building.code === code);
   const focusedWindow = windows.windows.find((item) => item.id === windows.focusedId);
   const focusedScreen = focusedWindow
@@ -320,6 +321,7 @@ export function VillagePage({
           label: 'Ataques',
           icon: <Swords size={25} aria-hidden="true" />,
           badge: incomings.data?.attacks,
+          alert: (incomings.data?.attacks ?? 0) > 0,
           onClick: () => openIncomings('attack'),
         },
         {
@@ -456,22 +458,23 @@ export function VillagePage({
           )}
           <div className="legacy-resources" aria-label="Recursos da aldeia">
             {resources.map(({ code, name: resourceName }) => {
-              const amount = Math.min(
-                data.village.capacity,
-                Math.floor(
-                  data.village.resources[code] + data.village.productionPerHour[code] * elapsed,
-                ),
-              );
+              const amount = have[code];
+              const fill = Math.min(1, amount / Math.max(1, data.village.capacity));
+              const rate = data.village.productionPerHour[code];
+              const hoursToFull = rate > 0 ? (data.village.capacity - amount) / rate : Infinity;
               return (
                 <span
                   className="resource-amount"
                   key={code}
-                  style={
-                    {
-                      '--fill': Math.min(1, amount / Math.max(1, data.village.capacity)),
-                    } as CSSProperties
-                  }
-                  title={`${resourceName}: ${numbers.format(data.village.productionPerHour[code])} por hora`}
+                  data-state={fill >= 1 ? 'full' : fill >= 0.9 ? 'near' : undefined}
+                  style={{ '--fill': fill } as CSSProperties}
+                  title={`${resourceName}: +${numbers.format(rate)} por hora · ${
+                    fill >= 1
+                      ? 'armazém cheio, a produção está parada'
+                      : Number.isFinite(hoursToFull)
+                        ? `armazém cheio em ${duration(hoursToFull * 3600)}`
+                        : 'sem produção'
+                  }`}
                 >
                   <ResourceIcon code={code} label={resourceName} />
                   <span className={amount >= data.village.capacity ? 'full-resource' : undefined}>
@@ -613,6 +616,10 @@ export function VillagePage({
         manager={windows}
         titleOf={(search) => {
           const code = screenOf(search);
+          if (code === 'incomings')
+            return new URLSearchParams(search).get('mode') === 'support'
+              ? 'Apoios chegando'
+              : 'Ataques chegando';
           return buildingFor(code)?.name ?? windowTitles[code] ?? 'Janela';
         }}
         onNavigate={navigateWindow}
@@ -669,7 +676,9 @@ export function VillagePage({
                 snapshot={data}
                 data={incomings.data}
                 clock={clock}
-                mode={new URLSearchParams(win.search).get('mode') === 'support' ? 'support' : 'attack'}
+                mode={
+                  new URLSearchParams(win.search).get('mode') === 'support' ? 'support' : 'attack'
+                }
               />
             );
           if (code === 'activity') return activityView;

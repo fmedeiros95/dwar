@@ -1,7 +1,7 @@
 import type { CSSProperties } from 'react';
 import type { VillageSnapshot } from '@dwar/api-client';
 import { completionDate, duration } from '../shared/index.js';
-import { buildingThumb } from '../overview/scene-model.js';
+import { buildingArt } from '../overview/scene-model.js';
 export function ConstructionQueue({
   snapshot,
   clock,
@@ -37,7 +37,14 @@ export function ConstructionQueue({
               className={active ? 'queue-item active' : 'queue-item'}
               style={{ '--progress': progress } as CSSProperties}
             >
-              <img src={buildingThumb(item.buildingCode)} alt="" />
+              <img
+                src={buildingArt(
+                  item.buildingCode,
+                  item.targetLevel,
+                  snapshot.buildings.find((b) => b.code === item.buildingCode)?.maxLevel,
+                )}
+                alt=""
+              />
               <div className="queue-info">
                 <strong>{item.name}</strong>
                 <span>

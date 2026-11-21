@@ -2,10 +2,12 @@ import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useGameSearchParams as useSearchParams } from '../../../routing.js';
 import { api, ApiError, type Gender, type VillageSnapshot } from '@dwar/api-client';
+import { KeyRound, UserRound } from 'lucide-react';
+import { SegmentedTabs } from '../../../components/segmented-tabs.js';
 
 const modes = [
-  { code: 'profile', label: 'Perfil' },
-  { code: 'password', label: 'Senha' },
+  { code: 'profile', label: 'Perfil', icon: <UserRound size={15} /> },
+  { code: 'password', label: 'Senha', icon: <KeyRound size={15} /> },
 ];
 
 export function SettingsScreen({ snapshot }: { snapshot: VillageSnapshot }) {
@@ -92,29 +94,9 @@ export function SettingsScreen({ snapshot }: { snapshot: VillageSnapshot }) {
     deleteAvatar.error ??
     changePassword.error;
   return (
-    <div className="market-layout">
-      <aside>
-        <table className="legacy-table market-menu">
-          <thead>
-            <tr>
-              <th>Submenus</th>
-            </tr>
-          </thead>
-          <tbody>
-            {modes.map((item) => (
-              <tr key={item.code}>
-                <td>
-                  <button className="text-button" onClick={() => navigate(item.code)}>
-                    {mode === item.code ? '» ' : ''}
-                    {item.label}
-                  </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </aside>
-      <section className="market-content">
+    <div className="building-panel settings-panel">
+      <SegmentedTabs label="Seções dos ajustes" value={mode} onChange={navigate} items={modes} />
+      <section className="settings-content">
         {error ? (
           <p className="error" role="alert">
             {error instanceof ApiError ? error.message : 'Não foi possível concluir a ação.'}

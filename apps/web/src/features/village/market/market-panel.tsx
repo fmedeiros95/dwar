@@ -1,6 +1,6 @@
 import { useGameSearchParams as useSearchParams } from '../../../routing.js';
 import { newRequestKey } from '@dwar/api-client';
-import { useRef, useState, type FormEvent } from 'react';
+import { useRef, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import {
@@ -12,18 +12,18 @@ import {
   type TradePreview,
   type VillageSnapshot,
 } from '@dwar/api-client';
-import { ResourceIcon } from '../../../components/legacy-frame.js';
-import { numbers, resources, speedLabel } from '../shared/index.js';
+import { Scale, Send } from 'lucide-react';
+import { SegmentedTabs } from '../../../components/segmented-tabs.js';
+import { numbers, speedLabel } from '../shared/index.js';
 import { TripSummary } from '../shared/trip-summary.js';
-import { Cargo, CreateOffer, Merchants, Offers, Transports } from './market-widgets.js';
+import { PanelHead } from '../shared/panel-head.js';
+import { Cargo, Merchants, SendResources, TradeBoard, Transports } from './market-widgets.js';
 
-const modes = [
-  { code: 'send', name: 'Enviar recursos' },
-  { code: 'create_offer', name: 'Criar oferta' },
-  { code: 'other_offer', name: 'Outras ofertas' },
-  { code: 'own_offer', name: 'Minhas ofertas' },
-  { code: 'status', name: 'Situação dos mercadores' },
-];
+/*
+ * Duas seções: enviar e trocar. Os endereços antigos de ofertas (criar, outras, minhas) abrem
+ * as trocas; "status" virou o indicador de mercadores do cabeçalho e cai no envio.
+ */
+const tradeModes = ['trade', 'create_offer', 'other_offer', 'own_offer'];
 
 export function MarketPanel({
   snapshot,
@@ -38,7 +38,8 @@ export function MarketPanel({
     villageId = snapshot.village.id;
   const client = useQueryClient(),
     [params, setParams] = useSearchParams();
-  const mode = modes.some((row) => row.code === params.get('mode')) ? params.get('mode')! : 'send';
+  const mode = tradeModes.includes(params.get('mode') ?? '') ? 'trade' : 'send';
+  const [composing, setComposing] = useState(params.get('mode') === 'create_offer');
   const [confirmation, setConfirmation] = useState<TradePreview | null>(null),
     [formVersion, setFormVersion] = useState(0),
     [draft, setDraft] = useState<Record<string, string> | null>(null);
@@ -69,7 +70,7 @@ export function MarketPanel({
       client.setQueryData(key, data);
       void client.invalidateQueries({ queryKey: ['village', worldId] });
       preview.reset();
-      if (input.action.type === 'create_offer') changeMode('own_offer');
+      if (input.action.type === 'create_offer') setComposing(false);
       if (input.action.type === 'accept_offer' || input.action.type === 'send') {
         changeMode('send');
         setFormVersion((value) => value + 1);
@@ -187,217 +188,83 @@ export function MarketPanel({
               })
             }
           >
-            Enviar
+            Confirmar envio
           </button>
-          <button disabled={pending} className="text-button" onClick={() => setConfirmation(null)}>
-            Voltar
+          <button disabled={pending} className="button" onClick={() => setConfirmation(null)}>
+            Voltar e editar
           </button>
         </div>
       </div>
     );
   }
-  function send(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    const form = new FormData(event.currentTarget);
-    setDraft(Object.fromEntries([...form.entries()].map(([name, value]) => [name, String(value)])));
+  function send(values: Record<string, string>) {
+    setDraft(values);
     preview.mutate({
-      x: Number(form.get('x')),
-      y: Number(form.get('y')),
+      x: Number(values.x),
+      y: Number(values.y),
       resources: {
-        wood: Number(form.get('wood')),
-        stone: Number(form.get('stone')),
-        iron: Number(form.get('iron')),
+        wood: Number(values.wood || 0),
+        stone: Number(values.stone || 0),
+        iron: Number(values.iron || 0),
       },
     });
   }
   return (
-    <div className="market-layout">
-      <aside>
-        <table className="legacy-table market-menu">
-          <thead>
-            <tr>
-              <th>Submenus</th>
-            </tr>
-          </thead>
-          <tbody>
-            {modes.map((row) => (
-              <tr key={row.code}>
-                <td>
-                  <button
-                    className="text-button"
-                    onClick={() => changeMode(row.code)}
-                    disabled={pending}
-                  >
-                    {mode === row.code ? '» ' : ''}
-                    {row.name}
-                  </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </aside>
-      <section className="market-content">
-        {alert}
-        {mode === 'send' ? (
-          <>
-            <header className="legacy-building-heading">
-              <img src="/legacy/build/market.jpg" alt="" />
-              <div>
-                <h1>
-                  {building.name} (nível {building.level})
-                </h1>
-                <p>{building.description}</p>
-              </div>
-            </header>
-            <Merchants data={data} />
-            <form key={formVersion} onSubmit={send} aria-label="Enviar recursos">
-              <div className="market-send-fields">
-                <table className="legacy-table">
-                  <thead>
-                    <tr>
-                      <th colSpan={2}>Recursos:</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {resources.map(({ code, name }) => (
-                      <tr key={code}>
-                        <td>
-                          <ResourceIcon code={code} label={name} />
-                        </td>
-                        <td>
-                          <input
-                            name={code}
-                            defaultValue={draft?.[code] ?? ''}
-                            aria-label={`Enviar ${name}`}
-                            inputMode="numeric"
-                            pattern="[0-9]*"
-                            maxLength={6}
-                            size={5}
-                            disabled={pending}
-                          />{' '}
-                          <strong>
-                            (
-                            {numbers.format(Math.min(data.resources[code], data.transportCapacity))}
-                            )
-                          </strong>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-                <table className="legacy-table">
-                  <thead>
-                    <tr>
-                      <th colSpan={2}>Destino:</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr>
-                      <td>
-                        <label>
-                          X:{' '}
-                          <input
-                            name="x"
-                            defaultValue={draft?.x ?? params.get('x') ?? ''}
-                            aria-label="Coordenada X"
-                            inputMode="numeric"
-                            pattern="[0-9]+"
-                            maxLength={3}
-                            size={3}
-                            required
-                            disabled={pending}
-                          />
-                        </label>
-                      </td>
-                      <td>
-                        <label>
-                          Y:{' '}
-                          <input
-                            name="y"
-                            defaultValue={draft?.y ?? params.get('y') ?? ''}
-                            aria-label="Coordenada Y"
-                            inputMode="numeric"
-                            pattern="[0-9]+"
-                            maxLength={3}
-                            size={3}
-                            required
-                            disabled={pending}
-                          />
-                        </label>
-                      </td>
-                    </tr>
-                    <tr>
-                      <td colSpan={2}>
-                        <button disabled={pending} aria-label="Conferir envio">
-                          OK
-                        </button>
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-            </form>
-            <Transports
-              rows={data.outgoing}
-              clock={clock}
-              pending={pending}
-              onCancel={(id) => perform({ type: 'cancel_shipment', id })}
-            />
-            <Transports
-              incoming
-              rows={data.incoming}
-              clock={clock}
-              pending={pending}
-              onCancel={() => undefined}
-            />
-          </>
-        ) : mode === 'create_offer' ? (
-          <>
-            <Merchants data={data} />
-            <CreateOffer pending={pending} onCreate={perform} />
-          </>
-        ) : mode === 'own_offer' ? (
-          <>
-            <h1>Minhas ofertas</h1>
-            <Offers own rows={data.ownOffers} pending={pending} onAction={perform} clock={clock} />
-          </>
-        ) : mode === 'other_offer' ? (
-          <Offers
-            own={false}
-            rows={data.otherOffers}
+    <div className="building-panel market-panel">
+      <PanelHead building={building}>
+        <Merchants data={data} />
+      </PanelHead>
+      <SegmentedTabs
+        label="Seções do mercado"
+        value={mode}
+        onChange={changeMode}
+        disabled={pending}
+        items={[
+          { code: 'send', label: 'Enviar recursos', icon: <Send size={15} /> },
+          {
+            code: 'trade',
+            label: 'Trocas',
+            icon: <Scale size={15} />,
+            count: data.otherOffers.length,
+          },
+        ]}
+      />
+      {alert}
+      {mode === 'send' ? (
+        <>
+          <SendResources
+            key={formVersion}
+            data={data}
             pending={pending}
-            onAction={perform}
-            clock={clock}
+            initial={draft}
+            x={params.get('x') ?? ''}
+            y={params.get('y') ?? ''}
+            onSubmit={send}
           />
-        ) : (
-          <>
-            <h2>Situação dos mercadores</h2>
-            <p>Aqui você pode ver a situação dos seus mercadores.</p>
-            <table className="legacy-table market-status">
-              <tbody>
-                {[
-                  ['Mercadores saindo', data.outgoingMerchants],
-                  ['Mercadores retornando', data.returningMerchants],
-                  ['Mercadores em ofertas', data.reservedMerchants],
-                  ['Mercadores disponíveis na aldeia', data.availableMerchants],
-                ].map(([name, value]) => (
-                  <tr key={name}>
-                    <td>{name}</td>
-                    <td>{value}</td>
-                  </tr>
-                ))}
-              </tbody>
-              <tfoot>
-                <tr>
-                  <th>Total de mercadores</th>
-                  <th>{data.totalMerchants}</th>
-                </tr>
-              </tfoot>
-            </table>
-          </>
-        )}
-      </section>
+          <Transports
+            rows={data.outgoing}
+            clock={clock}
+            pending={pending}
+            onCancel={(id) => perform({ type: 'cancel_shipment', id })}
+          />
+          <Transports
+            incoming
+            rows={data.incoming}
+            clock={clock}
+            pending={pending}
+            onCancel={() => undefined}
+          />
+        </>
+      ) : (
+        <TradeBoard
+          data={data}
+          pending={pending}
+          composing={composing}
+          onCompose={setComposing}
+          onAction={perform}
+          clock={clock}
+        />
+      )}
     </div>
   );
 }

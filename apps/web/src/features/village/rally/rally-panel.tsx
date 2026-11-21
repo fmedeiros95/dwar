@@ -12,9 +12,12 @@ import {
   type TroopCounts,
   type VillageSnapshot,
 } from '@dwar/api-client';
-import { completionDate, duration, numbers, speedLabel } from '../shared/index.js';
+import { CornerDownLeft, Shield, Swords } from 'lucide-react';
+import { numbers, speedLabel } from '../shared/index.js';
 import { TripSummary } from '../shared/trip-summary.js';
-import { SendForm, UnitCells, UnitHeaders, type SendDraft } from './rally-widgets.js';
+import { PanelCard, PanelHead } from '../shared/panel-head.js';
+import { TransitRow } from '../shared/transit.js';
+import { SendForm, UnitStrip, type SendDraft } from './rally-widgets.js';
 
 export function RallyPanel({
   snapshot,
@@ -26,7 +29,7 @@ export function RallyPanel({
   const worldId = snapshot.world.id,
     villageId = snapshot.village.id;
   const client = useQueryClient(),
-    [params, setParams] = useSearchParams();
+    [params] = useSearchParams();
   const [draft, setDraft] = useState<SendDraft | null>(null),
     [confirmation, setConfirmation] = useState<SupportPreview | null>(null),
     [version, setVersion] = useState(0),
@@ -92,14 +95,6 @@ export function RallyPanel({
   }
   const pending =
     action.isPending || preview.isPending || (action.isError && intent.current !== null);
-  const mode = params.get('mode') === 'units' ? 'units' : 'send';
-  function changeMode(value: string) {
-    const next = new URLSearchParams(params);
-    next.set('mode', value);
-    setParams(next);
-    setConfirmation(null);
-    preview.reset();
-  }
   const error = action.error ?? preview.error ?? rally.error;
   const alert = error ? (
     <p className="error" role="alert">
@@ -196,37 +191,15 @@ export function RallyPanel({
         </ul>
         <section className="confirm-block">
           <h2>Tropas enviadas</h2>
-          <div className="table-scroll">
-            <table className="legacy-table rally-units">
-              <thead>
-                <tr>
-                  <UnitHeaders types={data.unitTypes} />
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <UnitCells types={data.unitTypes} counts={confirmation.troops} />
-                </tr>
-              </tbody>
-            </table>
-          </div>
+          <UnitStrip types={data.unitTypes} counts={confirmation.troops} />
         </section>
         <section className="confirm-block">
           <h2>Ficam na aldeia</h2>
-          <div className="table-scroll">
-            <table className="legacy-table rally-units">
-              <thead>
-                <tr>
-                  <UnitHeaders types={data.unitTypes} />
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <UnitCells types={data.unitTypes} counts={confirmation.remaining} />
-                </tr>
-              </tbody>
-            </table>
-          </div>
+          <UnitStrip
+            types={data.unitTypes}
+            counts={confirmation.remaining}
+            empty="Nenhuma tropa fica na aldeia."
+          />
         </section>
         <div className="confirm-actions">
           <button
@@ -242,194 +215,144 @@ export function RallyPanel({
               })
             }
           >
-            {attack ? 'Atacar' : 'Apoiar'}
+            {attack ? 'Confirmar ataque' : 'Confirmar apoio'}
           </button>
-          <button disabled={pending} className="text-button" onClick={() => setConfirmation(null)}>
-            Voltar
+          <button disabled={pending} className="button" onClick={() => setConfirmation(null)}>
+            Voltar e editar
           </button>
         </div>
       </div>
     );
   }
+  const homeTotal = data.unitTypes.reduce((sum, { code }) => sum + (data.home[code] ?? 0), 0);
+  const guestTotal = data.unitTypes.reduce((sum, { code }) => sum + (data.guests[code] ?? 0), 0);
+  const kindInfo = {
+    attack: { label: 'Ataque', icon: <Swords size={18} /> },
+    support: { label: 'Apoio', icon: <Shield size={18} /> },
+    return: { label: 'Retorno', icon: <CornerDownLeft size={18} /> },
+  } as const;
   return (
-    <div className="market-layout">
-      <aside>
-        <table className="legacy-table market-menu">
-          <thead>
-            <tr>
-              <th>Submenus</th>
-            </tr>
-          </thead>
-          <tbody>
-            {[
-              { code: 'send', name: 'Enviar tropas' },
-              { code: 'units', name: 'Tropas' },
-            ].map((row) => (
-              <tr key={row.code}>
-                <td>
-                  <button
-                    className="text-button"
-                    disabled={pending}
-                    onClick={() => changeMode(row.code)}
-                  >
-                    {mode === row.code ? '» ' : ''}
-                    {row.name}
-                  </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </aside>
-      <section className="market-content">
-        <header className="legacy-building-heading">
-          <img src="/legacy/build/place.jpg" alt="" />
+    <div className="building-panel rally-panel">
+      <PanelHead building={building}>
+        <div className="head-stats">
           <div>
-            <h1>
-              {building.name} (nível {building.level})
-            </h1>
-            <p>{building.description}</p>
+            <small>Tropas na aldeia</small>
+            <strong>{numbers.format(homeTotal)}</strong>
           </div>
-        </header>
-        {alert}
-        {notice ? <p role="status">{notice}</p> : null}
-        {mode === 'send' ? (
-          <SendForm
-            key={`${version}:${params.get('x')}:${params.get('y')}`}
-            data={data}
-            pending={pending}
-            x={params.get('x') ?? ''}
-            y={params.get('y') ?? ''}
-            initial={draft}
-            onDraft={setDraft}
-            onPreview={(x, y, troops, kind, targetBuilding) =>
-              preview.mutate({ x, y, troops, kind, targetBuilding })
-            }
-          />
-        ) : (
-          <>
-            <div className="table-scroll">
-              <table className="legacy-table rally-units">
-                <thead>
-                  <tr>
-                    <th>Origem</th>
-                    <UnitHeaders types={data.unitTypes} />
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr>
-                    <td>Desta aldeia</td>
-                    <UnitCells types={data.unitTypes} counts={data.home} />
-                  </tr>
-                  <tr>
-                    <td>De outras aldeias</td>
-                    <UnitCells types={data.unitTypes} counts={data.guests} />
-                  </tr>
-                  <tr>
-                    <th>Total</th>
-                    <UnitCells types={data.unitTypes} counts={totals} />
-                  </tr>
-                </tbody>
-              </table>
+          <div>
+            <small>Comandos ativos</small>
+            <strong>{numbers.format(data.movements.length)}</strong>
+          </div>
+          {guestTotal ? (
+            <div>
+              <small>Apoio recebido</small>
+              <strong>{numbers.format(guestTotal)}</strong>
             </div>
-            {data.stationed.length ? (
-              <>
-                <h2 className="market-section-title">Tropas em outras aldeias</h2>
-                <div className="table-scroll">
-                  <table className="legacy-table rally-units">
-                    <thead>
-                      <tr>
-                        <th>Destino</th>
-                        <UnitHeaders types={data.unitTypes} />
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {data.stationed.map((row) => (
-                        <tr key={row.location.id}>
-                          <td>
-                            {row.location.name} ({row.location.x}|{row.location.y}) [
-                            <button
-                              className="text-button"
-                              disabled={pending}
-                              onClick={() =>
-                                perform({ type: 'recall', locationId: row.location.id })
-                              }
-                            >
-                              Retirar
-                            </button>
-                            ]
-                          </td>
-                          <UnitCells types={data.unitTypes} counts={row.troops} />
-                        </tr>
-                      ))}
-                      <tr>
-                        <th>Total</th>
-                        <UnitCells
-                          types={data.unitTypes}
-                          counts={Object.fromEntries(
-                            data.unitTypes.map(({ code }) => [
-                              code,
-                              data.stationed.reduce((sum, row) => sum + (row.troops[code] ?? 0), 0),
-                            ]),
-                          )}
-                        />
-                      </tr>
-                    </tbody>
-                  </table>
-                </div>
-              </>
+          ) : null}
+        </div>
+      </PanelHead>
+      {alert}
+      {notice ? (
+        <p className="panel-notice" role="status">
+          {notice}
+        </p>
+      ) : null}
+      <SendForm
+        key={`${version}:${params.get('x')}:${params.get('y')}`}
+        data={data}
+        pending={pending}
+        x={params.get('x') ?? ''}
+        y={params.get('y') ?? ''}
+        initial={draft}
+        onDraft={setDraft}
+        onPreview={(x, y, troops, kind, targetBuilding) =>
+          preview.mutate({ x, y, troops, kind, targetBuilding })
+        }
+      />
+      {data.movements.length ? (
+        <PanelCard
+          title="Comandos em andamento"
+          icon={<Swords size={16} />}
+          aside={<span className="panel-count">{data.movements.length}</span>}
+        >
+          <ul className="transit-list">
+            {data.movements.map((row) => {
+              const info = kindInfo[row.kind];
+              const cancellable = row.cancelUntil && new Date(row.cancelUntil).getTime() > clock;
+              return (
+                <TransitRow
+                  key={row.id}
+                  tone={row.kind}
+                  icon={info.icon}
+                  label={info.label}
+                  from={row.from}
+                  to={row.to}
+                  startsAt={row.startsAt}
+                  endsAt={row.endsAt}
+                  clock={clock}
+                  action={
+                    cancellable ? (
+                      <button
+                        className="button danger"
+                        disabled={pending}
+                        onClick={() => perform({ type: 'cancel', movementId: row.id })}
+                      >
+                        Cancelar
+                      </button>
+                    ) : null
+                  }
+                >
+                  <UnitStrip types={data.unitTypes} counts={row.troops} />
+                </TransitRow>
+              );
+            })}
+          </ul>
+        </PanelCard>
+      ) : null}
+      {guestTotal || data.stationed.length ? (
+        <PanelCard title="Apoios" icon={<Shield size={16} />}>
+          <div className="support-overview">
+            {guestTotal ? (
+              <section>
+                <h3>Defendendo esta aldeia</h3>
+                <UnitStrip types={data.unitTypes} counts={data.guests} />
+                <p className="panel-hint">
+                  Total na defesa, com as suas:{' '}
+                  {numbers.format(
+                    data.unitTypes.reduce((sum, { code }) => sum + (totals[code] ?? 0), 0),
+                  )}{' '}
+                  unidades.
+                </p>
+              </section>
             ) : null}
-          </>
-        )}
-        {data.movements.length ? (
-          <>
-            <h2 className="market-section-title">Comandos em andamento</h2>
-            <div className="table-scroll">
-              <table className="legacy-table rally-movements">
-                <thead>
-                  <tr>
-                    <th>Comando</th>
-                    <th>Origem</th>
-                    <th>Destino</th>
-                    <th>Duração</th>
-                    <th>Chegada</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {data.movements.map((row) => (
-                    <tr key={row.id}>
-                      <td>
-                        {row.kind === 'attack'
-                          ? 'Ataque'
-                          : row.kind === 'return'
-                            ? 'Retorno'
-                            : 'Apoio'}{' '}
-                        {row.cancelUntil && new Date(row.cancelUntil).getTime() > clock ? (
-                          <button
-                            className="text-button"
-                            disabled={pending}
-                            onClick={() => perform({ type: 'cancel', movementId: row.id })}
-                          >
-                            Cancelar
-                          </button>
-                        ) : null}
-                      </td>
-                      <td>
-                        {row.from.name} ({row.from.x}|{row.from.y})
-                      </td>
-                      <td>
-                        {row.to.name} ({row.to.x}|{row.to.y})
-                      </td>
-                      <td>{duration((new Date(row.endsAt).getTime() - clock) / 1000)}</td>
-                      <td>{completionDate(row.endsAt, clock)}</td>
-                    </tr>
+            {data.stationed.length ? (
+              <section>
+                <h3>Suas tropas em outras aldeias</h3>
+                <ul className="stationed-list">
+                  {data.stationed.map((row) => (
+                    <li key={row.location.id}>
+                      <div>
+                        <strong>{row.location.name}</strong>
+                        <small>
+                          ({row.location.x}|{row.location.y})
+                        </small>
+                      </div>
+                      <UnitStrip types={data.unitTypes} counts={row.troops} />
+                      <button
+                        className="button"
+                        disabled={pending}
+                        onClick={() => perform({ type: 'recall', locationId: row.location.id })}
+                      >
+                        <CornerDownLeft size={14} aria-hidden="true" /> Retirar
+                      </button>
+                    </li>
                   ))}
-                </tbody>
-              </table>
-            </div>
-          </>
-        ) : null}
-      </section>
+                </ul>
+              </section>
+            ) : null}
+          </div>
+        </PanelCard>
+      ) : null}
     </div>
   );
 }
