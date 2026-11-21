@@ -1,14 +1,82 @@
+import type { CSSProperties } from 'react';
 import type { BuildingView, VillageSnapshot, RecruitmentOrder } from '@dwar/api-client';
-import { ResourceIcon } from '../../components/legacy-frame.js';
 import { BuildingTable, ConstructionQueue } from './building/index.js';
-import { BuildPrompt } from './building/build-prompt.js';
-import { ResearchTable } from './research/index.js';
+import { BuildingOverview } from './building/building-overview.js';
+import { ResearchTable, researchProgress } from './research/index.js';
 import { RecruitmentPanel } from './recruitment/index.js';
-import { AcademyPanel } from './academy/index.js';
+import { AcademyPanel, AcademyStats } from './academy/index.js';
 import { MarketPanel } from './market/index.js';
 import { RallyPanel } from './rally/index.js';
-import { completionDate, duration, numbers, resources } from './shared/index.js';
-import { buildingArt } from './overview/scene-model.js';
+import { PanelHead } from './shared/panel-head.js';
+import { numbers } from './shared/index.js';
+
+const recruiters = ['barracks', 'stable', 'workshop'];
+
+/** Edifícios com tela própria; os demais usam a visão geral (indicadores + evolução). */
+export const panelBuildings = ['main', 'smith', 'noble', 'market', 'place', ...recruiters];
+
+function MainStats({ snapshot }: { snapshot: VillageSnapshot }) {
+  const maxed = snapshot.buildings.filter((item) => item.level >= item.maxLevel).length;
+  return (
+    <div className="head-stats">
+      <div>
+        <small>Obras na fila</small>
+        <strong>
+          {snapshot.queue.length}
+          <span>/{snapshot.world.maxBuildQueue}</span>
+        </strong>
+      </div>
+      <div>
+        <small>No nível máximo</small>
+        <strong>
+          {maxed}
+          <span>/{snapshot.buildings.length}</span>
+        </strong>
+      </div>
+    </div>
+  );
+}
+
+function ResearchStats({ snapshot }: { snapshot: VillageSnapshot }) {
+  const { done, total } = researchProgress(snapshot);
+  return (
+    <div
+      className="head-stats single"
+      style={{ '--progress': total ? done / total : 0 } as CSSProperties}
+    >
+      <div>
+        <small>Tecnologias pesquisadas</small>
+        <strong>
+          {done}
+          <span>/{total}</span>
+        </strong>
+        <span className="head-meter" aria-hidden="true" />
+      </div>
+    </div>
+  );
+}
+
+function RecruitStats({ snapshot, code }: { snapshot: VillageSnapshot; code: string }) {
+  const training = snapshot.recruitmentQueue
+    .filter((event) => event.buildingCode === code)
+    .reduce((sum, event) => sum + event.quantity - event.delivered, 0);
+  const home = snapshot.units
+    .filter((unit) => unit.building === code)
+    .reduce((sum, unit) => sum + unit.indoors, 0);
+  return (
+    <div className="head-stats">
+      <div>
+        <small>Na aldeia</small>
+        <strong>{numbers.format(home)}</strong>
+      </div>
+      <div>
+        <small>Em treino</small>
+        <strong>{numbers.format(training)}</strong>
+      </div>
+    </div>
+  );
+}
+
 export function BuildingScreen({
   snapshot,
   building,
@@ -44,22 +112,39 @@ export function BuildingScreen({
   onAcademyAction: (action: 'mint' | 'recruit') => void;
   academyPending: boolean;
 }) {
-  if (building.code === 'market' && building.level > 0)
+  const built = building.level > 0;
+  if (building.code === 'market' && built)
     return <MarketPanel snapshot={snapshot} building={building} clock={clock} />;
-  if (building.code === 'place' && building.level > 0)
+  if (building.code === 'place' && built)
     return <RallyPanel snapshot={snapshot} building={building} />;
-  return (
-    <div className="legacy-content">
-      <header className="legacy-building-heading">
-        <img src={buildingArt(building.code, building.level, building.maxLevel)} alt="" />
-        <div>
-          <h1>
-            {building.name} ({building.level ? `nível ${building.level}` : 'não construído'})
-          </h1>
-          <p>{building.description}</p>
-        </div>
-      </header>
-      {['barracks', 'stable', 'workshop'].includes(building.code) && building.level > 0 ? (
+  if (building.code === 'main')
+    return (
+      <div className="building-panel">
+        <PanelHead building={building}>
+          <MainStats snapshot={snapshot} />
+        </PanelHead>
+        <ConstructionQueue
+          snapshot={snapshot}
+          clock={clock}
+          onCancel={onCancel}
+          pending={pending}
+        />
+        <BuildingTable
+          snapshot={snapshot}
+          pending={pending}
+          pendingCode={pendingCode}
+          clock={clock}
+          onConstruct={onConstruct}
+          onSelect={onSelect}
+        />
+      </div>
+    );
+  if (recruiters.includes(building.code) && built)
+    return (
+      <div className="building-panel">
+        <PanelHead building={building}>
+          <RecruitStats snapshot={snapshot} code={building.code} />
+        </PanelHead>
         <RecruitmentPanel
           key={`${building.code}:${recruitmentVersion}`}
           snapshot={snapshot}
@@ -70,8 +155,28 @@ export function BuildingScreen({
           onCancel={onCancelRecruitment}
           onSelect={onSelect}
         />
-      ) : null}
-      {building.code === 'noble' && building.level > 0 ? (
+      </div>
+    );
+  if (building.code === 'smith' && built)
+    return (
+      <div className="building-panel">
+        <PanelHead building={building}>
+          <ResearchStats snapshot={snapshot} />
+        </PanelHead>
+        <ResearchTable
+          snapshot={snapshot}
+          clock={clock}
+          pending={researchPending}
+          onResearch={onResearch}
+        />
+      </div>
+    );
+  if (building.code === 'noble' && built)
+    return (
+      <div className="building-panel">
+        <PanelHead building={building}>
+          <AcademyStats snapshot={snapshot} />
+        </PanelHead>
         <AcademyPanel
           snapshot={snapshot}
           clock={clock}
@@ -79,113 +184,17 @@ export function BuildingScreen({
           onAction={onAcademyAction}
           onCancel={onCancelRecruitment}
         />
-      ) : null}
-      {building.code === 'smith' && building.level > 0 ? (
-        <ResearchTable
-          snapshot={snapshot}
-          clock={clock}
-          pending={researchPending}
-          onResearch={onResearch}
-        />
-      ) : null}
-      {building.code === 'main' ? (
-        <>
-          <ConstructionQueue
-            snapshot={snapshot}
-            clock={clock}
-            onCancel={onCancel}
-            pending={pending}
-          />
-          <BuildingTable
-            snapshot={snapshot}
-            pending={pending}
-            pendingCode={pendingCode}
-            clock={clock}
-            onConstruct={onConstruct}
-            onSelect={onSelect}
-          />
-        </>
-      ) : building.level === 0 && building.queuedLevel === 0 ? (
-        <BuildPrompt
-          snapshot={snapshot}
-          building={building}
-          clock={clock}
-          pending={pending}
-          onConstruct={onConstruct}
-          onSelect={onSelect}
-        />
-      ) : (
-        <>
-          {building.details.length ? (
-            <table className="legacy-table building-details">
-              <tbody>
-                {building.details.map((row) => (
-                  <tr key={row.label}>
-                    {row.icon ? (
-                      <td className="detail-icon">
-                        <ResourceIcon code={row.icon} label={row.label} />
-                      </td>
-                    ) : null}
-                    <td>{row.label}:</td>
-                    <td>
-                      <strong>
-                        {numbers.format(row.value)}
-                        {row.unit === '%' ? '%' : ''}
-                      </strong>
-                      {row.unit === '%' ? '' : ` ${row.unit}`}
-                    </td>
-                  </tr>
-                ))}
-                {building.level === building.maxLevel ? (
-                  <tr>
-                    <td colSpan={3}>Edifício completamente construído.</td>
-                  </tr>
-                ) : null}
-              </tbody>
-            </table>
-          ) : null}
-          {building.code === 'storage' ? (
-            <table className="legacy-table building-details warehouse-times">
-              <thead>
-                <tr>
-                  <th>#</th>
-                  <th>Armazém cheio</th>
-                  <th>Duração</th>
-                </tr>
-              </thead>
-              <tbody>
-                {resources.map(({ code, name }) => {
-                  const seconds = Math.max(
-                    0,
-                    ((snapshot.village.capacity - snapshot.village.resources[code]) /
-                      snapshot.village.productionPerHour[code]) *
-                      3600 -
-                      (clock - new Date(snapshot.serverTime).getTime()) / 1000,
-                  );
-                  const fullAt = new Date(clock + seconds * 1000).toISOString();
-                  return (
-                    <tr key={code}>
-                      <td>
-                        <ResourceIcon code={code} label={name} />
-                      </td>
-                      {seconds <= 0 ? (
-                        <td colSpan={2}>
-                          <strong>Armazém cheio de {name.toLowerCase()}.</strong>
-                        </td>
-                      ) : (
-                        <>
-                          <td>{completionDate(fullAt, clock)}</td>
-                          <td>{duration(seconds)}</td>
-                        </>
-                      )}
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          ) : null}
-        </>
-      )}
-    </div>
+      </div>
+    );
+  return (
+    <BuildingOverview
+      snapshot={snapshot}
+      building={building}
+      clock={clock}
+      pending={pending}
+      busy={pendingCode === building.code}
+      onConstruct={onConstruct}
+      onSelect={onSelect}
+    />
   );
 }

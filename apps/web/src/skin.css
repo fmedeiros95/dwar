@@ -204,7 +204,6 @@ h2 {
   border-color: var(--line-soft);
 }
 .gw-body .bcard-cost li,
-.gw-body .stat-tile,
 .gw-body .report-parties > div,
 .gw-body .report-chips li {
   background: rgb(255 250 232 / 0.45);
@@ -233,8 +232,7 @@ select {
   --muted: #55442c;
 }
 .bcard-cost li,
-.report-chips li,
-.bunavail-req {
+.report-chips li {
   border-radius: var(--radius-sm);
 }
 .bcard-cost li.short {
@@ -271,21 +269,6 @@ th {
 }
 .legacy-table td {
   font-size: 15px;
-}
-.gw-body .ucard[data-state='locked'] {
-  opacity: 1;
-}
-.gw-body .ucard[data-state='locked'] .ucard-title,
-.gw-body .ucard[data-state='locked'] .bunavail-req {
-  opacity: 0.85;
-}
-.gw-body .ucard[data-state='locked'] .ucard-portrait {
-  filter: grayscale(0.8) brightness(0.9);
-}
-.gw-body .bunavail-req {
-  color: #7a3a0a;
-  background: rgb(154 84 16 / 0.1);
-  border-color: rgb(154 84 16 / 0.45);
 }
 .legacy-production,
 .legacy-production .legacy-table td,

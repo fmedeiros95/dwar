@@ -58,9 +58,12 @@ export async function nextVillagePosition(
   stream: PlacementStream,
 ): Promise<{ x: number; y: number }> {
   const occupied = new Set(
-    (await tx.select({ x: villages.x, y: villages.y }).from(villages).where(eq(villages.worldId, worldId))).map(
-      (row) => `${row.x},${row.y}`,
-    ),
+    (
+      await tx
+        .select({ x: villages.x, y: villages.y })
+        .from(villages)
+        .where(eq(villages.worldId, worldId))
+    ).map((row) => `${row.x},${row.y}`),
   );
   const state = await loadPlacement(tx, worldId, stream);
   let result;

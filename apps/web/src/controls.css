@@ -110,7 +110,6 @@ button.green,
 }
 .button,
 .button:hover:not(:disabled),
-.ucard-max,
 .queue-cancel {
   display: inline-flex;
   align-items: center;
@@ -123,7 +122,6 @@ button.green,
   box-shadow: 0 1px 2px rgb(0 0 0 / 0.12);
 }
 .button:hover:not(:disabled),
-.ucard-max:hover:not(:disabled),
 .queue-cancel:hover:not(:disabled) {
   filter: none;
   background: var(--ctl-sec-bg-hover);
@@ -145,7 +143,6 @@ button.wide:disabled,
 button.green:disabled,
 .bcard-action:disabled,
 .button:disabled,
-.ucard-max:disabled,
 .queue-cancel:disabled {
   color: var(--ctl-muted);
   background: var(--ctl-sec-bg);
@@ -284,44 +281,6 @@ select {
 select option {
   color: #2a2017;
   background: #fffbf2;
-}
-.stepper {
-  min-height: var(--ctl-h);
-  background: var(--ctl-field-bg);
-  border: 1px solid var(--ctl-edge);
-  border-radius: var(--ctl-radius);
-  box-shadow: inset 0 1px 2px rgb(0 0 0 / 0.12);
-  transition:
-    border-color 0.15s ease,
-    box-shadow 0.15s ease;
-}
-.stepper:focus-within {
-  border-color: var(--ctl-edge-strong);
-  box-shadow: var(--ctl-ring);
-}
-.stepper input {
-  color: var(--ctl-text);
-  border-inline-color: var(--ctl-edge);
-}
-.stepper input:focus {
-  outline: none;
-}
-.stepper button,
-.stepper button:hover:not(:disabled),
-.stepper button:disabled {
-  color: var(--ctl-text);
-  background: transparent;
-  border: 0;
-  box-shadow: none;
-  text-shadow: none;
-  filter: none;
-  transform: none;
-}
-.stepper button:hover:not(:disabled) {
-  background: var(--ctl-tabs-bg);
-}
-.stepper button:disabled {
-  opacity: 0.35;
 }
 
 /* ======================================================================

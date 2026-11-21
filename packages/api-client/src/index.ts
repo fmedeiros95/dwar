@@ -46,7 +46,15 @@ export type BuildingView = {
   unavailableReason: string | null;
   requirements: { code: string; name: string; level: number; met: boolean }[];
   resourcesAvailableAt: string | null;
-  details: { label: string; value: number; unit: string; icon?: string }[];
+  /** Indicadores do edifício: valor agora, no próximo nível (null no máximo) e no nível máximo. */
+  details: {
+    label: string;
+    unit: string;
+    current: number;
+    next: number | null;
+    max: number;
+    icon?: string;
+  }[];
 };
 export type TechnologyView = {
   code: string;

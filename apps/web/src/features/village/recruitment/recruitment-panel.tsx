@@ -1,9 +1,9 @@
-import { useMemo, useState, type FormEvent } from 'react';
-import { Lock } from 'lucide-react';
-import type { RecruitmentOrder, UnitView, VillageSnapshot } from '@dwar/api-client';
-import { ResourceIcon } from '../../../components/legacy-frame.js';
-import { RecruitmentQueue, duration, numbers, resources } from '../shared/index.js';
+import { useMemo, useState, type CSSProperties, type FormEvent } from 'react';
+import { Lock, Swords } from 'lucide-react';
+import type { RecruitmentOrder, Resources, UnitView, VillageSnapshot } from '@dwar/api-client';
+import { RecruitmentQueue, numbers, resources } from '../shared/index.js';
 import { currentResources } from '../shared/current-resources.js';
+import { CostChips } from '../shared/cost-chips.js';
 import { unitIconSrc } from '../../../components/unit-icon.js';
 
 export function RecruitmentPanel({
@@ -35,7 +35,7 @@ export function RecruitmentPanel({
       code,
       chosen.reduce((sum, unit) => sum + unit.cost[code] * (quantities[unit.code] ?? 0), 0),
     ]),
-  ) as Record<(typeof resources)[number]['code'], number>;
+  ) as Resources;
   const totalPopulation = chosen.reduce(
     (sum, unit) => sum + unit.population * (quantities[unit.code] ?? 0),
     0,
@@ -57,95 +57,84 @@ export function RecruitmentPanel({
   return (
     <>
       <RecruitmentQueue queue={queue} clock={clock} pending={pending} onCancel={onCancel} />
-      <form onSubmit={submit} aria-label="Recrutar tropas">
-        <ul className="ugrid">
+      <form className="recruit-form" onSubmit={submit} aria-label="Recrutar tropas">
+        <ul className="unit-list">
           {units.map((unit) => {
             const quantity = quantities[unit.code] ?? 0;
             const locked = !unit.researched;
             const blocked = Boolean(unit.unavailableReason);
+            const max = unit.maxRecruitable;
             return (
-              <li className="ucard" key={unit.code} data-state={locked ? 'locked' : undefined}>
-                <div className="ucard-top">
-                  <img className="ucard-portrait" src={unitIconSrc(unit.code)} alt="" />
-                  <div className="ucard-title">
-                    <h3>{unit.name}</h3>
-                    <span className="ucard-stock">
-                      Na aldeia <strong>{numbers.format(unit.indoors)}</strong>
-                      <span aria-hidden="true"> · </span>
-                      Total <strong>{numbers.format(unit.total)}</strong>
-                    </span>
-                  </div>
+              <li
+                className="unit-card"
+                key={unit.code}
+                data-state={locked ? 'locked' : quantity > 0 ? 'picked' : undefined}
+              >
+                <img className="unit-portrait" src={unitIconSrc(unit.code)} alt="" />
+                <div className="unit-info">
+                  <h3>{unit.name}</h3>
+                  <span className="unit-stock">
+                    Na aldeia <strong>{numbers.format(unit.indoors)}</strong> · total{' '}
+                    <strong>{numbers.format(unit.total)}</strong>
+                  </span>
+                  <CostChips
+                    label={`Custo de 1 ${unit.name}`}
+                    cost={unit.cost}
+                    have={have}
+                    population={unit.population}
+                    seconds={unit.durationSeconds}
+                  />
                 </div>
-                <ul className="bcard-cost" aria-label={`Custo de 1 ${unit.name}`}>
-                  {resources.map(({ code, name }) => (
-                    <li
-                      key={code}
-                      className={have[code] < unit.cost[code] ? 'short' : undefined}
-                      title={name}
-                    >
-                      <ResourceIcon code={code} label={name} />
-                      {numbers.format(unit.cost[code])}
-                    </li>
-                  ))}
-                  <li title="População">
-                    <ResourceIcon code="peasants" label="População" />
-                    {unit.population}
-                  </li>
-                  <li className="bcard-time" title="Tempo por unidade">
-                    {duration(unit.durationSeconds)}
-                  </li>
-                </ul>
-                {locked ? (
-                  <button type="button" className="ucard-locked" onClick={() => onSelect('smith')}>
-                    <Lock size={14} aria-hidden="true" />
-                    Pesquisar na Ferraria
-                  </button>
-                ) : blocked ? (
-                  <p className="bcard-reason">{unit.unavailableReason}</p>
-                ) : (
-                  <div className="ucard-qty">
-                    <div className="stepper">
-                      <button
-                        type="button"
-                        aria-label={`Diminuir ${unit.name}`}
-                        disabled={pending || quantity <= 0}
-                        onClick={() => setQuantity(unit, quantity - 1)}
-                      >
-                        −
-                      </button>
-                      <input
-                        aria-label={`Quantidade de ${unit.name}`}
-                        type="text"
-                        inputMode="numeric"
-                        pattern="[0-9]*"
-                        maxLength={5}
-                        disabled={pending}
-                        value={quantity > 0 ? quantity : ''}
-                        placeholder="0"
-                        onChange={(event) =>
-                          setQuantity(unit, Number(event.currentTarget.value.replace(/\D/g, '')))
-                        }
-                      />
-                      <button
-                        type="button"
-                        aria-label={`Aumentar ${unit.name}`}
-                        disabled={pending || quantity >= unit.maxRecruitable}
-                        onClick={() => setQuantity(unit, quantity + 1)}
-                      >
-                        +
-                      </button>
-                    </div>
-                    <button
-                      type="button"
-                      className="ucard-max"
-                      aria-label={`Recrutar o máximo de ${unit.name}`}
-                      disabled={pending || unit.maxRecruitable <= 0}
-                      onClick={() => setQuantity(unit, unit.maxRecruitable)}
-                    >
-                      Máx. {numbers.format(unit.maxRecruitable)}
+                <div className="unit-qty">
+                  {locked ? (
+                    <button type="button" className="button" onClick={() => onSelect('smith')}>
+                      <Lock size={14} aria-hidden="true" /> Pesquisar no ferreiro
                     </button>
-                  </div>
-                )}
+                  ) : blocked ? (
+                    <p className="wait-reason">{unit.unavailableReason}</p>
+                  ) : (
+                    <>
+                      <div className="unit-qty-row">
+                        <input
+                          aria-label={`Quantidade de ${unit.name}`}
+                          type="text"
+                          inputMode="numeric"
+                          maxLength={6}
+                          disabled={pending}
+                          value={quantity > 0 ? quantity : ''}
+                          placeholder="0"
+                          onChange={(event) =>
+                            setQuantity(unit, Number(event.currentTarget.value.replace(/\D/g, '')))
+                          }
+                        />
+                        <button
+                          type="button"
+                          className="button"
+                          aria-label={`Recrutar o máximo de ${unit.name}`}
+                          disabled={pending || max <= 0}
+                          onClick={() => setQuantity(unit, max)}
+                        >
+                          Máx
+                        </button>
+                      </div>
+                      <input
+                        type="range"
+                        className="unit-slider"
+                        aria-label={`Ajustar quantidade de ${unit.name}`}
+                        min={0}
+                        max={Math.max(1, max)}
+                        step={1}
+                        value={quantity}
+                        disabled={pending || max <= 0}
+                        style={{ '--fill': max ? quantity / max : 0 } as CSSProperties}
+                        onChange={(event) => setQuantity(unit, Number(event.currentTarget.value))}
+                      />
+                      <small className="unit-max">
+                        até {numbers.format(max)} com os recursos atuais
+                      </small>
+                    </>
+                  )}
+                </div>
               </li>
             );
           })}
@@ -157,31 +146,27 @@ export function RecruitmentPanel({
                 <strong>
                   {numbers.format(total)} {total === 1 ? 'unidade' : 'unidades'}
                 </strong>
-                <ul className="bcard-cost" aria-label="Custo total">
-                  {resources.map(({ code, name }) => (
-                    <li key={code} className={totalCost[code] > have[code] ? 'short' : undefined}>
-                      <ResourceIcon code={code} label={name} />
-                      {numbers.format(totalCost[code])}
-                    </li>
-                  ))}
-                  <li>
-                    <ResourceIcon code="peasants" label="População" />
-                    {numbers.format(totalPopulation)}
-                  </li>
-                </ul>
+                <CostChips
+                  label="Custo total"
+                  cost={totalCost}
+                  have={have}
+                  population={totalPopulation}
+                />
               </>
             ) : (
               <span className="recruit-hint">Escolha as quantidades para recrutar.</span>
             )}
           </div>
-          <button className="green" disabled={pending || !total || overBudget}>
+          <button disabled={pending || !total || overBudget}>
             {pending ? (
               <>
                 <span className="btn-spinner" aria-hidden="true" />
                 Recrutando…
               </>
             ) : (
-              'Recrutar'
+              <>
+                <Swords size={16} aria-hidden="true" /> Recrutar
+              </>
             )}
           </button>
         </div>

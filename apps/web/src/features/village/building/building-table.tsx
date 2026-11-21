@@ -1,10 +1,24 @@
-import { useMemo } from 'react';
+import { useMemo, type ReactNode } from 'react';
+import { ArrowUp, Crown, Hourglass, Lock, Sparkles } from 'lucide-react';
 import type { BuildingView, VillageSnapshot } from '@dwar/api-client';
-import { ResourceIcon } from '../../../components/legacy-frame.js';
-import { duration, numbers, resources } from '../shared/index.js';
 import { currentResources, type Have } from '../shared/current-resources.js';
+import { CostChips, WaitReason } from '../shared/cost-chips.js';
 import { buildingArt } from '../overview/scene-model.js';
 
+type Group = 'ready' | 'waiting' | 'locked' | 'max';
+
+function groupOf(building: BuildingView): Group {
+  if (building.queuedLevel >= building.maxLevel) return 'max';
+  if (
+    building.level === 0 &&
+    building.queuedLevel === 0 &&
+    building.requirements.some((requirement) => !requirement.met)
+  )
+    return 'locked';
+  return building.canBuild ? 'ready' : 'waiting';
+}
+
+/** Lista de obras do edifício principal, separada pelo que dá para fazer agora. */
 export function BuildingTable({
   snapshot,
   pending,
@@ -20,55 +34,134 @@ export function BuildingTable({
   onConstruct: (code: string) => void;
   onSelect: (code: string) => void;
 }) {
-  const { buildings } = snapshot;
   const have = useMemo(() => currentResources(snapshot, clock), [snapshot, clock]);
-  const unavailable = buildings.filter(
-    (item) =>
-      item.level === 0 &&
-      item.queuedLevel === 0 &&
-      item.requirements.some((requirement) => !requirement.met),
+  const groups: Record<Group, BuildingView[]> = { ready: [], waiting: [], locked: [], max: [] };
+  for (const building of snapshot.buildings) groups[groupOf(building)].push(building);
+  const complete = groups.max.length === snapshot.buildings.length;
+  const card = (building: BuildingView) => (
+    <BuildingCard
+      key={building.code}
+      building={building}
+      have={have}
+      pending={pending}
+      busy={pendingCode === building.code}
+      clock={clock}
+      onConstruct={onConstruct}
+      onSelect={onSelect}
+    />
   );
-  const available = buildings.filter((item) => !unavailable.includes(item));
   return (
-    <>
-      <ul className="bgrid">
-        {available.map((building) => (
-          <BuildingCard
-            key={building.code}
-            building={building}
-            have={have}
-            pending={pending}
-            busy={pendingCode === building.code}
-            clock={clock}
-            onConstruct={onConstruct}
-            onSelect={onSelect}
-          />
-        ))}
-      </ul>
-      {unavailable.length ? (
-        <details className="bunavail">
-          <summary>Edifícios indisponíveis ({unavailable.length})</summary>
-          <ul>
-            {unavailable.map((building) => (
-              <li key={building.code}>
-                <button className="text-button" onClick={() => onSelect(building.code)}>
+    <div className="build-groups">
+      {complete ? (
+        <div className="upgrade-max all-max">
+          <Crown size={26} aria-hidden="true" />
+          <div>
+            <strong>Aldeia completa</strong>
+            <small>Todos os edifícios estão no nível máximo.</small>
+          </div>
+        </div>
+      ) : (
+        <BuildGroup
+          icon={<Sparkles size={16} />}
+          title="Prontos para evoluir"
+          count={groups.ready.length}
+          empty={
+            snapshot.queue.length >= snapshot.world.maxBuildQueue
+              ? 'A fila de obras está cheia.'
+              : 'Nenhuma obra possível agora: veja abaixo quando os recursos chegam.'
+          }
+        >
+          {groups.ready.map(card)}
+        </BuildGroup>
+      )}
+      {groups.waiting.length ? (
+        <BuildGroup icon={<Hourglass size={16} />} title="Aguardando" count={groups.waiting.length}>
+          {groups.waiting.map(card)}
+        </BuildGroup>
+      ) : null}
+      {groups.locked.length ? (
+        <BuildGroup icon={<Lock size={16} />} title="Bloqueados" count={groups.locked.length}>
+          {groups.locked.map((building) => (
+            <li key={building.code} className="bcard2 locked">
+              <button
+                className="bcard2-art"
+                aria-label={`Abrir ${building.name}`}
+                onClick={() => onSelect(building.code)}
+              >
+                <img src={buildingArt(building.code)} alt="" loading="lazy" />
+              </button>
+              <div className="bcard2-main">
+                <button className="text-button bcard2-name" onClick={() => onSelect(building.code)}>
                   {building.name}
                 </button>
-                <span className="bunavail-reqs">
+                <div className="req-chips">
                   {building.requirements
                     .filter((item) => !item.met)
                     .map((item) => (
-                      <span className="bunavail-req" key={item.code}>
-                        {item.name} nível {item.level}
-                      </span>
+                      <button
+                        key={item.code}
+                        type="button"
+                        className="req-chip"
+                        onClick={() => onSelect(item.code)}
+                      >
+                        <Lock size={11} aria-hidden="true" /> {item.name} {item.level}
+                      </button>
                     ))}
-                </span>
+                </div>
+              </div>
+            </li>
+          ))}
+        </BuildGroup>
+      ) : null}
+      {groups.max.length ? (
+        <details className="build-group build-max" open={complete}>
+          <summary>
+            <Crown size={16} aria-hidden="true" /> Nível máximo
+            <span className="panel-count">{groups.max.length}</span>
+          </summary>
+          <ul className="max-chips">
+            {groups.max.map((building) => (
+              <li key={building.code}>
+                <button type="button" onClick={() => onSelect(building.code)}>
+                  <img
+                    src={buildingArt(building.code, building.maxLevel, building.maxLevel)}
+                    alt=""
+                    loading="lazy"
+                  />
+                  <span>{building.name}</span>
+                  <small>{building.maxLevel}</small>
+                </button>
               </li>
             ))}
           </ul>
         </details>
       ) : null}
-    </>
+    </div>
+  );
+}
+
+function BuildGroup({
+  icon,
+  title,
+  count,
+  empty,
+  children,
+}: {
+  icon: ReactNode;
+  title: string;
+  count: number;
+  empty?: string;
+  children: ReactNode;
+}) {
+  return (
+    <section className="build-group">
+      <h2>
+        {icon}
+        {title}
+        {count ? <span className="panel-count">{count}</span> : null}
+      </h2>
+      {count ? <ul className="bgrid2">{children}</ul> : <p className="panel-hint">{empty}</p>}
+    </section>
   );
 }
 
@@ -89,98 +182,62 @@ function BuildingCard({
   onConstruct: (code: string) => void;
   onSelect: (code: string) => void;
 }) {
-  const maxed = building.queuedLevel >= building.maxLevel;
-  const building_ = building.queuedLevel > building.level;
   const next = building.queuedLevel + 1;
-  const progress = (building.level / building.maxLevel) * 100;
-  const queuedProgress = (building.queuedLevel / building.maxLevel) * 100;
+  const queued = building.queuedLevel > building.level;
   return (
-    <li className="bcard" data-state={maxed ? 'max' : building_ ? 'building' : undefined}>
-      <div className="bcard-top">
-        <button
-          className="bcard-art"
-          aria-label={`Abrir ${building.name}`}
-          onClick={() => onSelect(building.code)}
-        >
-          <img
-            src={buildingArt(building.code, building.level, building.maxLevel)}
-            alt=""
-            loading="lazy"
-          />
-        </button>
-        <div className="bcard-title">
-          <h3>
-            <button className="text-button" onClick={() => onSelect(building.code)}>
-              {building.name}
-            </button>
-          </h3>
-          <span className="bcard-level">
-            {building.level ? `Nível ${building.level} de ${building.maxLevel}` : 'Não construído'}
-            {building_ ? <em> → {building.queuedLevel}</em> : null}
+    <li className="bcard2" data-state={queued ? 'building' : undefined}>
+      <button
+        className="bcard2-art"
+        aria-label={`Abrir ${building.name}`}
+        onClick={() => onSelect(building.code)}
+      >
+        <img
+          src={buildingArt(building.code, building.level, building.maxLevel)}
+          alt=""
+          loading="lazy"
+        />
+      </button>
+      <div className="bcard2-main">
+        <div className="bcard2-head">
+          <button className="text-button bcard2-name" onClick={() => onSelect(building.code)}>
+            {building.name}
+          </button>
+          <span className="bcard2-level">
+            {building.level ? `${building.level}/${building.maxLevel}` : 'novo'}
+            {queued ? <em> → {building.queuedLevel}</em> : null}
           </span>
-          <div
-            className="bcard-progress"
-            role="img"
-            aria-label={`Nível ${building.level} de ${building.maxLevel}`}
-          >
-            <span className="bcard-progress-queued" style={{ width: `${queuedProgress}%` }} />
-            <span style={{ width: `${progress}%` }} />
-          </div>
         </div>
+        <div className="bcard2-bar" aria-hidden="true">
+          <span
+            className="queued"
+            style={{ width: `${(building.queuedLevel / building.maxLevel) * 100}%` }}
+          />
+          <span style={{ width: `${(building.level / building.maxLevel) * 100}%` }} />
+        </div>
+        <CostChips
+          label={`Custo do nível ${next}`}
+          cost={building.cost}
+          have={have}
+          population={building.population}
+          seconds={building.durationSeconds}
+        />
       </div>
-      <div className="bcard-body">
-        {maxed ? (
-          <p className="bcard-maxed">Nível máximo</p>
-        ) : (
-          <>
-            <ul className="bcard-cost" aria-label={`Custo do nível ${next}`}>
-              {resources.map(({ code, name }) => (
-                <li
-                  key={code}
-                  className={have[code] < building.cost[code] ? 'short' : undefined}
-                  title={
-                    have[code] < building.cost[code]
-                      ? `Faltam ${numbers.format(building.cost[code] - have[code])} de ${name.toLowerCase()}`
-                      : name
-                  }
-                >
-                  <ResourceIcon code={code} label={name} />
-                  {numbers.format(building.cost[code])}
-                </li>
-              ))}
-              <li title="População">
-                <ResourceIcon code="peasants" label="População" />
-                {building.population}
-              </li>
-              <li className="bcard-time" title="Tempo de construção">
-                {duration(building.durationSeconds)}
-              </li>
-            </ul>
-            {building.canBuild ? (
-              <button
-                className="bcard-action green"
-                disabled={pending}
-                onClick={() => onConstruct(building.code)}
-              >
-                {busy ? (
-                  <>
-                    <span className="btn-spinner" aria-hidden="true" />
-                    Construindo…
-                  </>
-                ) : building.queuedLevel === 0 ? (
-                  'Construir'
-                ) : (
-                  `Evoluir para o nível ${next}`
-                )}
-              </button>
+      <div className="bcard2-act">
+        {building.canBuild ? (
+          <button disabled={pending} onClick={() => onConstruct(building.code)}>
+            {busy ? (
+              <span className="btn-spinner" aria-hidden="true" />
             ) : (
-              <p className="bcard-reason">
-                {building.resourcesAvailableAt
-                  ? `Recursos disponíveis em ${duration((new Date(building.resourcesAvailableAt).getTime() - clock) / 1000)}`
-                  : building.unavailableReason}
-              </p>
+              <ArrowUp size={16} aria-hidden="true" />
             )}
-          </>
+            {building.queuedLevel === 0 ? 'Construir' : `Nível ${next}`}
+          </button>
+        ) : (
+          <WaitReason
+            availableAt={building.resourcesAvailableAt}
+            reason={building.unavailableReason}
+            clock={clock}
+          />
         )}
       </div>
     </li>

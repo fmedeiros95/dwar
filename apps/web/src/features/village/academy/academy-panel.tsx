@@ -1,25 +1,32 @@
-import { useMemo } from 'react';
+import { useMemo, type CSSProperties } from 'react';
+import { Coins, Crown } from 'lucide-react';
 import type { VillageSnapshot } from '@dwar/api-client';
 import { ResourceIcon } from '../../../components/legacy-frame.js';
-import { RecruitmentQueue, duration, numbers, resources } from '../shared/index.js';
+import { RecruitmentQueue, numbers } from '../shared/index.js';
 import { currentResources } from '../shared/current-resources.js';
+import { CostChips, WaitReason } from '../shared/cost-chips.js';
 import { unitIconSrc } from '../../../components/unit-icon.js';
 
-function Availability({
-  reason,
-  availableAt,
-  clock,
-}: {
-  reason: string | null;
-  availableAt: string | null;
-  clock: number;
-}) {
+/** Indicadores da academia para o cabeçalho. */
+export function AcademyStats({ snapshot }: { snapshot: VillageSnapshot }) {
+  const { academy } = snapshot;
   return (
-    <p className="bcard-reason">
-      {availableAt
-        ? `Recursos disponíveis em ${duration((new Date(availableAt).getTime() - clock) / 1000)}`
-        : reason}
-    </p>
+    <div className="head-stats">
+      <div>
+        <small>Moedas</small>
+        <strong>{numbers.format(academy.coins)}</strong>
+      </div>
+      <div>
+        <small>Nobres da aldeia</small>
+        <strong>{numbers.format(academy.noblesFromVillage)}</strong>
+      </div>
+      {academy.noblesInProgress ? (
+        <div>
+          <small>Em treino</small>
+          <strong>{numbers.format(academy.noblesInProgress)}</strong>
+        </div>
+      ) : null}
+    </div>
   );
 }
 
@@ -39,14 +46,8 @@ export function AcademyPanel({
   const academy = snapshot.academy;
   const noble = snapshot.units.find((unit) => unit.code === 'noble')!;
   const have = useMemo(() => currentResources(snapshot, clock), [snapshot, clock]);
-  const stats = [
-    { label: 'Moedas cunhadas', value: academy.coins },
-    { label: 'Nobres em recrutamento', value: academy.noblesInProgress },
-    { label: 'Nobres desta aldeia', value: academy.noblesFromVillage },
-    ...(academy.coinsMissing > 0
-      ? [{ label: 'Moedas para o próximo nobre', value: academy.coinsMissing, warn: true }]
-      : []),
-  ];
+  const required = Math.max(1, academy.coinsRequired);
+  const coinProgress = Math.min(1, academy.coins / required);
   return (
     <>
       <RecruitmentQueue
@@ -56,105 +57,77 @@ export function AcademyPanel({
         pending={pending}
         onCancel={onCancel}
       />
-      <dl className="stat-tiles">
-        {stats.map((item) => (
-          <div className={`stat-tile${'warn' in item ? ' warn' : ''}`} key={item.label}>
-            <dt>{item.label}</dt>
-            <dd>{numbers.format(item.value)}</dd>
+      <div className="academy-flow">
+        <article className="academy-card coin">
+          <div className="academy-emblem" aria-hidden="true">
+            <ResourceIcon code="coins" label="Moeda" />
           </div>
-        ))}
-      </dl>
-      <ul className="ugrid academy-grid">
-        <li className="ucard">
-          <div className="ucard-top">
-            <img className="ucard-portrait" src={unitIconSrc('noble')} alt="" />
-            <div className="ucard-title">
-              <h3>Nobre</h3>
-              <span className="ucard-stock">
-                Na aldeia <strong>{numbers.format(noble.indoors)}</strong>
-                <span aria-hidden="true"> · </span>
-                Total <strong>{numbers.format(noble.total)}</strong>
-              </span>
-            </div>
-          </div>
-          <ul className="bcard-cost" aria-label="Custo de um nobre">
-            {resources.map(({ code, name }) => (
-              <li
-                key={code}
-                className={have[code] < noble.cost[code] ? 'short' : undefined}
-                title={name}
-              >
-                <ResourceIcon code={code} label={name} />
-                {numbers.format(noble.cost[code])}
-              </li>
-            ))}
-            <li title="População">
-              <ResourceIcon code="peasants" label="População" />
-              {noble.population}
-            </li>
-            <li className="bcard-time" title="Tempo de treinamento">
-              {duration(noble.durationSeconds)}
-            </li>
-          </ul>
-          {academy.canRecruit ? (
-            <button
-              className="bcard-action green"
-              disabled={pending}
-              onClick={() => onAction('recruit')}
-              aria-label="Recrutar nobre"
-            >
-              Recrutar nobre
-            </button>
-          ) : (
-            <Availability
-              reason={academy.recruitUnavailableReason}
-              availableAt={academy.recruitResourcesAvailableAt}
-              clock={clock}
-            />
-          )}
-        </li>
-        <li className="ucard">
-          <div className="ucard-top">
-            <span className="ucard-portrait coin" aria-hidden="true">
-              <ResourceIcon code="coins" label="Moeda" />
-            </span>
-            <div className="ucard-title">
-              <h3>Moeda</h3>
-              <span className="ucard-stock">
-                Cunhadas <strong>{numbers.format(academy.coins)}</strong>
-              </span>
-            </div>
-          </div>
-          <ul className="bcard-cost" aria-label="Custo de uma moeda">
-            {resources.map(({ code, name }) => (
-              <li
-                key={code}
-                className={have[code] < academy.coinCost[code] ? 'short' : undefined}
-                title={name}
-              >
-                <ResourceIcon code={code} label={name} />
-                {numbers.format(academy.coinCost[code])}
-              </li>
-            ))}
-          </ul>
+          <h2>Cunhar moedas</h2>
+          <p className="panel-hint">Cada nobre exige moedas guardadas na academia.</p>
+          <CostChips label="Custo de uma moeda" cost={academy.coinCost} have={have} />
           {academy.canMint ? (
             <button
-              className="bcard-action green"
+              className="wide"
               disabled={pending}
               onClick={() => onAction('mint')}
               aria-label="Cunhar uma moeda"
             >
-              Cunhar moeda
+              <Coins size={17} aria-hidden="true" /> Cunhar moeda
             </button>
           ) : (
-            <Availability
-              reason={academy.mintUnavailableReason}
+            <WaitReason
               availableAt={academy.mintResourcesAvailableAt}
+              reason={academy.mintUnavailableReason}
               clock={clock}
             />
           )}
-        </li>
-      </ul>
+        </article>
+        <div className="academy-link" style={{ '--progress': coinProgress } as CSSProperties}>
+          <span className="academy-coins">
+            <strong>{numbers.format(academy.coins)}</strong>{' '}
+            {academy.coins === 1 ? 'moeda' : 'moedas'}
+          </span>
+          <span className="academy-meter" aria-hidden="true" />
+          <small>
+            {academy.coinsMissing > 0
+              ? `Faltam ${numbers.format(academy.coinsMissing)} para o próximo nobre`
+              : `O próximo nobre exige ${numbers.format(academy.coinsRequired)}`}
+          </small>
+        </div>
+        <article className="academy-card noble">
+          <div className="academy-emblem portrait" aria-hidden="true">
+            <img src={unitIconSrc('noble')} alt="" />
+          </div>
+          <h2>Recrutar nobre</h2>
+          <p className="panel-hint">
+            Na aldeia <strong>{numbers.format(noble.indoors)}</strong> · total{' '}
+            <strong>{numbers.format(noble.total)}</strong>. Nobres conquistam aldeias.
+          </p>
+          <CostChips
+            label="Custo de um nobre"
+            cost={noble.cost}
+            have={have}
+            population={noble.population}
+            seconds={noble.durationSeconds}
+          />
+          {academy.canRecruit ? (
+            <button
+              className="wide"
+              disabled={pending}
+              onClick={() => onAction('recruit')}
+              aria-label="Recrutar nobre"
+            >
+              <Crown size={17} aria-hidden="true" /> Recrutar nobre
+            </button>
+          ) : (
+            <WaitReason
+              availableAt={academy.recruitResourcesAvailableAt}
+              reason={academy.recruitUnavailableReason}
+              clock={clock}
+            />
+          )}
+        </article>
+      </div>
     </>
   );
 }

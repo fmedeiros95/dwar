@@ -26,6 +26,7 @@ import './hud.css';
 import './ui.css';
 import './controls.css';
 import './trade.css';
+import './building.css';
 
 const client = new QueryClient({
   defaultOptions: { queries: { retry: false, refetchOnWindowFocus: true } },

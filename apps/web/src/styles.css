@@ -328,15 +328,6 @@ p {
   font-variant-numeric: tabular-nums;
   font-size: 11px;
 }
-.legacy-building-heading {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 13px;
-}
-.legacy-building-heading h1 {
-  margin-bottom: 6px;
-}
 .construction-queue {
   margin-bottom: 12px;
 }
@@ -620,13 +611,6 @@ p {
     min-width: 650px;
     width: 100%;
   }
-  .legacy-building-heading {
-    align-items: flex-start;
-    gap: 8px;
-  }
-  .legacy-building-heading h1 {
-    font-size: 16px;
-  }
   .legacy-footer {
     font-size: 11px;
     flex-wrap: wrap;
@@ -703,17 +687,6 @@ p {
 .legacy-production:has(.production-collapse:only-child) {
   width: 110px;
 }
-.building-details {
-  width: 50%;
-  min-width: 400px;
-  margin-bottom: 12px;
-}
-.detail-icon {
-  width: 22px;
-}
-.warehouse-times {
-  margin-top: 18px;
-}
 .unavailable-toggle {
   display: inline-flex;
   align-items: center;
@@ -760,10 +733,6 @@ p {
 @media (max-width: 680px) {
   .legacy-classic-overview {
     grid-template-columns: 1fr;
-  }
-  .building-details {
-    width: 100%;
-    min-width: 0;
   }
   .rename-village input {
     font-size: 16px;

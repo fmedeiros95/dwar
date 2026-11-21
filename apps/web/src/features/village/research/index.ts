@@ -1,1 +1,1 @@
-export { ResearchTable } from './research-table.js';
+export { ResearchTable, researchProgress } from './research-table.js';

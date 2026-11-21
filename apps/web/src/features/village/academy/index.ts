@@ -1,1 +1,1 @@
-export { AcademyPanel } from './academy-panel.js';
+export { AcademyPanel, AcademyStats } from './academy-panel.js';

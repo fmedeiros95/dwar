@@ -10,7 +10,8 @@ import { GameShell } from '../../components/game-shell.js';
 import { WindowLayer } from '../../components/game-window.js';
 import { screenOf, useWindowManager } from '../../components/use-window-manager.js';
 import { useToast } from '../../components/toast.js';
-import { BuildingScreen } from './building-screen.js';
+import { BuildingScreen, panelBuildings } from './building-screen.js';
+import { buildingArtId } from './overview/scene-model.js';
 import { Overview } from './overview/index.js';
 import { WorldMap } from './map/index.js';
 import { PublicVillageScreen, PublicPlayerScreen } from './public-info/index.js';
@@ -43,6 +44,8 @@ const windowTitles: Record<string, string> = {
 };
 const wideScreens = ['mail', 'reports', 'ranking'];
 function windowSize(screen: string) {
+  // Edifícios sem tela própria mostram só indicadores e evolução: janela compacta.
+  if (buildingArtId[screen] && !panelBuildings.includes(screen)) return { w: 760, h: 560 };
   return wideScreens.includes(screen) ? { w: 860, h: 600 } : { w: 920, h: 640 };
 }
 
@@ -525,10 +528,7 @@ export function VillagePage({
       }
       subbar={
         <>
-          <Link
-            to="/worlds"
-            className="subbar-world"
-          >
+          <Link to="/worlds" className="subbar-world">
             {data.world.name}
           </Link>
           <div className="subbar-links">

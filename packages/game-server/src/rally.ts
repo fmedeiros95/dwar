@@ -709,7 +709,8 @@ export async function readIncomings(accountId: number, worldId: number): Promise
       .from(villages)
       .where(and(eq(villages.worldId, world.id), eq(villages.playerId, current.playerId)));
     const ownIds = ownVillages.map((row) => row.id);
-    if (!ownIds.length) return { serverTime: new Date().toISOString(), attacks: 0, supports: 0, commands: [] };
+    if (!ownIds.length)
+      return { serverTime: new Date().toISOString(), attacks: 0, supports: 0, commands: [] };
     const rows = await tx
       .select()
       .from(troopMovements)

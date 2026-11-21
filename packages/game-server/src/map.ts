@@ -78,13 +78,9 @@ export async function readMapPopup(
       .where(and(eq(villages.id, targetId), eq(villages.worldId, worldId)));
     const own = target.own;
     const current = target.id === from.id;
-    const assessment =
-      !own && row ? await assessTarget(tx, from, row, new Date()) : null;
+    const assessment = !own && row ? await assessTarget(tx, from, row, new Date()) : null;
     const placed = own
-      ? await tx
-          .select()
-          .from(unitPlacements)
-          .where(eq(unitPlacements.locationVillageId, targetId))
+      ? await tx.select().from(unitPlacements).where(eq(unitPlacements.locationVillageId, targetId))
       : [];
     return {
       id: target.id,

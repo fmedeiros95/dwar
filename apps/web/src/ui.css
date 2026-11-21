@@ -42,9 +42,10 @@
   padding: 20px 24px 24px;
 }
 /* Conteúdo da janela entra em cascata suave. */
-.gw-body > * > :is(section, ul, .bgrid, .ugrid, .page-head, header, .table-scroll) {
+.gw-body > * > :is(section, ul, .page-head, header, .table-scroll) {
   animation: content-in 0.32s 0.06s ease-out both;
 }
+
 @keyframes content-in {
   from {
     opacity: 0;

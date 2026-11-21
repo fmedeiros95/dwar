@@ -76,6 +76,12 @@
     transform 0.22s cubic-bezier(0.3, 1.6, 0.5, 1),
     filter 0.2s ease;
 }
+/* O destaque de foco é o brilho da própria arte, não o retângulo do navegador. */
+.scene-building,
+.scene-building:focus,
+.scene-building:focus-visible {
+  outline: none;
+}
 .scene-building:hover,
 .scene-building:focus-visible {
   transform: translateY(-3px) scale(1.025);
