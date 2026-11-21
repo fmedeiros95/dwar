@@ -1,0 +1,103 @@
+/* BBCode: barra de edição e blocos formatados (mensagens, notas e descrições). */
+.bb-editor {
+  display: grid;
+  gap: 6px;
+}
+.bb-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
+  padding: 4px;
+  background: var(--surface-sunken);
+  border: 1px solid var(--line-soft);
+  border-radius: 6px;
+}
+.bb-tool {
+  min-width: 30px;
+  height: 28px;
+  padding: 0 9px;
+  font: inherit;
+  font-size: 12px;
+  color: inherit;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 5px;
+  cursor: pointer;
+}
+.bb-tool:hover:not(:disabled),
+.bb-tool:focus-visible {
+  background: var(--surface-raised, rgba(255, 255, 255, 0.08));
+  border-color: var(--line-soft);
+  outline: none;
+}
+.bb-tool-bold {
+  font-weight: 800;
+}
+.bb-tool-italic {
+  font-style: italic;
+}
+.bb-tool-underline {
+  text-decoration: underline;
+}
+.bb-tool-strike {
+  text-decoration: line-through;
+}
+.bb-swatches {
+  display: inline-flex;
+  gap: 4px;
+  margin: 0 4px;
+  padding: 0 6px;
+  border-inline: 1px solid var(--line-soft);
+}
+.bb-swatch {
+  width: 18px;
+  height: 18px;
+  padding: 0;
+  border: 1px solid rgba(0, 0, 0, 0.35);
+  border-radius: 50%;
+  cursor: pointer;
+}
+.bb-swatch:hover:not(:disabled),
+.bb-swatch:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 1px;
+}
+.bb-size {
+  height: 28px;
+  font: inherit;
+  font-size: 12px;
+  color: inherit;
+  background: transparent;
+  border: 1px solid var(--line-soft);
+  border-radius: 5px;
+}
+.bb-center {
+  text-align: center;
+}
+.bb-quote {
+  margin: 6px 0;
+  padding: 6px 12px;
+  border-left: 3px solid var(--gold);
+  background: rgba(0, 0, 0, 0.06);
+  border-radius: 0 6px 6px 0;
+}
+.bb-spoiler {
+  margin: 6px 0;
+  border: 1px solid var(--line-soft);
+  border-radius: 6px;
+}
+.bb-spoiler > summary {
+  padding: 5px 10px;
+  cursor: pointer;
+  font-weight: 700;
+}
+.bb-spoiler > div {
+  padding: 6px 10px 8px;
+  border-top: 1px solid var(--line-soft);
+}
+.bb-list {
+  margin: 4px 0;
+  padding-left: 22px;
+  list-style: disc;
+}

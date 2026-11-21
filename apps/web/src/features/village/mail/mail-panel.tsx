@@ -4,7 +4,13 @@ import { useRef, useState } from 'react';
 import { Mail } from 'lucide-react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
-import { api, ApiError, type MailAction, type VillageSnapshot } from '@dwar/api-client';
+import {
+  api,
+  ApiError,
+  type MailAction,
+  type MessageNode,
+  type VillageSnapshot,
+} from '@dwar/api-client';
 import { MailList } from './mail-list.js';
 import { ComposeMail } from './mail-compose.js';
 import { Conversation } from './mail-conversation.js';
@@ -31,7 +37,7 @@ export function MailPanel({ snapshot, clock }: { snapshot: VillageSnapshot; cloc
   const page = /^\d+$/.test(params.get('page') ?? '') ? Math.max(1, Number(params.get('page'))) : 1;
   const threadId = mode === 'view' ? Number(params.get('id')) : 0,
     recipientId = mode === 'new' ? Number(params.get('id')) : 0;
-  const [preview, setPreview] = useState<string | null>(null),
+  const [preview, setPreview] = useState<MessageNode[] | null>(null),
     [notice, setNotice] = useState(''),
     [blockName, setBlockName] = useState(''),
     [conversationVersion, setConversationVersion] = useState(0);
@@ -95,7 +101,7 @@ export function MailPanel({ snapshot, clock }: { snapshot: VillageSnapshot; cloc
   });
   const previewAction = useMutation({
     mutationFn: (text: string) => api.previewMail(worldId, text),
-    onSuccess: (result) => setPreview(result.text),
+    onSuccess: (result) => setPreview(result.content),
   });
   function perform(value: MailAction) {
     const input = intent.current ?? { action: value, requestId: newRequestKey() };
@@ -192,6 +198,7 @@ export function MailPanel({ snapshot, clock }: { snapshot: VillageSnapshot; cloc
               onSend={perform}
               onPreview={(text) => previewAction.mutate(text)}
               preview={preview}
+              onTarget={onTarget}
             />
           )
         ) : null}
@@ -207,7 +214,9 @@ export function MailPanel({ snapshot, clock }: { snapshot: VillageSnapshot; cloc
               onTarget={onTarget}
             />
           ) : (
-            <p className="muted">{threadId ? 'Carregando conversa…' : 'Mensagem não encontrada.'}</p>
+            <p className="muted">
+              {threadId ? 'Carregando conversa…' : 'Mensagem não encontrada.'}
+            </p>
           )
         ) : null}
         {mode === 'block' ? (

@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from 'react';
 import type { MailThreadView } from '@dwar/api-client';
 import { completionDate } from '../shared/index.js';
+import { BBEditor } from '../../../components/bbcode-editor.js';
 import { MailContent } from './mail-content.js';
 
 export function Conversation({
@@ -47,13 +48,12 @@ export function Conversation({
       </div>
       {replying ? (
         <form className="mail-reply" onSubmit={submit} aria-label="Responder mensagem">
-          <textarea
-            aria-label="Texto da resposta"
+          <BBEditor
+            label="Texto da resposta"
             rows={7}
             value={text}
-            onChange={(event) => setText(event.target.value)}
+            onChange={setText}
             minLength={3}
-            maxLength={16000}
             required
             disabled={pending}
           />

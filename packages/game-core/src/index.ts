@@ -161,7 +161,16 @@ export { requiredNobleCoins } from './academy.js';
 
 export { requiredMerchants, tradeDuration } from './market.js';
 export { troopDuration } from './troops.js';
-export { messageTokens, messageHttpUrl, type MessageToken } from './message-format.js';
+export {
+  messageTokens,
+  messageHttpUrl,
+  messageListItems,
+  messageColor,
+  messageSize,
+  messageTags,
+  type MessageToken,
+  type MessageTag,
+} from './message-format.js';
 
 export { battle, morale, loyaltyAt, plunder, distributeLosses, emptyTroops } from './combat.js';
 export { militaryRank } from './military-rank.js';

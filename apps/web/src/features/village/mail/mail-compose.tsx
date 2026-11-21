@@ -1,5 +1,7 @@
 import { useState, type FormEvent } from 'react';
-import type { MailAction } from '@dwar/api-client';
+import type { MailAction, MessageNode } from '@dwar/api-client';
+import { BBEditor } from '../../../components/bbcode-editor.js';
+import { MailContent } from './mail-content.js';
 
 export function ComposeMail({
   recipient,
@@ -7,12 +9,14 @@ export function ComposeMail({
   onSend,
   onPreview,
   preview,
+  onTarget,
 }: {
   recipient: string;
   pending: boolean;
   onSend: (action: MailAction) => void;
   onPreview: (text: string) => void;
-  preview: string | null;
+  preview: MessageNode[] | null;
+  onTarget: (type: 'player' | 'village', id: number) => void;
 }) {
   const [to, setTo] = useState(recipient),
     [subject, setSubject] = useState(''),
@@ -26,7 +30,9 @@ export function ComposeMail({
       {preview !== null ? (
         <section className="mail-preview" aria-label="Prévia">
           <h2 className="tech-heading">Prévia</h2>
-          <div className="mail-text">{preview}</div>
+          <div className="mail-text">
+            <MailContent nodes={preview} onTarget={onTarget} />
+          </div>
         </section>
       ) : null}
       <div className="mail-fields">
@@ -54,13 +60,12 @@ export function ComposeMail({
           />
         </label>
       </div>
-      <textarea
-        aria-label="Texto da mensagem"
+      <BBEditor
+        label="Texto da mensagem"
         value={text}
-        onChange={(event) => setText(event.target.value)}
+        onChange={setText}
         rows={12}
         minLength={3}
-        maxLength={16000}
         required
         disabled={pending}
       />

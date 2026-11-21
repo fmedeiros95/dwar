@@ -3,23 +3,21 @@ import {
   db,
   accounts,
   players,
-  villages,
   mailThreads,
   mailPosts,
   mailBlocks,
   mailOperations,
   type Transaction,
 } from '@dwar/database';
-import { messageTokens, messageHttpUrl, type MessageToken } from '@dwar/game-core';
 import type {
   MailboxSnapshot,
   MailThreadView,
   MailSummary,
   MailPerson,
   MailAction,
-  MessageNode,
 } from '@dwar/api-client';
 import { GameError } from './errors.js';
+import { renderBBCode } from './bbcode.js';
 import { lockWorld, ownedVillage } from './village-engine.js';
 type Thread = typeof mailThreads.$inferSelect;
 const active = (playerId: number) =>
@@ -40,8 +38,8 @@ function validText(value: string, title = false) {
     );
   return value;
 }
-export function previewMessage(text: string) {
-  return { text: validText(text) };
+export async function previewMessage(tx: Transaction, worldId: number, text: string) {
+  return { text: validText(text), content: await renderBBCode(tx, worldId, text) };
 }
 async function person(tx: Transaction, worldId: number, name: string): Promise<MailPerson> {
   const [row] = await tx
@@ -172,80 +170,6 @@ export async function mailboxView(
       .sort((a, b) => a.username.localeCompare(b.username)),
   };
 }
-async function content(
-  tx: Transaction,
-  worldId: number,
-  tokens: MessageToken[],
-): Promise<MessageNode[]> {
-  const result: MessageNode[] = [];
-  for (const token of tokens) {
-    if (token.tag === 'text') {
-      result.push({ type: 'text', text: token.text });
-      continue;
-    }
-    if (token.tag === 'b' || token.tag === 'i' || token.tag === 'u' || token.tag === 's') {
-      result.push({ type: token.tag, children: await content(tx, worldId, token.children) });
-      continue;
-    }
-    if (token.tag === 'url') {
-      const href = messageHttpUrl(token.argument ?? token.value);
-      result.push(
-        ...(href
-          ? [{ type: 'link' as const, href, children: await content(tx, worldId, token.children) }]
-          : [{ type: 'text' as const, text: token.value }]),
-      );
-      continue;
-    }
-    if (token.tag === 'img') {
-      const src = messageHttpUrl(token.value);
-      result.push(src ? { type: 'image', src } : { type: 'text', text: token.value });
-      continue;
-    }
-    if (token.tag === 'player') {
-      const [row] = await tx
-        .select({ id: players.id, username: accounts.username })
-        .from(players)
-        .innerJoin(accounts, eq(accounts.id, players.accountId))
-        .where(
-          and(
-            eq(players.worldId, worldId),
-            sql`lower(${accounts.username})=lower(${token.value.trim()})`,
-          ),
-        );
-      result.push(
-        row
-          ? { type: 'player', id: row.id, label: row.username }
-          : { type: 'text', text: token.value },
-      );
-      continue;
-    }
-    if (token.tag === 'village') {
-      const coordinates = /^\s*\(?\s*(\d{1,3})\s*\|\s*(\d{1,3})\s*\)?\s*$/.exec(token.value);
-      if (coordinates) {
-        const [row] = await tx
-          .select({ id: villages.id, name: villages.name, x: villages.x, y: villages.y })
-          .from(villages)
-          .where(
-            and(
-              eq(villages.worldId, worldId),
-              eq(villages.x, Number(coordinates[1])),
-              eq(villages.y, Number(coordinates[2])),
-            ),
-          );
-        if (row) {
-          result.push({
-            type: 'village',
-            id: row.id,
-            label: `${row.name} (${row.x}|${row.y}) K${Math.floor(row.y / 100)}${Math.floor(row.x / 100)}`,
-          });
-          continue;
-        }
-      }
-    }
-    result.push({ type: 'text', text: token.value });
-  }
-  return result;
-}
 export async function threadView(
   tx: Transaction,
   worldId: number,
@@ -265,7 +189,7 @@ export async function threadView(
       id: post.id,
       author: known.get(post.authorPlayerId)!,
       text: post.text,
-      content: await content(tx, worldId, messageTokens(post.text)),
+      content: await renderBBCode(tx, worldId, post.text),
       createdAt: post.createdAt.toISOString(),
     });
   return { ...summary(thread, playerId, known, posts.length), posts: rendered };
@@ -425,7 +349,7 @@ export async function previewMailMessage(accountId: number, worldId: number, tex
   return db.transaction(async (tx) => {
     await lockWorld(tx, worldId);
     await ownedVillage(tx, accountId, worldId);
-    return previewMessage(text);
+    return previewMessage(tx, worldId, text);
   });
 }
 

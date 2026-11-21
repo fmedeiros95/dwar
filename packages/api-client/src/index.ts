@@ -329,7 +329,11 @@ export type MailStatus = 'answered' | 'new' | 'read';
 export type MailPerson = { id: number; username: string };
 export type MessageNode =
   | { type: 'text'; text: string }
-  | { type: 'b' | 'i' | 'u' | 's'; children: MessageNode[] }
+  | { type: 'b' | 'i' | 'u' | 's' | 'center' | 'quote'; children: MessageNode[] }
+  | { type: 'color'; color: string; children: MessageNode[] }
+  | { type: 'size'; size: number; children: MessageNode[] }
+  | { type: 'spoiler'; title: string; children: MessageNode[] }
+  | { type: 'list'; items: MessageNode[][] }
   | { type: 'link'; href: string; children: MessageNode[] }
   | { type: 'image'; src: string }
   | { type: 'player' | 'village'; id: number; label: string };
@@ -508,7 +512,7 @@ export const api = {
       body: JSON.stringify(action),
     }),
   previewMail: (worldId: number, text: string) =>
-    request<{ text: string }>(`/worlds/${worldId}/mail/preview`, {
+    request<{ text: string; content: MessageNode[] }>(`/worlds/${worldId}/mail/preview`, {
       method: 'POST',
       body: JSON.stringify({ text }),
     }),
