@@ -379,15 +379,33 @@ export type ReportSide = {
   x: number;
   y: number;
 };
+export type ReportGroup = 'all' | 'attack' | 'defense' | 'support';
+export type ReportAction =
+  | { type: 'delete'; ids: number[] }
+  | { type: 'read'; ids?: number[]; group?: ReportGroup };
+export type ReportPlace = { name: string; username: string; x: number; y: number };
 export type BattleReportSummary = {
   id: number;
   title: string;
   occurredAt: string;
   role: 'attacker' | 'defender' | 'support';
+  group: Exclude<ReportGroup, 'all'>;
   read: boolean;
   winner: 'attacker' | 'defender' | 'draw';
+  /** Resultado do ponto de vista de quem lê: vitória, derrota ou empate. */
+  outcome: 'won' | 'lost' | 'draw';
+  origin: ReportPlace;
+  target: ReportPlace;
+  /** Saque total (só para quem atacou). */
+  lootTotal: number;
+  lootFull: boolean;
+  conquered: boolean;
+  spy: boolean;
+  lossless: boolean;
 };
 export type BattleReportView = BattleReportSummary & {
+  previousId: number | null;
+  nextId: number | null;
   from: ReportSide;
   to: ReportSide;
   unitTypes: { code: string; name: string }[];
@@ -415,6 +433,8 @@ export type ReportsSnapshot = {
   pageCount: number;
   total: number;
   unread: number;
+  group: ReportGroup;
+  groups: Record<ReportGroup, { total: number; unread: number }>;
   reports: BattleReportSummary[];
 };
 
@@ -469,10 +489,15 @@ export function newRequestKey(): string {
 }
 
 export const api = {
-  reports: (worldId: number, page = 1, villageId?: number) =>
+  reports: (worldId: number, page = 1, villageId?: number, group: ReportGroup = 'all') =>
     request<ReportsSnapshot>(
-      `/worlds/${worldId}/reports?page=${page}${villageId ? `&villageId=${villageId}` : ''}`,
+      `/worlds/${worldId}/reports?page=${page}${villageId ? `&villageId=${villageId}` : ''}${group === 'all' ? '' : `&group=${group}`}`,
     ),
+  reportAction: (worldId: number, action: ReportAction) =>
+    request<{ changed: number }>(`/worlds/${worldId}/reports`, {
+      method: 'POST',
+      body: JSON.stringify(action),
+    }),
   report: (worldId: number, reportId: number) =>
     request<BattleReportView>(`/worlds/${worldId}/reports/${reportId}`),
   me: () => request<Account>('/auth/me'),

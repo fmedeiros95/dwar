@@ -1,16 +1,198 @@
-import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { ChevronLeft, ChevronRight, Shield, Swords } from 'lucide-react';
-import { api, type VillageSnapshot, type BattleReportView } from '@dwar/api-client';
+import { useState } from 'react';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import {
+  ChevronLeft,
+  ChevronRight,
+  Crown,
+  Eye,
+  HeartHandshake,
+  PackageCheck,
+  ShieldCheck,
+  Shield,
+  Swords,
+  Trash2,
+} from 'lucide-react';
+import {
+  api,
+  type VillageSnapshot,
+  type BattleReportView,
+  type BattleReportSummary,
+  type ReportGroup,
+  type ReportsSnapshot,
+} from '@dwar/api-client';
 import { useGameSearchParams } from '../../../routing.js';
 import { ResourceIcon } from '../../../components/legacy-frame.js';
 import { numbers, completionDate } from '../shared/index.js';
 import { unitIconSrc } from '../../../components/unit-icon.js';
 
 const outcome = {
-  attacker: 'Vitória do atacante',
-  defender: 'Vitória do defensor',
+  won: 'Vitória',
+  lost: 'Derrota',
   draw: 'Empate',
 };
+const roleText = {
+  attacker: 'Você atacou',
+  defender: 'Você defendeu',
+  support: 'Você apoiou',
+};
+const tabs: { code: ReportGroup; label: string }[] = [
+  { code: 'all', label: 'Todos' },
+  { code: 'attack', label: 'Ataques' },
+  { code: 'defense', label: 'Defesas' },
+  { code: 'support', label: 'Apoios' },
+];
+const groupIcon = { attack: Swords, defense: Shield, support: HeartHandshake } as const;
+
+/** Marcas rápidas de uma linha da lista: o que aconteceu na batalha, sem abrir o relatório. */
+function Marks({ report }: { report: BattleReportSummary }) {
+  const marks = [
+    report.conquered && { Icon: Crown, label: 'Aldeia conquistada', tone: 'gold' },
+    report.lootFull && { Icon: PackageCheck, label: 'Saque cheio', tone: 'green' },
+    !report.lootFull &&
+      report.lootTotal > 0 && {
+        Icon: PackageCheck,
+        label: `Saque de ${numbers.format(report.lootTotal)}`,
+        tone: 'muted',
+      },
+    report.spy && { Icon: Eye, label: 'Espionagem', tone: 'muted' },
+    report.lossless && { Icon: ShieldCheck, label: 'Sem baixas', tone: 'green' },
+  ].filter((mark): mark is { Icon: typeof Crown; label: string; tone: string } => !!mark);
+  return (
+    <span className="report-marks">
+      {marks.map(({ Icon, label, tone }) => (
+        <span key={label} className={`report-mark ${tone}`} title={label}>
+          <Icon size={14} aria-label={label} />
+        </span>
+      ))}
+    </span>
+  );
+}
+
+function ReportList({
+  data,
+  clock,
+  group,
+  pending,
+  onOpen,
+  onAction,
+  onPage,
+}: {
+  data: ReportsSnapshot;
+  clock: number;
+  group: ReportGroup;
+  pending: boolean;
+  onOpen: (id: number) => void;
+  onAction: (
+    action:
+      { type: 'delete'; ids: number[] } | { type: 'read'; ids?: number[]; group?: ReportGroup },
+  ) => void;
+  onPage: (page: number) => void;
+}) {
+  const [selected, setSelected] = useState<number[]>([]);
+  const everyone = data.reports.length > 0 && selected.length === data.reports.length;
+  const toggle = (id: number) =>
+    setSelected((now) => (now.includes(id) ? now.filter((x) => x !== id) : [...now, id]));
+  return (
+    <>
+      {data.reports.length ? (
+        <>
+          <div className="report-tools">
+            <label className="report-select-all">
+              <input
+                type="checkbox"
+                checked={everyone}
+                onChange={() => setSelected(everyone ? [] : data.reports.map((r) => r.id))}
+              />
+              Selecionar tudo
+            </label>
+            <button
+              className="button"
+              disabled={!selected.length || pending}
+              onClick={() => onAction({ type: 'delete', ids: selected })}
+            >
+              <Trash2 size={14} aria-hidden="true" /> Excluir
+              {selected.length ? ` (${selected.length})` : ''}
+            </button>
+            <button
+              className="button"
+              disabled={!selected.length || pending}
+              onClick={() => onAction({ type: 'read', ids: selected })}
+            >
+              Marcar como lidos
+            </button>
+            <button
+              className="button"
+              disabled={!data.groups[group].unread || pending}
+              onClick={() => onAction({ type: 'read', group })}
+            >
+              Marcar tudo como lido
+            </button>
+          </div>
+          <ul className="report-list">
+            {data.reports.map((r) => {
+              const Icon = groupIcon[r.group];
+              return (
+                <li key={r.id} className={`report-item ${r.outcome}${r.read ? '' : ' unread'}`}>
+                  <input
+                    type="checkbox"
+                    aria-label={`Selecionar relatório: ${r.title}`}
+                    checked={selected.includes(r.id)}
+                    onChange={() => toggle(r.id)}
+                  />
+                  <button className="report-row" onClick={() => onOpen(r.id)}>
+                    <span
+                      className="report-dot"
+                      aria-label={`${r.read ? 'Lido' : 'Não lido'} · ${outcome[r.outcome]}`}
+                    />
+                    <Icon size={16} aria-hidden="true" className="report-kind" />
+                    <span className="report-title">
+                      {r.title}
+                      <small>
+                        {roleText[r.role]} · {outcome[r.outcome]}
+                      </small>
+                    </span>
+                    <Marks report={r} />
+                    <time dateTime={r.occurredAt}>{completionDate(r.occurredAt, clock)}</time>
+                  </button>
+                </li>
+              );
+            })}
+          </ul>
+        </>
+      ) : (
+        <p className="empty-state">
+          <Swords size={28} aria-hidden="true" />
+          {group === 'all'
+            ? 'Nenhum relatório ainda. Batalhas e espionagens aparecem aqui.'
+            : 'Nenhum relatório nesta categoria.'}
+        </p>
+      )}
+      {data.pageCount > 1 ? (
+        <nav className="pager" aria-label="Páginas de relatórios">
+          <button
+            className="button"
+            disabled={data.page <= 1}
+            onClick={() => onPage(data.page - 1)}
+            aria-label="Página anterior"
+          >
+            <ChevronLeft size={16} aria-hidden="true" />
+          </button>
+          <span>
+            {data.page} / {data.pageCount}
+          </span>
+          <button
+            className="button"
+            disabled={data.page >= data.pageCount}
+            onClick={() => onPage(data.page + 1)}
+            aria-label="Próxima página"
+          >
+            <ChevronRight size={16} aria-hidden="true" />
+          </button>
+        </nav>
+      ) : null}
+    </>
+  );
+}
 const lootCodes = [
   { code: 'wood', label: 'Madeira' },
   { code: 'stone', label: 'Argila' },
@@ -85,10 +267,23 @@ export function ReportsPanel({ snapshot, clock }: { snapshot: VillageSnapshot; c
     client = useQueryClient();
   const id = Number(params.get('id')),
     page = Math.max(1, Number(params.get('page')) || 1);
+  const requested = params.get('group');
+  const group: ReportGroup = tabs.some((tab) => tab.code === requested)
+    ? (requested as ReportGroup)
+    : 'all';
   const list = useQuery({
-    queryKey: ['reports', snapshot.world.id, page],
-    queryFn: () => api.reports(snapshot.world.id, page),
+    queryKey: ['reports', snapshot.world.id, page, group],
+    queryFn: () => api.reports(snapshot.world.id, page, undefined, group),
     refetchInterval: 5000,
+    placeholderData: (previous) => previous,
+  });
+  const action = useMutation({
+    mutationFn: (input: Parameters<typeof api.reportAction>[1]) =>
+      api.reportAction(snapshot.world.id, input),
+    onSuccess: () => {
+      void client.invalidateQueries({ queryKey: ['reports', snapshot.world.id] });
+      void client.invalidateQueries({ queryKey: ['report', snapshot.world.id] });
+    },
   });
   const report = useQuery({
     queryKey: ['report', snapshot.world.id, id],
@@ -100,11 +295,24 @@ export function ReportsPanel({ snapshot, clock }: { snapshot: VillageSnapshot; c
     },
   });
   function go(extra: Record<string, string | number> = {}) {
-    setParams({ village: snapshot.village.id, screen: 'reports', ...extra });
+    setParams({
+      village: snapshot.village.id,
+      screen: 'reports',
+      ...(group === 'all' ? {} : { group }),
+      ...extra,
+    });
+  }
+  function target(type: 'player' | 'village', targetId: number) {
+    setParams({
+      village: snapshot.village.id,
+      screen: type === 'player' ? 'info_player' : 'info_village',
+      id: targetId,
+    });
   }
   const data = report.data,
-    error = report.error ?? list.error;
-  const buildingName = (code: string) => snapshot.buildings.find((b) => b.code === code)?.name ?? code;
+    error = report.error ?? list.error ?? action.error;
+  const buildingName = (code: string) =>
+    snapshot.buildings.find((b) => b.code === code)?.name ?? code;
   return (
     <div className="legacy-content page-card">
       <header className="page-head">
@@ -125,28 +333,86 @@ export function ReportsPanel({ snapshot, clock }: { snapshot: VillageSnapshot; c
       {id > 0 ? (
         data ? (
           <div className="report-detail">
-            <div className={`report-banner ${data.winner}`}>
+            <div className="report-detail-tools">
+              <button
+                className="button"
+                disabled={!data.previousId}
+                onClick={() => go({ id: data.previousId! })}
+              >
+                <ChevronLeft size={15} aria-hidden="true" /> Mais antigo
+              </button>
+              <button
+                className="button"
+                disabled={!data.nextId}
+                onClick={() => go({ id: data.nextId! })}
+              >
+                Mais novo <ChevronRight size={15} aria-hidden="true" />
+              </button>
+              <button
+                className="button"
+                disabled={action.isPending}
+                onClick={() =>
+                  action.mutate(
+                    { type: 'delete', ids: [data.id] },
+                    { onSuccess: () => go({ id: data.nextId ?? data.previousId ?? 0 }) },
+                  )
+                }
+              >
+                <Trash2 size={14} aria-hidden="true" /> Excluir
+              </button>
+            </div>
+            <div className={`report-banner ${data.outcome}`}>
               <strong>{data.title}</strong>
               <span>
-                {outcome[data.winner]} · {completionDate(data.occurredAt, clock)}
+                {roleText[data.role]} · {outcome[data.outcome]} ·{' '}
+                {completionDate(data.occurredAt, clock)}
               </span>
+              <Marks report={data} />
             </div>
             <dl className="report-parties">
               <div>
                 <dt>Atacante</dt>
                 <dd>
-                  {data.from.username}
+                  {data.from.playerId ? (
+                    <button
+                      className="text-button"
+                      onClick={() => target('player', data.from.playerId!)}
+                    >
+                      {data.from.username}
+                    </button>
+                  ) : (
+                    data.from.username
+                  )}
                   <small>
-                    {data.from.name} ({data.from.x}|{data.from.y})
+                    <button
+                      className="text-button"
+                      onClick={() => target('village', data.from.villageId)}
+                    >
+                      {data.from.name} ({data.from.x}|{data.from.y})
+                    </button>
                   </small>
                 </dd>
               </div>
               <div>
                 <dt>Defensor</dt>
                 <dd>
-                  {data.to.username}
+                  {data.to.playerId ? (
+                    <button
+                      className="text-button"
+                      onClick={() => target('player', data.to.playerId!)}
+                    >
+                      {data.to.username}
+                    </button>
+                  ) : (
+                    data.to.username
+                  )}
                   <small>
-                    {data.to.name} ({data.to.x}|{data.to.y})
+                    <button
+                      className="text-button"
+                      onClick={() => target('village', data.to.villageId)}
+                    >
+                      {data.to.name} ({data.to.x}|{data.to.y})
+                    </button>
                   </small>
                 </dd>
               </div>
@@ -262,7 +528,8 @@ export function ReportsPanel({ snapshot, clock }: { snapshot: VillageSnapshot; c
                 <ul className="report-chips">
                   {data.unitTypes.map((u) => (
                     <li key={u.code}>
-                      {u.name} <strong>{numbers.format(data.intel!.outsideTroops![u.code] ?? 0)}</strong>
+                      {u.name}{' '}
+                      <strong>{numbers.format(data.intel!.outsideTroops![u.code] ?? 0)}</strong>
                     </li>
                   ))}
                 </ul>
@@ -274,51 +541,37 @@ export function ReportsPanel({ snapshot, clock }: { snapshot: VillageSnapshot; c
         )
       ) : list.data ? (
         <>
-          {list.data.reports.length ? (
-            <ul className="report-list">
-              {list.data.reports.map((r) => (
-                <li key={r.id}>
-                  <button
-                    className={`report-row ${r.winner}${r.read ? '' : ' unread'}`}
-                    onClick={() => go({ id: r.id })}
-                  >
-                    <span className="report-dot" aria-label={r.read ? 'Lido' : 'Não lido'} />
-                    <span className="report-title">{r.title}</span>
-                    <span className="report-badge">{outcome[r.winner]}</span>
-                    <time dateTime={r.occurredAt}>{completionDate(r.occurredAt, clock)}</time>
-                  </button>
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p className="empty-state">
-              <Swords size={28} aria-hidden="true" />
-              Nenhum relatório ainda. Batalhas e espionagens aparecem aqui.
-            </p>
-          )}
-          {list.data.pageCount > 1 ? (
-            <nav className="pager" aria-label="Páginas de relatórios">
+          <nav className="report-tabs" aria-label="Tipo de relatório">
+            {tabs.map((tab) => (
               <button
-                className="button"
-                disabled={list.data.page <= 1}
-                onClick={() => go({ page: list.data!.page - 1 })}
-                aria-label="Página anterior"
+                key={tab.code}
+                className={tab.code === group ? 'active' : undefined}
+                aria-current={tab.code === group ? 'page' : undefined}
+                onClick={() =>
+                  setParams({
+                    village: snapshot.village.id,
+                    screen: 'reports',
+                    ...(tab.code === 'all' ? {} : { group: tab.code }),
+                  })
+                }
               >
-                <ChevronLeft size={16} aria-hidden="true" />
+                {tab.label}
+                {list.data.groups[tab.code].unread ? (
+                  <span className="report-count">{list.data.groups[tab.code].unread}</span>
+                ) : null}
               </button>
-              <span>
-                {list.data.page} / {list.data.pageCount}
-              </span>
-              <button
-                className="button"
-                disabled={list.data.page >= list.data.pageCount}
-                onClick={() => go({ page: list.data!.page + 1 })}
-                aria-label="Próxima página"
-              >
-                <ChevronRight size={16} aria-hidden="true" />
-              </button>
-            </nav>
-          ) : null}
+            ))}
+          </nav>
+          <ReportList
+            key={`${group}-${list.data.page}`}
+            data={list.data}
+            clock={clock}
+            group={group}
+            pending={action.isPending}
+            onOpen={(reportId) => go({ id: reportId })}
+            onAction={(input) => action.mutate(input)}
+            onPage={(next) => go({ page: next })}
+          />
         </>
       ) : (
         <p className="muted">Carregando relatórios…</p>

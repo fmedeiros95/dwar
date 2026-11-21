@@ -691,6 +691,7 @@ export const battleReportRecipients = pgTable(
     supportTroops: jsonb('support_troops').$type<Troops>(),
     supportLosses: jsonb('support_losses').$type<Troops>(),
     readAt: timestamp('read_at', { withTimezone: true }),
+    deletedAt: timestamp('deleted_at', { withTimezone: true }),
   },
   (t) => [
     primaryKey({ columns: [t.reportId, t.playerId] }),

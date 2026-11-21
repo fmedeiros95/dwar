@@ -17,6 +17,7 @@ import './theme.css';
 import './skin.css';
 import './frames.css';
 import './bbcode.css';
+import './reports.css';
 
 const client = new QueryClient({
   defaultOptions: { queries: { retry: false, refetchOnWindowFocus: true } },
