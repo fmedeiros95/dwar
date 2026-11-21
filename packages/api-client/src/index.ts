@@ -223,7 +223,14 @@ export type RankingEntry = {
   rankTier: number;
   rankTitle: string;
 };
+/** Painéis do ranking: jogadores, jogadores de um continente e pontos de batalha. */
+export type RankingBoard = 'player' | 'continent' | 'kills';
+/** Pontos de batalha: unidades derrotadas atacando, defendendo ou as duas somadas. */
+export type RankingKillType = 'att' | 'def' | 'all';
 export type RankingPage = {
+  board: RankingBoard;
+  type: RankingKillType;
+  continent: number;
   mode: 'list' | 'search';
   page: number;
   pageCount: number;
@@ -718,8 +725,21 @@ export const api = {
       method: 'POST',
       body: JSON.stringify({ name }),
     }),
-  ranking: (worldId: number, options: { page?: number; search?: string } = {}) => {
+  ranking: (
+    worldId: number,
+    options: {
+      page?: number;
+      search?: string;
+      board?: RankingBoard;
+      type?: RankingKillType;
+      continent?: number;
+    } = {},
+  ) => {
     const query = new URLSearchParams();
+    if (options.board && options.board !== 'player') query.set('board', options.board);
+    if (options.board === 'kills' && options.type) query.set('type', options.type);
+    if (options.board === 'continent' && options.continent !== undefined)
+      query.set('continent', String(options.continent));
     if (options.search) query.set('search', options.search);
     else if (options.page) query.set('page', String(options.page));
     const search = query.toString();

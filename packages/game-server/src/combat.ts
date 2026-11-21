@@ -505,6 +505,19 @@ export async function resolveAttack(
   }
   recipients.set(movement.ownerPlayerId, { role: 'attacker' });
   if (result.to.playerId !== null) recipients.set(result.to.playerId, { role: 'defender' });
+  // Pontos de batalha: cada lado ganha as unidades que o outro perdeu.
+  const total = (troops: Troops) => unitCodes.reduce((sum, code) => sum + troops[code], 0);
+  await tx
+    .update(players)
+    .set({ unitsKilledAttack: sql`${players.unitsKilledAttack} + ${total(result.defenderLosses)}` })
+    .where(eq(players.id, movement.ownerPlayerId));
+  if (result.to.playerId !== null)
+    await tx
+      .update(players)
+      .set({
+        unitsKilledDefense: sql`${players.unitsKilledDefense} + ${total(result.attackerLosses)}`,
+      })
+      .where(eq(players.id, result.to.playerId));
   for (const [playerId, access] of recipients)
     await tx
       .insert(battleReportRecipients)

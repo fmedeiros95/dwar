@@ -11,6 +11,7 @@ import {
   foreignKey,
   boolean,
   primaryKey,
+  bigint,
 } from 'drizzle-orm/pg-core';
 import { sql } from 'drizzle-orm';
 import type {
@@ -113,6 +114,9 @@ export const players = pgTable(
     lastConqueredAt: timestamp('last_conquered_at', { withTimezone: true }),
     personalText: text('personal_text'),
     avatarPath: text('avatar_path'),
+    /** Pontos de batalha: unidades inimigas derrotadas atacando e defendendo. */
+    unitsKilledAttack: bigint('units_killed_attack', { mode: 'number' }).notNull().default(0),
+    unitsKilledDefense: bigint('units_killed_defense', { mode: 'number' }).notNull().default(0),
     createdAt: time('created_at').defaultNow(),
   },
   (table) => [

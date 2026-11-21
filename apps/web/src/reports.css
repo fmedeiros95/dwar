@@ -209,3 +209,48 @@
   transform: scale(1.35);
   outline: none;
 }
+
+/* Ranking: subabas de batalha e seletor de continente. */
+.rank-subtabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: -4px 0 12px;
+}
+.rank-subtabs button {
+  padding: 5px 12px;
+  font: inherit;
+  font-size: 13px;
+  color: inherit;
+  background: transparent;
+  border: 1px solid var(--line-soft);
+  border-radius: 999px;
+  cursor: pointer;
+}
+.rank-subtabs button.active {
+  color: #f6ead0;
+  background: #2b1d12;
+  border-color: #2b1d12;
+}
+.rank-continent {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin: -4px 0 12px;
+}
+.rank-continent label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+}
+.rank-continent input {
+  width: 48px;
+  padding: 4px 6px;
+  text-align: center;
+  font: inherit;
+  background: var(--surface-sunken);
+  border: 1px solid var(--line-soft);
+  border-radius: 5px;
+}
