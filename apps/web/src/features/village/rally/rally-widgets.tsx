@@ -21,17 +21,29 @@ export function UnitCells({
   return types.map(({ code }) => <td key={code}>{numbers.format(counts[code] ?? 0)}</td>);
 }
 
+/** O que foi digitado no envio de tropas, guardado para voltar da confirmação sem perder nada. */
+export type SendDraft = {
+  x: string;
+  y: string;
+  counts: Record<string, string>;
+  kind: 'support' | 'attack';
+};
+
 export function SendForm({
   data,
   pending,
   x,
   y,
+  initial,
+  onDraft,
   onPreview,
 }: {
   data: RallySnapshot;
   pending: boolean;
   x: string;
   y: string;
+  initial?: SendDraft | null;
+  onDraft?: (draft: SendDraft) => void;
   onPreview: (
     x: number,
     y: number,
@@ -40,11 +52,17 @@ export function SendForm({
     targetBuilding?: string,
   ) => void;
 }) {
-  const [counts, setCounts] = useState<Record<string, string>>({});
-  const [kind, setKind] = useState<'support' | 'attack'>('attack');
+  const [counts, setCounts] = useState<Record<string, string>>(initial?.counts ?? {});
+  const [kind, setKind] = useState<'support' | 'attack'>(initial?.kind ?? 'attack');
   function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const form = new FormData(event.currentTarget);
+    onDraft?.({
+      x: String(form.get('x')),
+      y: String(form.get('y')),
+      counts,
+      kind: form.get('kind') === 'attack' ? 'attack' : 'support',
+    });
     onPreview(
       Number(form.get('x')),
       Number(form.get('y')),
@@ -126,7 +144,7 @@ export function SendForm({
             inputMode="numeric"
             pattern="[0-9]+"
             required
-            defaultValue={x}
+            defaultValue={initial?.x ?? x}
             disabled={pending}
           />
         </label>{' '}
@@ -140,7 +158,7 @@ export function SendForm({
             inputMode="numeric"
             pattern="[0-9]+"
             required
-            defaultValue={y}
+            defaultValue={initial?.y ?? y}
             disabled={pending}
           />
         </label>{' '}

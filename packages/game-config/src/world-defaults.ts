@@ -24,5 +24,6 @@ export const worldDefaults = {
   rulesVersion: 'v1',
   buildSpeed: 1200,
   productionSpeed: 1000,
+  unitSpeed: 1000,
   maxBuildQueue: 5,
 } as const;

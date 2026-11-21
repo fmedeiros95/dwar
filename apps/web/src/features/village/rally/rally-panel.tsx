@@ -12,8 +12,9 @@ import {
   type TroopCounts,
   type VillageSnapshot,
 } from '@dwar/api-client';
-import { completionDate, duration } from '../shared/index.js';
-import { SendForm, UnitCells, UnitHeaders } from './rally-widgets.js';
+import { completionDate, duration, numbers, speedLabel } from '../shared/index.js';
+import { TripSummary } from '../shared/trip-summary.js';
+import { SendForm, UnitCells, UnitHeaders, type SendDraft } from './rally-widgets.js';
 
 export function RallyPanel({
   snapshot,
@@ -26,7 +27,8 @@ export function RallyPanel({
     villageId = snapshot.village.id;
   const client = useQueryClient(),
     [params, setParams] = useSearchParams();
-  const [confirmation, setConfirmation] = useState<SupportPreview | null>(null),
+  const [draft, setDraft] = useState<SendDraft | null>(null),
+    [confirmation, setConfirmation] = useState<SupportPreview | null>(null),
     [version, setVersion] = useState(0),
     [notice, setNotice] = useState('');
   const intent = useRef<{ action: RallyAction; requestId: string } | null>(null);
@@ -66,6 +68,7 @@ export function RallyPanel({
       client.setQueryData(key, data);
       void client.invalidateQueries({ queryKey: ['village', worldId] });
       setConfirmation(null);
+      setDraft(null);
       setVersion((value) => value + 1);
       preview.reset();
       setNotice(
@@ -126,104 +129,128 @@ export function RallyPanel({
   const totals = Object.fromEntries(
     data.unitTypes.map(({ code }) => [code, data.home[code]! + data.guests[code]!]),
   );
-  if (confirmation)
+  if (confirmation) {
+    const { target } = confirmation;
+    const attack = confirmation.kind === 'attack';
+    const note =
+      target.playerId === null
+        ? `Aldeia abandonada · ${numbers.format(target.points)} pts`
+        : target.own
+          ? `Sua aldeia · ${numbers.format(target.points)} pts`
+          : `${target.username} · ${numbers.format(target.points)} pts`;
+    const sentUnits = data.unitTypes.reduce(
+      (sum, unit) => sum + (confirmation.troops[unit.code] ?? 0),
+      0,
+    );
     return (
-      <div className="legacy-content">
+      <div className="legacy-content confirm">
         {alert}
-        <table className="legacy-table market-confirm">
-          <thead>
-            <tr>
-              <th colSpan={2}>Informações:</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td>Destino:</td>
-              <td>{confirmation.target.name}</td>
-            </tr>
-            <tr>
-              <td>Coordenadas:</td>
-              <td>
-                {confirmation.target.x}|{confirmation.target.y} K
-                {Math.floor(confirmation.target.y / 100)}
-                {Math.floor(confirmation.target.x / 100)}
-              </td>
-            </tr>
-            <tr>
-              <td>Jogador:</td>
-              <td>{confirmation.target.username}</td>
-            </tr>
-            {confirmation.morale !== null ? (
-              <tr>
-                <td>Moral:</td>
-                <td>{confirmation.morale}%</td>
-              </tr>
-            ) : null}
-            {confirmation.targetBuilding ? (
-              <tr>
-                <td>Alvo das catapultas:</td>
-                <td>
-                  {data.catapultTargets.find((b) => b.code === confirmation.targetBuilding)?.name}
-                </td>
-              </tr>
-            ) : null}
-            <tr>
-              <td>Duração:</td>
-              <td>{duration(confirmation.durationSeconds)}</td>
-            </tr>
-            <tr>
-              <td>Chegada:</td>
-              <td>
-                {completionDate(
-                  new Date(clock + confirmation.durationSeconds * 1000).toISOString(),
-                  clock,
-                )}
-              </td>
-            </tr>
-            <tr>
-              <td colSpan={2}>
-                <button
-                  disabled={pending}
-                  onClick={() =>
-                    perform({
-                      type: confirmation.kind,
-                      ...(confirmation.kind === 'attack' && confirmation.targetBuilding
-                        ? { targetBuilding: confirmation.targetBuilding }
-                        : {}),
-                      targetId: confirmation.target.id,
-                      troops: confirmation.troops,
-                    })
-                  }
-                >
-                  {confirmation.kind === 'attack' ? 'Atacar' : 'Apoiar'}
-                </button>{' '}
-                <button
-                  disabled={pending}
-                  className="text-button"
-                  onClick={() => setConfirmation(null)}
-                >
-                  Voltar
-                </button>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-        <div className="table-scroll">
-          <table className="legacy-table rally-units">
-            <thead>
-              <tr>
-                <UnitHeaders types={data.unitTypes} />
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <UnitCells types={data.unitTypes} counts={confirmation.troops} />
-              </tr>
-            </tbody>
-          </table>
+        <TripSummary
+          label={attack ? 'Ataque' : 'Apoio'}
+          tone={attack ? 'attack' : 'support'}
+          origin={confirmation.origin}
+          target={target}
+          targetNote={note}
+          distance={confirmation.distance}
+          durationSeconds={confirmation.durationSeconds}
+          departsAt={confirmation.departsAt}
+          arrivesAt={new Date(clock + confirmation.durationSeconds * 1000).toISOString()}
+          returnsAt={
+            confirmation.returnsAt
+              ? new Date(clock + confirmation.durationSeconds * 2000).toISOString()
+              : null
+          }
+          returnLabel="Tropas de volta"
+          clock={clock}
+          footnote={`Velocidade do mundo ${speedLabel(confirmation.speeds.world)} · tropas ${speedLabel(confirmation.speeds.units)} · a unidade mais lenta (${confirmation.slowest.name}) define o tempo.`}
+        />
+        <ul className="confirm-facts">
+          <li>
+            <small>Unidades enviadas</small>
+            <strong>{numbers.format(sentUnits)}</strong>
+          </li>
+          <li>
+            <small>População</small>
+            <strong>{numbers.format(confirmation.population)}</strong>
+          </li>
+          {confirmation.carry !== null ? (
+            <li>
+              <small>Capacidade de saque</small>
+              <strong>{numbers.format(confirmation.carry)}</strong>
+            </li>
+          ) : null}
+          {confirmation.morale !== null ? (
+            <li>
+              <small>Moral</small>
+              <strong>{confirmation.morale}%</strong>
+            </li>
+          ) : null}
+          {confirmation.targetBuilding ? (
+            <li>
+              <small>Alvo das catapultas</small>
+              <strong>
+                {data.catapultTargets.find((b) => b.code === confirmation.targetBuilding)?.name}
+              </strong>
+            </li>
+          ) : null}
+        </ul>
+        <section className="confirm-block">
+          <h2>Tropas enviadas</h2>
+          <div className="table-scroll">
+            <table className="legacy-table rally-units">
+              <thead>
+                <tr>
+                  <UnitHeaders types={data.unitTypes} />
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <UnitCells types={data.unitTypes} counts={confirmation.troops} />
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+        <section className="confirm-block">
+          <h2>Ficam na aldeia</h2>
+          <div className="table-scroll">
+            <table className="legacy-table rally-units">
+              <thead>
+                <tr>
+                  <UnitHeaders types={data.unitTypes} />
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <UnitCells types={data.unitTypes} counts={confirmation.remaining} />
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+        <div className="confirm-actions">
+          <button
+            disabled={pending}
+            onClick={() =>
+              perform({
+                type: confirmation.kind,
+                ...(attack && confirmation.targetBuilding
+                  ? { targetBuilding: confirmation.targetBuilding }
+                  : {}),
+                targetId: target.id,
+                troops: confirmation.troops,
+              })
+            }
+          >
+            {attack ? 'Atacar' : 'Apoiar'}
+          </button>
+          <button disabled={pending} className="text-button" onClick={() => setConfirmation(null)}>
+            Voltar
+          </button>
         </div>
       </div>
     );
+  }
   return (
     <div className="market-layout">
       <aside>
@@ -273,6 +300,8 @@ export function RallyPanel({
             pending={pending}
             x={params.get('x') ?? ''}
             y={params.get('y') ?? ''}
+            initial={draft}
+            onDraft={setDraft}
             onPreview={(x, y, troops, kind, targetBuilding) =>
               preview.mutate({ x, y, troops, kind, targetBuilding })
             }

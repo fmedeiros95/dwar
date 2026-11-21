@@ -32,3 +32,7 @@ export function completionDate(value: string, now: number): string {
     date.getDate() === other.getDate();
   return `${sameDay(today) ? 'hoje' : sameDay(tomorrow) ? 'amanhã' : shortDate.format(date)} às ${shortTime.format(date)}`;
 }
+
+/** Velocidade guardada em milésimos (1200 = 1,2×), do jeito que o jogador lê. */
+export const speedLabel = (thousandths: number) =>
+  `${(thousandths / 1000).toLocaleString('pt-BR', { maximumFractionDigits: 2 })}×`;

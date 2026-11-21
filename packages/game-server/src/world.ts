@@ -44,10 +44,10 @@ export async function enterWorld(accountId: number, worldId: number): Promise<Wo
 
 export async function updateWorldSpeed(
   worldId: number,
-  settings: { buildSpeed: number; productionSpeed: number },
+  settings: { buildSpeed: number; productionSpeed: number; unitSpeed?: number },
 ): Promise<WorldRow> {
   if (
-    ![settings.buildSpeed, settings.productionSpeed].every(
+    ![settings.buildSpeed, settings.productionSpeed, settings.unitSpeed ?? 1000].every(
       (value) => Number.isSafeInteger(value) && value > 0 && value <= 2147483647,
     )
   )

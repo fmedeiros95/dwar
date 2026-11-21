@@ -13,7 +13,14 @@ import {
   activity,
   type Transaction,
 } from '@dwar/database';
-import { unitCodes, units, type Troops, type UnitCode } from '@dwar/game-config';
+import {
+  combatStats,
+  movementSpeeds,
+  unitCodes,
+  units,
+  type Troops,
+  type UnitCode,
+} from '@dwar/game-config';
 import { troopDuration } from '@dwar/game-core';
 import type {
   PublicVillage,
@@ -348,7 +355,11 @@ export async function previewSupport(
         )
       : null;
   const targetBuilding = kind === 'attack' ? checkedTarget(troops, building) : null;
-  const durationSeconds = troopDuration(village, target, troops, world.buildSpeed);
+  const durationSeconds = troopDuration(village, target, troops, world.buildSpeed, world.unitSpeed);
+  const sent = unitCodes.filter((code) => troops[code] > 0);
+  const slowestCode = sent.reduce((a, b) => (movementSpeeds[b] > movementSpeeds[a] ? b : a));
+  const home = await stationedTroops(tx, village.id, village.id);
+  const arrives = now.getTime() + durationSeconds * 1000;
   return {
     kind,
     morale: conditions?.morale ?? null,
@@ -356,7 +367,22 @@ export async function previewSupport(
     target,
     troops,
     durationSeconds,
-    arrivesAt: new Date(now.getTime() + durationSeconds * 1000).toISOString(),
+    arrivesAt: new Date(arrives).toISOString(),
+    origin: { id: village.id, name: village.name, x: village.x, y: village.y },
+    distance: Math.round(Math.hypot(target.x - village.x, target.y - village.y) * 100) / 100,
+    departsAt: now.toISOString(),
+    // Em ataques a volta leva o mesmo tempo, se todas as unidades sobreviverem.
+    returnsAt: kind === 'attack' ? new Date(arrives + durationSeconds * 1000).toISOString() : null,
+    speeds: { world: world.buildSpeed, units: world.unitSpeed },
+    slowest: { code: slowestCode, name: units[slowestCode].name },
+    population: sent.reduce((sum, code) => sum + troops[code] * units[code].population, 0),
+    carry:
+      kind === 'attack'
+        ? unitCodes.reduce((sum, code) => sum + troops[code] * combatStats[code].carry, 0)
+        : null,
+    remaining: Object.fromEntries(
+      unitCodes.map((code) => [code, Math.max(0, home[code] - troops[code])]),
+    ) as TroopCounts,
   };
 }
 export async function settleTroopArrivals(
@@ -540,7 +566,7 @@ export async function performRallyAction(
         ),
       );
   }
-  const durationSeconds = troopDuration(from, to, troops, world.buildSpeed);
+  const durationSeconds = troopDuration(from, to, troops, world.buildSpeed, world.unitSpeed);
   await tx.insert(troopMovements).values({
     worldId: world.id,
     originVillageId: village.id,

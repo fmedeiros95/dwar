@@ -114,7 +114,9 @@ export async function readMapPopup(
                 .filter((item) => item.originVillageId !== targetId)
                 .reduce((sum, item) => sum + item.quantity, 0)
             : null,
-          seconds: current ? null : troopDuration(from, target, single, world.buildSpeed),
+          seconds: current
+            ? null
+            : troopDuration(from, target, single, world.buildSpeed, world.unitSpeed),
         };
       }),
     };

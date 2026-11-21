@@ -292,12 +292,27 @@ export async function previewTrade(
     target = [...known.values()].find((row) => row.x === x && row.y === y);
   await validateSend(tx, village, target, resources);
   const durationSeconds = tradeDuration(village, target!, world.buildSpeed, 'normal');
+  const merchants = requiredMerchants(resources);
+  const arrives = now.getTime() + durationSeconds * 1000;
   return {
     target: target!,
     resources,
-    merchants: requiredMerchants(resources),
+    merchants,
     durationSeconds,
-    arrivesAt: new Date(now.getTime() + durationSeconds * 1000).toISOString(),
+    arrivesAt: new Date(arrives).toISOString(),
+    origin: { id: village.id, name: village.name, x: village.x, y: village.y },
+    distance: Math.round(Math.hypot(target!.x - village.x, target!.y - village.y) * 100) / 100,
+    departsAt: now.toISOString(),
+    // Os mercadores voltam para casa no mesmo tempo da ida.
+    returnsAt: new Date(arrives + durationSeconds * 1000).toISOString(),
+    worldSpeed: world.buildSpeed,
+    merchantsAvailable: (await merchantState(tx, village)).available,
+    capacity: merchants * merchantCapacity,
+    remaining: {
+      wood: Math.floor(village.wood - resources.wood),
+      stone: Math.floor(village.stone - resources.stone),
+      iron: Math.floor(village.iron - resources.iron),
+    },
   };
 }
 async function shipment(

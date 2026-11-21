@@ -86,6 +86,8 @@ export const worlds = pgTable(
     rulesVersion: text('rules_version').notNull(),
     buildSpeed: integer('build_speed').notNull(),
     productionSpeed: integer('production_speed').notNull(),
+    /** Velocidade das tropas em milésimos (só o tempo de viagem); 1000 = normal. */
+    unitSpeed: integer('unit_speed').notNull().default(1000),
     maxBuildQueue: integer('max_build_queue').notNull(),
     /** Aldeias bárbaras criadas a cada jogador novo. */
     barbarianVillagesPerPlayer: integer('barbarian_villages_per_player').notNull().default(1),

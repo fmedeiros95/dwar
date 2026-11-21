@@ -21,7 +21,7 @@ import { MedalsPanel } from './medals/index.js';
 import { RankingScreen } from './ranking/index.js';
 import { SettingsScreen } from './settings/index.js';
 import { useVillageActions } from './use-village-actions.js';
-import { numbers, resources, timeFormat } from './shared/index.js';
+import { numbers, resources, speedLabel, timeFormat } from './shared/index.js';
 
 const backgroundScreens = ['overview', 'map'];
 const windowTitles: Record<string, string> = {
@@ -482,8 +482,15 @@ export function VillagePage({
       }
       subbar={
         <>
-          <Link to="/worlds" className="subbar-world">
+          <Link
+            to="/worlds"
+            className="subbar-world"
+            title={`Velocidades: mundo ${speedLabel(data.world.buildSpeed)} · produção ${speedLabel(data.world.productionSpeed)} · tropas ${speedLabel(data.world.unitSpeed)}`}
+          >
             {data.world.name}
+            <small className="subbar-speeds">
+              {speedLabel(data.world.buildSpeed)} · {speedLabel(data.world.unitSpeed)} tropas
+            </small>
           </Link>
           <div className="subbar-links">
             {['main', 'noble', 'barracks', 'stable', 'workshop', 'market', 'place'].flatMap(

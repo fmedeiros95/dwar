@@ -14,6 +14,8 @@ export type World = {
   name: string;
   buildSpeed: number;
   productionSpeed: number;
+  /** Velocidade das tropas (só o tempo de viagem), em milésimos; 1000 = normal. */
+  unitSpeed: number;
   maxBuildQueue: number;
   rulesVersion: string;
   /** Aldeias bárbaras criadas a cada jogador novo. */
@@ -139,6 +141,18 @@ export type TradePreview = {
   merchants: number;
   durationSeconds: number;
   arrivesAt: string;
+  /** Aldeia de origem, distância em campos e horários da viagem (os mercadores voltam depois). */
+  origin: { id: number; name: string; x: number; y: number };
+  distance: number;
+  departsAt: string;
+  returnsAt: string;
+  /** Velocidade do mundo em milésimos (1000 = normal). */
+  worldSpeed: number;
+  merchantsAvailable: number;
+  /** Quanto os mercadores levam no total (mercadores × capacidade de cada um). */
+  capacity: number;
+  /** Recursos que sobram na aldeia depois do envio. */
+  remaining: Resources;
 };
 export type ShipmentView = {
   id: number;
@@ -324,6 +338,21 @@ export type SupportPreview = {
   troops: TroopCounts;
   durationSeconds: number;
   arrivesAt: string;
+  origin: { id: number; name: string; x: number; y: number };
+  /** Distância em campos. */
+  distance: number;
+  departsAt: string;
+  /** Quando as tropas voltam, se nenhuma morrer (só em ataques). */
+  returnsAt: string | null;
+  /** Velocidades em milésimos (1000 = normal): a do mundo e a das tropas. */
+  speeds: { world: number; units: number };
+  /** A unidade mais lenta, que define o tempo de viagem do grupo. */
+  slowest: { code: string; name: string };
+  population: number;
+  /** Quanto as tropas conseguem carregar de saque (só em ataques). */
+  carry: number | null;
+  /** Tropas que continuam na aldeia depois do envio. */
+  remaining: TroopCounts;
 };
 export type RallyAction =
   | { type: 'attack'; targetId: number; troops: TroopCounts; targetBuilding?: string }

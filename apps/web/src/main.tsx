@@ -19,6 +19,7 @@ import './frames.css';
 import './bbcode.css';
 import './reports.css';
 import './medals.css';
+import './travel.css';
 
 const client = new QueryClient({
   defaultOptions: { queries: { retry: false, refetchOnWindowFocus: true } },

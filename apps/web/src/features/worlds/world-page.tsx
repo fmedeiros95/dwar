@@ -1,9 +1,10 @@
 import { worldEntryPath } from '../../routing.js';
 import { useNavigate } from 'react-router-dom';
 import { useMutation, useQuery } from '@tanstack/react-query';
-import { Globe, Hammer, Sprout } from 'lucide-react';
+import { Footprints, Globe, Hammer, Sprout } from 'lucide-react';
 import { api, type Account } from '@dwar/api-client';
 import { PregameShell } from '../../components/pregame-shell.js';
+import { speedLabel } from '../village/shared/format.js';
 
 export function WorldPage({
   account,
@@ -49,13 +50,17 @@ export function WorldPage({
               <Globe className="world-card-icon" aria-hidden="true" />
               <h2>{world.name}</h2>
               <ul className="world-stats">
-                <li title="Velocidade de construção">
+                <li title="Velocidade do mundo: construção, recrutamento, mercado e lealdade">
                   <Hammer size={15} aria-hidden="true" />
-                  Construção <strong>{world.buildSpeed / 1000}×</strong>
+                  Mundo <strong>{speedLabel(world.buildSpeed)}</strong>
                 </li>
-                <li title="Velocidade de produção">
+                <li title="Velocidade de produção de recursos">
                   <Sprout size={15} aria-hidden="true" />
-                  Produção <strong>{world.productionSpeed / 1000}×</strong>
+                  Produção <strong>{speedLabel(world.productionSpeed)}</strong>
+                </li>
+                <li title="Velocidade de viagem das tropas">
+                  <Footprints size={15} aria-hidden="true" />
+                  Tropas <strong>{speedLabel(world.unitSpeed)}</strong>
                 </li>
               </ul>
               <button

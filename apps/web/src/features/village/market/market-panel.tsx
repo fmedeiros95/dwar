@@ -13,7 +13,8 @@ import {
   type VillageSnapshot,
 } from '@dwar/api-client';
 import { ResourceIcon } from '../../../components/legacy-frame.js';
-import { completionDate, duration, numbers, resources } from '../shared/index.js';
+import { numbers, resources, speedLabel } from '../shared/index.js';
+import { TripSummary } from '../shared/trip-summary.js';
 import { Cargo, CreateOffer, Merchants, Offers, Transports } from './market-widgets.js';
 
 const modes = [
@@ -39,7 +40,8 @@ export function MarketPanel({
     [params, setParams] = useSearchParams();
   const mode = modes.some((row) => row.code === params.get('mode')) ? params.get('mode')! : 'send';
   const [confirmation, setConfirmation] = useState<TradePreview | null>(null),
-    [formVersion, setFormVersion] = useState(0);
+    [formVersion, setFormVersion] = useState(0),
+    [draft, setDraft] = useState<Record<string, string> | null>(null);
   const intent = useRef<{ action: MarketAction; requestId: string } | null>(null);
   const key = ['market', worldId, villageId];
   const market = useQuery({
@@ -71,6 +73,7 @@ export function MarketPanel({
       if (input.action.type === 'accept_offer' || input.action.type === 'send') {
         changeMode('send');
         setFormVersion((value) => value + 1);
+        setDraft(null);
       }
     },
     onError: (error) => {
@@ -112,74 +115,91 @@ export function MarketPanel({
         <button onClick={() => void market.refetch()}>Atualizar</button>
       </div>
     );
-  if (confirmation)
+  if (confirmation) {
+    const { target } = confirmation;
+    const total =
+      confirmation.resources.wood + confirmation.resources.stone + confirmation.resources.iron;
+    const usage = confirmation.capacity ? Math.round((total / confirmation.capacity) * 100) : 0;
     return (
-      <div className="legacy-content">
+      <div className="legacy-content confirm">
         {alert}
-        <table className="legacy-table market-confirm">
-          <thead>
-            <tr>
-              <th colSpan={2}>Transporte:</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td>Destino:</td>
-              <td>
-                {confirmation.target.name} ({confirmation.target.x}|{confirmation.target.y})
-              </td>
-            </tr>
-            <tr>
-              <td>Jogador:</td>
-              <td>{confirmation.target.username}</td>
-            </tr>
-            <tr>
-              <td>Recursos:</td>
-              <td>
-                <Cargo value={confirmation.resources} />
-              </td>
-            </tr>
-            <tr>
-              <td>Mercadores:</td>
-              <td>{confirmation.merchants}</td>
-            </tr>
-            <tr>
-              <td>Duração:</td>
-              <td>{duration(confirmation.durationSeconds)}</td>
-            </tr>
-            <tr>
-              <td>Chegada:</td>
-              <td>{completionDate(confirmation.arrivesAt, clock)}</td>
-            </tr>
-          </tbody>
-          <tfoot>
-            <tr>
-              <th colSpan={2}>
-                <button disabled={pending} onClick={() => setConfirmation(null)}>
-                  Voltar
-                </button>{' '}
-                <button
-                  aria-label="Confirmar envio"
-                  disabled={pending}
-                  onClick={() =>
-                    perform({
-                      type: 'send',
-                      targetId: confirmation.target.id,
-                      resources: confirmation.resources,
-                    })
-                  }
-                >
-                  OK
-                </button>
-              </th>
-            </tr>
-          </tfoot>
-        </table>
+        <TripSummary
+          label="Remessa"
+          tone="trade"
+          origin={confirmation.origin}
+          target={target}
+          targetNote={target.username}
+          distance={confirmation.distance}
+          durationSeconds={confirmation.durationSeconds}
+          departsAt={confirmation.departsAt}
+          arrivesAt={confirmation.arrivesAt}
+          returnsAt={confirmation.returnsAt}
+          returnLabel="Mercadores de volta"
+          clock={clock}
+          footnote={`Velocidade do mundo ${speedLabel(confirmation.worldSpeed)}. Os mercadores levam o mesmo tempo para voltar.`}
+        />
+        <section className="confirm-block">
+          <h2>Carga</h2>
+          <p>
+            <Cargo value={confirmation.resources} />
+          </p>
+          <div
+            className="confirm-bar"
+            role="progressbar"
+            aria-label="Capacidade dos mercadores usada"
+            aria-valuemin={0}
+            aria-valuemax={100}
+            aria-valuenow={usage}
+          >
+            <span style={{ width: `${usage}%` }} />
+          </div>
+          <small className="muted">
+            {numbers.format(total)} de {numbers.format(confirmation.capacity)} de capacidade
+          </small>
+        </section>
+        <ul className="confirm-facts">
+          <li>
+            <small>Mercadores usados</small>
+            <strong>
+              {confirmation.merchants} de {confirmation.merchantsAvailable} disponíveis
+            </strong>
+          </li>
+          <li>
+            <small>Mercadores livres depois</small>
+            <strong>{confirmation.merchantsAvailable - confirmation.merchants}</strong>
+          </li>
+          <li>
+            <small>Sobra na aldeia</small>
+            <strong>
+              <Cargo value={confirmation.remaining} />
+            </strong>
+          </li>
+        </ul>
+        <div className="confirm-actions">
+          <button
+            aria-label="Confirmar envio"
+            disabled={pending}
+            onClick={() =>
+              perform({
+                type: 'send',
+                targetId: target.id,
+                resources: confirmation.resources,
+              })
+            }
+          >
+            Enviar
+          </button>
+          <button disabled={pending} className="text-button" onClick={() => setConfirmation(null)}>
+            Voltar
+          </button>
+        </div>
       </div>
     );
+  }
   function send(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const form = new FormData(event.currentTarget);
+    setDraft(Object.fromEntries([...form.entries()].map(([name, value]) => [name, String(value)])));
     preview.mutate({
       x: Number(form.get('x')),
       y: Number(form.get('y')),
@@ -248,6 +268,7 @@ export function MarketPanel({
                         <td>
                           <input
                             name={code}
+                            defaultValue={draft?.[code] ?? ''}
                             aria-label={`Enviar ${name}`}
                             inputMode="numeric"
                             pattern="[0-9]*"
@@ -278,7 +299,7 @@ export function MarketPanel({
                           X:{' '}
                           <input
                             name="x"
-                            defaultValue={params.get('x') ?? ''}
+                            defaultValue={draft?.x ?? params.get('x') ?? ''}
                             aria-label="Coordenada X"
                             inputMode="numeric"
                             pattern="[0-9]+"
@@ -294,7 +315,7 @@ export function MarketPanel({
                           Y:{' '}
                           <input
                             name="y"
-                            defaultValue={params.get('y') ?? ''}
+                            defaultValue={draft?.y ?? params.get('y') ?? ''}
                             aria-label="Coordenada Y"
                             inputMode="numeric"
                             pattern="[0-9]+"

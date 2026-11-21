@@ -1,0 +1,200 @@
+/* Velocidades do mundo na barra e resumos de viagem (Praça de reunião e Mercado). */
+.subbar-world .subbar-speeds {
+  margin-left: 8px;
+  padding: 1px 7px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--muted);
+  border: 1px solid var(--line-soft);
+  border-radius: 999px;
+}
+
+.trip {
+  display: grid;
+  gap: 14px;
+  padding: 16px;
+  background: var(--surface-sunken);
+  border: 1px solid var(--line-soft);
+  border-top: 4px solid var(--muted);
+  border-radius: var(--radius, 8px);
+}
+.trip.attack {
+  border-top-color: #b5382e;
+}
+.trip.support {
+  border-top-color: #2f6fb0;
+}
+.trip.trade {
+  border-top-color: #c9a227;
+}
+.trip-route {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(130px, 1.1fr) minmax(0, 1fr);
+  align-items: center;
+  gap: 10px;
+}
+.trip-end {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+.trip-end small,
+.trip-steps small {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: var(--muted);
+}
+.trip-end strong {
+  overflow: hidden;
+  font-size: 15px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.trip-end span {
+  font-variant-numeric: tabular-nums;
+}
+.trip-end em {
+  font-size: 12px;
+  font-style: normal;
+  color: var(--muted);
+}
+.trip-end.target {
+  text-align: right;
+}
+.trip-line {
+  display: grid;
+  justify-items: center;
+  gap: 4px;
+  font-size: 12px;
+  text-align: center;
+  color: var(--muted);
+}
+.trip-line i {
+  position: relative;
+  width: 100%;
+  height: 2px;
+  background: currentColor;
+  opacity: 0.55;
+}
+.trip-line i::after {
+  position: absolute;
+  top: -4px;
+  right: -1px;
+  width: 8px;
+  height: 8px;
+  border-top: 2px solid currentColor;
+  border-right: 2px solid currentColor;
+  transform: rotate(45deg);
+  content: '';
+}
+.trip-kind {
+  padding: 1px 10px;
+  font-size: 12px;
+  font-weight: 800;
+  color: #fff;
+  background: var(--muted);
+  border-radius: 999px;
+}
+.trip.attack .trip-kind {
+  background: #b5382e;
+}
+.trip.support .trip-kind {
+  background: #2f6fb0;
+}
+.trip.trade .trip-kind {
+  color: #2b1d12;
+  background: #e0b24a;
+}
+.trip-steps {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.trip-steps li {
+  display: grid;
+  flex: 1 1 140px;
+  gap: 2px;
+  padding: 8px 12px;
+  background: rgba(0, 0, 0, 0.06);
+  border-radius: 6px;
+}
+.trip-steps time {
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.trip-note {
+  margin: 0;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+/* Confirmação: fatos em fichas e blocos de tropas e recursos. */
+.confirm {
+  display: grid;
+  gap: 14px;
+}
+.confirm-facts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.confirm-facts li {
+  display: grid;
+  gap: 1px;
+  padding: 7px 12px;
+  font-size: 13px;
+  background: var(--surface-sunken);
+  border: 1px solid var(--line-soft);
+  border-radius: 6px;
+}
+.confirm-facts small {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--muted);
+}
+.confirm-facts strong {
+  font-variant-numeric: tabular-nums;
+}
+.confirm-block {
+  display: grid;
+  gap: 6px;
+}
+.confirm-block h2 {
+  margin: 0;
+  font-size: 14px;
+}
+.confirm-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+.confirm-bar {
+  height: 8px;
+  overflow: hidden;
+  background: rgba(0, 0, 0, 0.16);
+  border-radius: 4px;
+}
+.confirm-bar span {
+  display: block;
+  height: 100%;
+  background: linear-gradient(90deg, #b88a55, #e3b82c);
+}
+@media (max-width: 640px) {
+  .trip-route {
+    grid-template-columns: 1fr;
+  }
+  .trip-end.target {
+    text-align: left;
+  }
+  .trip-line i {
+    display: none;
+  }
+}
