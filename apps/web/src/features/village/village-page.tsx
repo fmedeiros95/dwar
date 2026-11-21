@@ -456,12 +456,17 @@ export function VillagePage({
               <Clock size={14} aria-hidden="true" />
               <time>{timeFormat.format(new Date(clock))}</time>
             </span>
-            <span className="shell-player" title={`${numbers.format(data.village.points)} pontos`}>
+            <span
+              className="shell-player"
+              title={`${data.player.rank}º de ${numbers.format(data.player.players)} jogadores · ${numbers.format(data.player.points)} pontos em ${data.player.villages} ${data.player.villages === 1 ? 'aldeia' : 'aldeias'} (esta aldeia: ${numbers.format(data.village.points)})`}
+            >
               <span className="shell-avatar" aria-hidden="true">
                 {account.username.slice(0, 1).toUpperCase()}
               </span>
               {account.username}
-              <small>{numbers.format(data.village.points)} pts</small>
+              <small>
+                #{data.player.rank} · {numbers.format(data.player.points)} pts
+              </small>
             </span>
           </div>
         </>

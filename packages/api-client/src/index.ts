@@ -98,8 +98,17 @@ export type AcademyView = {
   mintUnavailableReason: string | null;
   mintResourcesAvailableAt: string | null;
 };
+/** Situação do jogador no mundo: pontos de todas as aldeias somadas e posição no ranking. */
+export type PlayerStanding = {
+  points: number;
+  rank: number;
+  players: number;
+  villages: number;
+  rankTitle: string;
+};
 export type VillageSnapshot = {
   serverTime: string;
+  player: PlayerStanding;
   world: World;
   village: {
     id: number;

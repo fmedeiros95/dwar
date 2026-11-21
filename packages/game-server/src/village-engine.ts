@@ -41,6 +41,7 @@ import { academyView } from './academy.js';
 import { unitViews, settleRecruitment } from './recruitment.js';
 import { settleTransports } from './market.js';
 import { settleTroopArrivals } from './rally.js';
+import { playerStanding } from './standing.js';
 import { GameError } from './errors.js';
 
 export type WorldRow = typeof worlds.$inferSelect;
@@ -231,6 +232,12 @@ export async function settleVillage(
   return settleVillageBase(tx, current!, world, now);
 }
 
+/** Jogador dono da aldeia; o snapshot só existe para aldeias de jogadores. */
+function ownerOf(village: VillageRow): number {
+  if (village.playerId === null) throw new GameError('Aldeia sem proprietário.', 403);
+  return village.playerId;
+}
+
 export async function snapshot(
   tx: Transaction,
   village: VillageRow,
@@ -280,6 +287,7 @@ export async function snapshot(
     .orderBy(asc(recruitmentEvents.startsAt), asc(recruitmentEvents.id));
   const academy = await academyView(tx, village, world, now);
   return {
+    player: await playerStanding(tx, world.id, ownerOf(village)),
     academy,
     units: unitViews(
       village,
