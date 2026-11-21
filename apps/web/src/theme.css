@@ -40,6 +40,14 @@
   color-scheme: dark;
   -webkit-font-smoothing: antialiased;
 }
+/* Barras de rolagem: finas, douradas e discretas em toda a aplicação. */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in srgb, var(--gold) 38%, transparent) transparent;
+}
+*:hover {
+  scrollbar-color: color-mix(in srgb, var(--gold) 65%, transparent) transparent;
+}
 body {
   min-height: 100vh;
 }
@@ -986,18 +994,32 @@ input:focus {
   gap: 16px;
   height: calc(100dvh - var(--topbar-h));
   padding: 14px 8px;
+  overflow-x: hidden;
   overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: none;
   background-color: rgb(18 12 8 / 0.78);
   background-image: var(--noise);
   background-blend-mode: soft-light;
   border-right: 1px solid var(--line);
 }
+.shell-rail::-webkit-scrollbar {
+  display: none;
+}
 .rail-group {
   display: grid;
   gap: 4px;
+  min-width: 0;
+}
+.rail-item > span:not(.rail-icon) {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 .rail-item {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   justify-items: center;
   gap: 5px;
   padding: 10px 2px 8px;
