@@ -8,6 +8,8 @@ import {
   unitPlacements,
   troopMovements,
   troopOperations,
+  battleReports,
+  battleReportRecipients,
   activity,
   type Transaction,
 } from '@dwar/database';
@@ -18,6 +20,7 @@ import type {
   PublicPlayer,
   MapSnapshot,
   MapCommand,
+  MapReportDot,
   RallySnapshot,
   RallyAction,
   SupportPreview,
@@ -34,6 +37,7 @@ import {
 import { capacity, resourceCodes } from '@dwar/game-core';
 import { combatRules, catapultTargets, buildings } from '@dwar/game-config';
 import { mapOptions } from './map-options.js';
+import { addNotices } from './notices.js';
 import { GameError } from './errors.js';
 
 type Village = typeof villages.$inferSelect;
@@ -173,8 +177,48 @@ export async function mapView(
     center: { x, y },
     villages: visible,
     commands: await mapCommands(tx, village, visible),
+    reports: await mapReports(tx, village, visible),
     ...options,
   };
+}
+/** Resultado do último ataque do jogador a cada aldeia visível, para o ponto colorido do mapa. */
+async function mapReports(
+  tx: Transaction,
+  village: Village,
+  visible: PublicVillage[],
+): Promise<MapReportDot[]> {
+  if (!visible.length || !village.playerId) return [];
+  const rows = await tx
+    .selectDistinctOn([battleReports.toVillageId], {
+      villageId: battleReports.toVillageId,
+      reportId: battleReports.id,
+      result: battleReports.result,
+    })
+    .from(battleReports)
+    .innerJoin(battleReportRecipients, eq(battleReportRecipients.reportId, battleReports.id))
+    .where(
+      and(
+        eq(battleReports.worldId, village.worldId),
+        eq(battleReportRecipients.playerId, village.playerId),
+        eq(battleReportRecipients.role, 'attacker'),
+        isNull(battleReportRecipients.deletedAt),
+        inArray(
+          battleReports.toVillageId,
+          visible.map((row) => row.id),
+        ),
+      ),
+    )
+    .orderBy(battleReports.toVillageId, desc(battleReports.occurredAt), desc(battleReports.id));
+  return rows.map(({ villageId, reportId, result }) => {
+    const lost = Object.values(result.attackerLosses).reduce((a, b) => a + b, 0);
+    const dot =
+      result.winner === 'defender'
+        ? 'red'
+        : result.winner === 'attacker' && lost === 0
+          ? 'green'
+          : 'yellow';
+    return { villageId, reportId, dot } as MapReportDot;
+  });
 }
 /** Ordens de tropas pendentes que aparecem como ícones sobre as aldeias visíveis. */
 async function mapCommands(
@@ -200,7 +244,10 @@ async function mapCommands(
         or(
           and(
             eq(troopMovements.ownerPlayerId, village.playerId),
-            or(inArray(troopMovements.toVillageId, ids), inArray(troopMovements.fromVillageId, ids)),
+            or(
+              inArray(troopMovements.toVillageId, ids),
+              inArray(troopMovements.fromVillageId, ids),
+            ),
           ),
           mine.length
             ? and(eq(troopMovements.kind, 'attack'), inArray(troopMovements.toVillageId, mine))
@@ -361,6 +408,15 @@ export async function settleTroopArrivals(
             ),
           )
           .where(eq(villages.id, recipient.id));
+      if (movement.kind === 'support')
+        await addNotices(
+          tx,
+          world.id,
+          movement.fromVillageId,
+          movement.toVillageId,
+          { kind: 'support', troops: movement.troops },
+          movement.endsAt,
+        );
       await tx.insert(activity).values({
         worldId: world.id,
         villageId: recipient.id,

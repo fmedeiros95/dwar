@@ -13,6 +13,7 @@ import {
   type Transaction,
 } from '@dwar/database';
 import { merchantCapacity, merchantCounts, type Resources } from '@dwar/game-config';
+import { addNotices } from './notices.js';
 import { capacity, requiredMerchants, resourceCodes, tradeDuration } from '@dwar/game-core';
 import type {
   MarketAction,
@@ -139,6 +140,18 @@ export async function settleTransports(
       .update(tradeShipments)
       .set({ deliveredAt: now })
       .where(eq(tradeShipments.id, shipment.id));
+    await addNotices(
+      tx,
+      world.id,
+      shipment.fromVillageId,
+      shipment.toVillageId,
+      {
+        kind: 'trade',
+        mode: shipment.mode === 'offer' ? 'offer' : 'normal',
+        resources: shipment.resources,
+      },
+      shipment.endsAt,
+    );
     await tx.insert(activity).values([
       {
         worldId: world.id,

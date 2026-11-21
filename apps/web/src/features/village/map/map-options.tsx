@@ -28,6 +28,7 @@ export function MapOptions({ snapshot, map }: { snapshot: VillageSnapshot; map: 
               contextMenu: form.has('contextMenu'),
               popup: form.has('popup'),
               popupUnits: form.has('popupUnits'),
+              reportDots: form.has('reportDots'),
               popupTimes: form.has('popupTimes'),
             },
           });
@@ -73,6 +74,14 @@ export function MapOptions({ snapshot, map }: { snapshot: VillageSnapshot; map: 
                     defaultChecked={map.settings.popupTimes}
                   />{' '}
                   Mostrar o tempo de viagem das unidades
+                </label>
+                <label>
+                  <input
+                    name="reportDots"
+                    type="checkbox"
+                    defaultChecked={map.settings.reportDots}
+                  />{' '}
+                  Mostrar o resultado do último ataque ao lado das aldeias
                 </label>
               </td>
             </tr>

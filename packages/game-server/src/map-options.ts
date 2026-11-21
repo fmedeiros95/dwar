@@ -29,7 +29,7 @@ export async function performMapAction(
   action: MapAction,
 ) {
   if (action.type === 'settings') {
-    const { width, height, minimapSize, contextMenu, popup, popupUnits, popupTimes } =
+    const { width, height, minimapSize, contextMenu, popup, popupUnits, popupTimes, reportDots } =
       action.settings;
     if (
       ![width, height].every((n) => Number.isInteger(n) && n >= 4 && n <= 30) ||
@@ -40,12 +40,22 @@ export async function performMapAction(
       typeof contextMenu !== 'boolean' ||
       typeof popup !== 'boolean' ||
       typeof popupUnits !== 'boolean' ||
-      typeof popupTimes !== 'boolean'
+      typeof popupTimes !== 'boolean' ||
+      typeof reportDots !== 'boolean'
     )
       throw new GameError('Opções de mapa inválidas.');
     if (minimapSize * 5 > Math.min(width, height) * 60)
       throw new GameError('Reduza o minimapa para caber no tamanho escolhido para o mapa.');
-    const settings = { width, height, minimapSize, contextMenu, popup, popupUnits, popupTimes };
+    const settings = {
+      width,
+      height,
+      minimapSize,
+      contextMenu,
+      popup,
+      popupUnits,
+      popupTimes,
+      reportDots,
+    };
     await tx
       .insert(mapPreferences)
       .values({ playerId, settings })

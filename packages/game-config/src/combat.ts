@@ -145,6 +145,24 @@ export type BattleSide = {
   x: number;
   y: number;
 };
+/** Conteúdo de um relatório que não é batalha: remessa de recursos ou chegada de apoio. */
+export type NoticePayload =
+  | {
+      kind: 'trade';
+      mode: 'normal' | 'offer';
+      /** Papel de quem recebe este aviso: quem enviou ou quem recebeu os recursos. */
+      role: 'sender' | 'receiver';
+      from: BattleSide;
+      to: BattleSide;
+      resources: Resources;
+    }
+  | {
+      kind: 'support';
+      role: 'sender' | 'receiver';
+      from: BattleSide;
+      to: BattleSide;
+      troops: Troops;
+    };
 export type BattleRecord = {
   from: BattleSide;
   to: BattleSide;

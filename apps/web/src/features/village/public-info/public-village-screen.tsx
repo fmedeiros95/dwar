@@ -115,9 +115,17 @@ export function PublicVillageScreen({ snapshot }: { snapshot: VillageSnapshot })
         </thead>
         <tbody>
           {reports.data?.reports.slice(0, 10).map((report) => (
-            <tr key={report.id}>
+            <tr key={`${report.source}:${report.id}`}>
               <td>
-                <button className="text-button" onClick={() => go('reports', { id: report.id })}>
+                <button
+                  className="text-button"
+                  onClick={() =>
+                    go('reports', {
+                      id: report.id,
+                      ...(report.source === 'notice' ? { kind: 'notice' } : {}),
+                    })
+                  }
+                >
                   {report.title}
                 </button>
               </td>

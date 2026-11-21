@@ -139,3 +139,73 @@
     grid-column: 3;
   }
 }
+
+.report-scope {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: auto;
+  padding: 0 10px;
+  font-size: 13px;
+  cursor: pointer;
+}
+.report-confirm {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 10px;
+  font-size: 13px;
+  background: rgba(181, 56, 46, 0.12);
+  border: 1px solid #b5382e;
+  border-radius: 6px;
+}
+.report-confirm .button.danger {
+  color: #fff;
+  background: #b5382e;
+}
+.report-item.neutral .report-row {
+  border-left-color: var(--muted);
+}
+.report-banner.neutral {
+  border-left-color: var(--muted);
+}
+.report-loss {
+  margin-left: auto;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--muted);
+}
+.report-side h2 {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* Mapa: resultado do último ataque a cada aldeia. */
+.map-report-dot {
+  position: absolute;
+  bottom: 3px;
+  left: 3px;
+  z-index: 4;
+  width: 11px;
+  height: 11px;
+  padding: 0;
+  border: 1.5px solid rgba(255, 255, 255, 0.9);
+  border-radius: 50%;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.55);
+  cursor: pointer;
+}
+.map-report-dot.green {
+  background: #3fae4f;
+}
+.map-report-dot.yellow {
+  background: #e3b82c;
+}
+.map-report-dot.red {
+  background: #d23a2e;
+}
+.map-report-dot:hover,
+.map-report-dot:focus-visible {
+  transform: scale(1.35);
+  outline: none;
+}

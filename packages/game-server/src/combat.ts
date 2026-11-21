@@ -124,7 +124,7 @@ export async function placeTroops(
           set: { quantity: sql`${unitPlacements.quantity}+${troops[c]}` },
         });
 }
-async function side(
+export async function side(
   tx: Transaction,
   village: Village,
   owner: number | null = village.playerId,

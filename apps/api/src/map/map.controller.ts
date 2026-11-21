@@ -32,6 +32,7 @@ export class MapController {
             popup: z.boolean(),
             popupUnits: z.boolean(),
             popupTimes: z.boolean(),
+            reportDots: z.boolean(),
           }),
         }),
         z.object({

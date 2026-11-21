@@ -1,8 +1,9 @@
-import { and, desc, eq, inArray, isNull, or, sql, type SQL } from 'drizzle-orm';
+import { and, eq, inArray, isNull, sql, type SQL } from 'drizzle-orm';
 import {
   db,
   battleReports,
   battleReportRecipients,
+  noticeReports,
   players,
   type Transaction,
 } from '@dwar/database';
@@ -10,9 +11,13 @@ import { units, unitCodes } from '@dwar/game-config';
 import type {
   ReportsSnapshot,
   BattleReportSummary,
+  NoticeReportSummary,
+  ReportSummary,
   BattleReportView,
+  NoticeReportView,
   ReportGroup,
   ReportAction,
+  ReportRef,
 } from '@dwar/api-client';
 import { GameError } from './errors.js';
 import { lockWorld, settleWorldEvents } from './village-engine.js';
@@ -25,13 +30,15 @@ export async function memberPlayer(tx: Transaction, accountId: number, worldId: 
   return player;
 }
 
-const roleOfGroup = { attack: 'attacker', defense: 'defender', support: 'support' } as const;
 const groupOfRole = { attacker: 'attack', defender: 'defense', support: 'support' } as const;
 const sum = (troops: Record<string, number>) => Object.values(troops).reduce((a, b) => a + b, 0);
 const place = (side: { name: string; x: number; y: number }) =>
   `${side.name} (${side.x}|${side.y})`;
+const groups: ReportGroup[] = ['all', 'attack', 'defense', 'support', 'trade'];
 
-function summary(
+type Notice = typeof noticeReports.$inferSelect;
+
+function battleSummary(
   report: typeof battleReports.$inferSelect,
   access: typeof battleReportRecipients.$inferSelect,
 ): BattleReportSummary {
@@ -47,6 +54,7 @@ function summary(
         : 'lost';
   const loot = sum(result.loot);
   return {
+    source: 'battle',
     id: report.id,
     title: `${place(result.from)} ataca ${place(result.to)}`,
     occurredAt: report.occurredAt.toISOString(),
@@ -61,7 +69,12 @@ function summary(
       x: result.from.x,
       y: result.from.y,
     },
-    target: { name: result.to.name, username: result.to.username, x: result.to.x, y: result.to.y },
+    target: {
+      name: result.to.name,
+      username: result.to.username,
+      x: result.to.x,
+      y: result.to.y,
+    },
     lootTotal: onAttack ? loot : 0,
     lootFull: onAttack && result.lootCapacity > 0 && loot >= result.lootCapacity,
     conquered: result.loyalty?.conquered ?? false,
@@ -70,15 +83,112 @@ function summary(
   };
 }
 
-function visible(playerId: number, worldId: number, villageId?: number): SQL | undefined {
-  return and(
-    eq(battleReportRecipients.playerId, playerId),
-    eq(battleReports.worldId, worldId),
-    isNull(battleReportRecipients.deletedAt),
-    villageId
-      ? or(eq(battleReports.fromVillageId, villageId), eq(battleReports.toVillageId, villageId))
-      : undefined,
-  );
+function noticeTitle(notice: Notice): string {
+  const { payload } = notice;
+  const [from, to] = [place(payload.from), place(payload.to)];
+  if (payload.kind === 'support')
+    return payload.role === 'sender'
+      ? `Seu apoio chegou a ${to}`
+      : `${payload.from.username} enviou apoio para ${to}`;
+  if (payload.mode === 'offer')
+    return payload.role === 'sender'
+      ? `Oferta do mercado: você enviou recursos de ${from} para ${to}`
+      : `Oferta do mercado: você recebeu recursos de ${from} em ${to}`;
+  return payload.role === 'sender'
+    ? `Você enviou recursos de ${from} para ${to}`
+    : `Você recebeu recursos de ${from} em ${to}`;
+}
+
+function noticeSummary(notice: Notice): NoticeReportSummary {
+  const { payload } = notice;
+  const pick = (s: typeof payload.from) => ({
+    name: s.name,
+    username: s.username,
+    x: s.x,
+    y: s.y,
+  });
+  return {
+    source: 'notice',
+    id: notice.id,
+    kind: notice.kind,
+    group: notice.kind,
+    title: noticeTitle(notice),
+    occurredAt: notice.occurredAt.toISOString(),
+    read: notice.readAt !== null,
+    role: payload.role,
+    origin: pick(payload.from),
+    target: pick(payload.to),
+  };
+}
+
+/**
+ * Referências (origem, id, data, grupo, leitura) de tudo que o jogador ainda vê, juntando batalhas
+ * e avisos numa só lista ordenada. As datas ficam no banco, sem passar por JavaScript, porque a
+ * precisão de microssegundos do banco se perde em milissegundos ao sair daqui.
+ */
+function visible(playerId: number, worldId: number, villageId?: number): SQL {
+  const battleVillage = villageId
+    ? sql`AND (r.from_village_id = ${villageId} OR r.to_village_id = ${villageId})`
+    : sql``;
+  const noticeVillage = villageId
+    ? sql`AND (n.from_village_id = ${villageId} OR n.to_village_id = ${villageId})`
+    : sql``;
+  return sql`
+    SELECT 'battle'::text AS source, r.id, r.occurred_at,
+      CASE rec.role WHEN 'attacker' THEN 'attack' WHEN 'defender' THEN 'defense' ELSE 'support' END AS grp,
+      rec.read_at
+    FROM battle_reports r
+    JOIN battle_report_recipients rec ON rec.report_id = r.id
+    WHERE rec.player_id = ${playerId} AND r.world_id = ${worldId}
+      AND rec.deleted_at IS NULL ${battleVillage}
+    UNION ALL
+    SELECT 'notice'::text, n.id, n.occurred_at, n.kind, n.read_at
+    FROM notice_reports n
+    WHERE n.player_id = ${playerId} AND n.world_id = ${worldId}
+      AND n.deleted_at IS NULL ${noticeVillage}`;
+}
+
+type Row = { source: 'battle' | 'notice'; id: number };
+const rowsOf = <T>(result: unknown) => (result as { rows: T[] }).rows;
+
+async function hydrate(
+  tx: Transaction,
+  worldId: number,
+  playerId: number,
+  refs: ReportRef[],
+): Promise<ReportSummary[]> {
+  const battleIds = refs.filter((r) => r.source === 'battle').map((r) => r.id);
+  const noticeIds = refs.filter((r) => r.source === 'notice').map((r) => r.id);
+  const battles = battleIds.length
+    ? await tx
+        .select({ report: battleReports, access: battleReportRecipients })
+        .from(battleReports)
+        .innerJoin(battleReportRecipients, eq(battleReportRecipients.reportId, battleReports.id))
+        .where(
+          and(
+            inArray(battleReports.id, battleIds),
+            eq(battleReports.worldId, worldId),
+            eq(battleReportRecipients.playerId, playerId),
+          ),
+        )
+    : [];
+  const notices = noticeIds.length
+    ? await tx
+        .select()
+        .from(noticeReports)
+        .where(
+          and(
+            inArray(noticeReports.id, noticeIds),
+            eq(noticeReports.worldId, worldId),
+            eq(noticeReports.playerId, playerId),
+          ),
+        )
+    : [];
+  const byRef = new Map<string, ReportSummary>();
+  for (const { report, access } of battles)
+    byRef.set(`battle:${report.id}`, battleSummary(report, access));
+  for (const notice of notices) byRef.set(`notice:${notice.id}`, noticeSummary(notice));
+  return refs.flatMap((ref) => byRef.get(`${ref.source}:${ref.id}`) ?? []);
 }
 
 export async function reportsView(
@@ -91,80 +201,67 @@ export async function reportsView(
 ): Promise<ReportsSnapshot> {
   if (!Number.isInteger(page) || page < 1) throw new GameError('Página inválida.');
   const base = visible(playerId, worldId, villageId);
-  const filter =
-    group === 'all' ? base : and(base, eq(battleReportRecipients.role, roleOfGroup[group]));
-  const perRole = await tx
-    .select({
-      role: battleReportRecipients.role,
-      total: sql<number>`count(*)::integer`,
-      unread: sql<number>`count(*) filter (where ${battleReportRecipients.readAt} is null)::integer`,
-    })
-    .from(battleReports)
-    .innerJoin(battleReportRecipients, eq(battleReportRecipients.reportId, battleReports.id))
-    .where(base)
-    .groupBy(battleReportRecipients.role);
-  const groups: ReportsSnapshot['groups'] = {
-    all: { total: 0, unread: 0 },
-    attack: { total: 0, unread: 0 },
-    defense: { total: 0, unread: 0 },
-    support: { total: 0, unread: 0 },
-  };
-  for (const row of perRole) {
-    const target = groups[groupOfRole[row.role]];
+  const perGroup = rowsOf<{ grp: string; total: number; unread: number }>(
+    await tx.execute(sql`
+      WITH u AS (${base})
+      SELECT grp, count(*)::integer AS total,
+        count(*) FILTER (WHERE read_at IS NULL)::integer AS unread
+      FROM u GROUP BY grp`),
+  );
+  const totals = Object.fromEntries(groups.map((g) => [g, { total: 0, unread: 0 }])) as Record<
+    ReportGroup,
+    { total: number; unread: number }
+  >;
+  for (const row of perGroup) {
+    const target = totals[row.grp as ReportGroup];
+    if (!target) continue;
     target.total += row.total;
     target.unread += row.unread;
-    groups.all.total += row.total;
-    groups.all.unread += row.unread;
+    totals.all.total += row.total;
+    totals.all.unread += row.unread;
   }
-  const counts = groups[group];
+  const counts = totals[group];
   const pageCount = Math.max(1, Math.ceil(counts.total / 25)),
     current = Math.min(page, pageCount);
-  const rows = await tx
-    .select({ report: battleReports, access: battleReportRecipients })
-    .from(battleReports)
-    .innerJoin(battleReportRecipients, eq(battleReportRecipients.reportId, battleReports.id))
-    .where(filter)
-    .orderBy(desc(battleReports.occurredAt), desc(battleReports.id))
-    .limit(25)
-    .offset((current - 1) * 25);
+  const filter = group === 'all' ? sql`` : sql`WHERE grp = ${group}`;
+  const refs = rowsOf<Row>(
+    await tx.execute(sql`
+      WITH u AS (${base})
+      SELECT source, id FROM u ${filter}
+      ORDER BY occurred_at DESC, source DESC, id DESC
+      LIMIT 25 OFFSET ${(current - 1) * 25}`),
+  );
   return {
     page: current,
     pageCount,
     total: counts.total,
-    unread: groups.all.unread,
+    unread: totals.all.unread,
     group,
-    groups,
-    reports: rows.map(({ report, access }) => summary(report, access)),
+    groups: totals,
+    reports: await hydrate(tx, worldId, playerId, refs),
   };
 }
 
-/** Relatório vizinho (mais novo ou mais antigo) entre os que o jogador ainda vê. */
+/** Relatório vizinho (mais novo ou mais antigo) entre todos os que o jogador ainda vê. */
 async function neighbour(
   tx: Transaction,
   worldId: number,
   playerId: number,
-  report: typeof battleReports.$inferSelect,
+  ref: ReportRef,
   direction: 'newer' | 'older',
-) {
+): Promise<ReportRef | null> {
   const newer = direction === 'newer';
-  const [row] = await tx
-    .select({ id: battleReports.id })
-    .from(battleReports)
-    .innerJoin(battleReportRecipients, eq(battleReportRecipients.reportId, battleReports.id))
-    .where(
-      and(
-        visible(playerId, worldId),
-        newer
-          ? sql`(${battleReports.occurredAt}, ${battleReports.id}) > (select r.occurred_at, r.id from battle_reports r where r.id = ${report.id})`
-          : sql`(${battleReports.occurredAt}, ${battleReports.id}) < (select r.occurred_at, r.id from battle_reports r where r.id = ${report.id})`,
-      ),
-    )
-    .orderBy(
-      newer ? battleReports.occurredAt : desc(battleReports.occurredAt),
-      newer ? battleReports.id : desc(battleReports.id),
-    )
-    .limit(1);
-  return row?.id ?? null;
+  const [row] = rowsOf<Row>(
+    await tx.execute(sql`
+      WITH u AS (${visible(playerId, worldId)})
+      SELECT source, id FROM u
+      WHERE (occurred_at, source, id) ${newer ? sql`>` : sql`<`}
+        (SELECT occurred_at, source, id FROM u WHERE source = ${ref.source} AND id = ${ref.id})
+      ORDER BY occurred_at ${newer ? sql`ASC` : sql`DESC`},
+        source ${newer ? sql`ASC` : sql`DESC`}, id ${newer ? sql`ASC` : sql`DESC`}
+      LIMIT 1`),
+  );
+  return row ? { source: row.source, id: row.id } : null;
 }
 
 export async function reportView(
@@ -177,7 +274,14 @@ export async function reportView(
     .select({ report: battleReports, access: battleReportRecipients })
     .from(battleReports)
     .innerJoin(battleReportRecipients, eq(battleReportRecipients.reportId, battleReports.id))
-    .where(and(eq(battleReports.id, id), visible(playerId, worldId)));
+    .where(
+      and(
+        eq(battleReports.id, id),
+        eq(battleReports.worldId, worldId),
+        eq(battleReportRecipients.playerId, playerId),
+        isNull(battleReportRecipients.deletedAt),
+      ),
+    );
   if (!row) throw new GameError('Relatório não encontrado.', 404);
   if (!row.access.readAt)
     await tx
@@ -189,11 +293,12 @@ export async function reportView(
   const result = row.report.result,
     support = row.access.role === 'support',
     showDefense = row.access.role === 'defender' || result.showDefense;
+  const ref: ReportRef = { source: 'battle', id };
   return {
-    ...summary(row.report, row.access),
+    ...battleSummary(row.report, row.access),
     read: true,
-    previousId: await neighbour(tx, worldId, playerId, row.report, 'older'),
-    nextId: await neighbour(tx, worldId, playerId, row.report, 'newer'),
+    previous: await neighbour(tx, worldId, playerId, ref, 'older'),
+    next: await neighbour(tx, worldId, playerId, ref, 'newer'),
     from: result.from,
     to: result.to,
     unitTypes: unitCodes.map((code) => ({ code, name: units[code].name })),
@@ -214,39 +319,111 @@ export async function reportView(
   };
 }
 
-/** Apaga (só para quem pede) ou marca como lidos relatórios do próprio jogador. */
+export async function noticeView(
+  tx: Transaction,
+  worldId: number,
+  playerId: number,
+  id: number,
+): Promise<NoticeReportView> {
+  const [notice] = await tx
+    .select()
+    .from(noticeReports)
+    .where(
+      and(
+        eq(noticeReports.id, id),
+        eq(noticeReports.worldId, worldId),
+        eq(noticeReports.playerId, playerId),
+        isNull(noticeReports.deletedAt),
+      ),
+    );
+  if (!notice) throw new GameError('Relatório não encontrado.', 404);
+  if (!notice.readAt)
+    await tx.update(noticeReports).set({ readAt: new Date() }).where(eq(noticeReports.id, id));
+  const { payload } = notice;
+  const ref: ReportRef = { source: 'notice', id };
+  return {
+    ...noticeSummary(notice),
+    read: true,
+    previous: await neighbour(tx, worldId, playerId, ref, 'older'),
+    next: await neighbour(tx, worldId, playerId, ref, 'newer'),
+    from: payload.from,
+    to: payload.to,
+    mode: payload.kind === 'trade' ? payload.mode : null,
+    resources: payload.kind === 'trade' ? payload.resources : null,
+    troops: payload.kind === 'support' ? payload.troops : null,
+    unitTypes: unitCodes.map((code) => ({ code, name: units[code].name })),
+  };
+}
+
+const chunk = <T>(list: T[], size = 5000) =>
+  Array.from({ length: Math.ceil(list.length / size) }, (_, i) =>
+    list.slice(i * size, (i + 1) * size),
+  );
+
+/** Apaga (só para quem pede), marca como lidos ou como não lidos relatórios do próprio jogador. */
 export async function performReportAction(
   tx: Transaction,
   worldId: number,
   playerId: number,
   action: ReportAction,
 ): Promise<{ changed: number }> {
-  const mine = and(
-    eq(battleReportRecipients.worldId, worldId),
-    eq(battleReportRecipients.playerId, playerId),
-    isNull(battleReportRecipients.deletedAt),
-  );
-  if (action.type === 'delete') {
-    const ids = [...new Set(action.ids)];
+  let refs: ReportRef[];
+  if ('items' in action && action.items) refs = action.items;
+  else {
+    // Uma aba inteira: resolve as referências dentro do banco, só do que o jogador vê.
+    const group = 'group' in action && action.group ? action.group : 'all';
+    const conditions = [
+      group === 'all' ? undefined : sql`grp = ${group}`,
+      action.type === 'read' ? sql`read_at IS NULL` : undefined,
+    ].filter((part): part is SQL => part !== undefined);
+    const where = conditions.length ? sql`WHERE ${sql.join(conditions, sql` AND `)}` : sql``;
+    refs = rowsOf<Row>(
+      await tx.execute(sql`
+        WITH u AS (${visible(playerId, worldId)})
+        SELECT source, id FROM u ${where}`),
+    ).map((row) => ({ source: row.source, id: row.id }));
+  }
+  const unique = (source: ReportRef['source']) => [
+    ...new Set(refs.filter((r) => r.source === source).map((r) => r.id)),
+  ];
+  const set =
+    action.type === 'delete'
+      ? { deletedAt: new Date() }
+      : { readAt: action.type === 'read' ? new Date() : null };
+  let changed = 0;
+  for (const ids of chunk(unique('battle'))) {
     const done = await tx
       .update(battleReportRecipients)
-      .set({ deletedAt: new Date() })
-      .where(and(mine, inArray(battleReportRecipients.reportId, ids)))
+      .set(set)
+      .where(
+        and(
+          eq(battleReportRecipients.worldId, worldId),
+          eq(battleReportRecipients.playerId, playerId),
+          isNull(battleReportRecipients.deletedAt),
+          inArray(battleReportRecipients.reportId, ids),
+          action.type === 'read' ? isNull(battleReportRecipients.readAt) : undefined,
+        ),
+      )
       .returning({ id: battleReportRecipients.reportId });
-    return { changed: done.length };
+    changed += done.length;
   }
-  const scope =
-    action.ids !== undefined
-      ? inArray(battleReportRecipients.reportId, [...new Set(action.ids)])
-      : action.group && action.group !== 'all'
-        ? eq(battleReportRecipients.role, roleOfGroup[action.group])
-        : undefined;
-  const done = await tx
-    .update(battleReportRecipients)
-    .set({ readAt: new Date() })
-    .where(and(mine, isNull(battleReportRecipients.readAt), scope))
-    .returning({ id: battleReportRecipients.reportId });
-  return { changed: done.length };
+  for (const ids of chunk(unique('notice'))) {
+    const done = await tx
+      .update(noticeReports)
+      .set(set)
+      .where(
+        and(
+          eq(noticeReports.worldId, worldId),
+          eq(noticeReports.playerId, playerId),
+          isNull(noticeReports.deletedAt),
+          inArray(noticeReports.id, ids),
+          action.type === 'read' ? isNull(noticeReports.readAt) : undefined,
+        ),
+      )
+      .returning({ id: noticeReports.id });
+    changed += done.length;
+  }
+  return { changed };
 }
 
 export async function readReports(
@@ -269,6 +446,14 @@ export async function readReport(accountId: number, worldId: number, reportId: n
     await lockWorld(tx, worldId);
     const player = await memberPlayer(tx, accountId, worldId);
     return reportView(tx, worldId, player.id, reportId);
+  });
+}
+
+export async function readNotice(accountId: number, worldId: number, noticeId: number) {
+  return db.transaction(async (tx) => {
+    await lockWorld(tx, worldId);
+    const player = await memberPlayer(tx, accountId, worldId);
+    return noticeView(tx, worldId, player.id, noticeId);
   });
 }
 

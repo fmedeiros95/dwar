@@ -19,6 +19,7 @@ import type {
   Troops,
   MapSettings,
   BattleRecord,
+  NoticePayload,
 } from '@dwar/game-config';
 
 const time = (name: string) => timestamp(name, { withTimezone: true, mode: 'date' }).notNull();
@@ -38,7 +39,10 @@ export const accounts = pgTable(
   },
   (table) => [
     uniqueIndex('accounts_username_ci').on(sql`lower(${table.username})`),
-    check('accounts_gender_check', sql`${table.gender} IS NULL OR ${table.gender} IN ('m','f','x')`),
+    check(
+      'accounts_gender_check',
+      sql`${table.gender} IS NULL OR ${table.gender} IN ('m','f','x')`,
+    ),
     check('accounts_age_check', sql`${table.age} IS NULL OR ${table.age} BETWEEN 0 AND 79`),
   ],
 );
@@ -701,6 +705,32 @@ export const battleReportRecipients = pgTable(
     }),
     foreignKey({ columns: [t.playerId, t.worldId], foreignColumns: [players.id, players.worldId] }),
     index('battle_report_recipients_player_idx').on(t.playerId, t.worldId),
+  ],
+);
+
+/** Relatórios de comércio e de chegada de apoio, um por destinatário. */
+export const noticeReports = pgTable(
+  'notice_reports',
+  {
+    id: integer('id').primaryKey().generatedAlwaysAsIdentity(),
+    worldId: integer('world_id')
+      .notNull()
+      .references(() => worlds.id),
+    playerId: integer('player_id').notNull(),
+    kind: text('kind').$type<'trade' | 'support'>().notNull(),
+    occurredAt: time('occurred_at'),
+    fromVillageId: integer('from_village_id').notNull(),
+    toVillageId: integer('to_village_id').notNull(),
+    payload: jsonb('payload').$type<NoticePayload>().notNull(),
+    readAt: timestamp('read_at', { withTimezone: true }),
+    deletedAt: timestamp('deleted_at', { withTimezone: true }),
+  },
+  (t) => [
+    foreignKey({ columns: [t.playerId, t.worldId], foreignColumns: [players.id, players.worldId] }),
+    ...[t.fromVillageId, t.toVillageId].map((c) =>
+      foreignKey({ columns: [c, t.worldId], foreignColumns: [villages.id, villages.worldId] }),
+    ),
+    index('notice_reports_visible_idx').on(t.playerId, t.worldId, t.occurredAt, t.id),
   ],
 );
 

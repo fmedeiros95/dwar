@@ -37,6 +37,11 @@ const commandLabel = {
   support: 'Apoio seu a caminho',
   return: 'Tropas suas voltando',
 } as const;
+const reportDotLabel = {
+  green: 'Último ataque: vitória sem perdas. Abrir relatório',
+  yellow: 'Último ataque: vitória com perdas ou empate. Abrir relatório',
+  red: 'Último ataque: derrota. Abrir relatório',
+} as const;
 
 const coordinate = (value: string | null, fallback: number) =>
   value !== null && /^\d{1,3}$/.test(value) ? Number(value) : fallback;
@@ -138,6 +143,11 @@ function MapCanvas({ snapshot, options }: { snapshot: VillageSnapshot; options: 
       ...(commandsByVillage.get(command.villageId) ?? []),
       command,
     ]);
+  const dotsByVillage = new Map(
+    settings.reportDots
+      ? (map.data?.reports ?? []).map((dot) => [dot.villageId, dot] as const)
+      : [],
+  );
   const night = isNight();
   const selected = map.data?.villages.find((row) => row.id === selectedId);
   const left = Math.floor(position.x),
@@ -355,11 +365,29 @@ function MapCanvas({ snapshot, options }: { snapshot: VillageSnapshot; options: 
                               : `${commandLabel[command.kind]}${command.count > 1 ? ` (${command.count})` : ''}`
                           }
                         >
-                          <Icon name={command.kind === 'return' ? 'return' : command.kind === 'attack' ? 'sword' : 'shield'} size={12} />
+                          <Icon
+                            name={
+                              command.kind === 'return'
+                                ? 'return'
+                                : command.kind === 'attack'
+                                  ? 'sword'
+                                  : 'shield'
+                            }
+                            size={12}
+                          />
                           {command.count > 1 ? <b>{command.count}</b> : null}
                         </span>
                       ))}
                     </span>
+                  ) : null}
+                  {village && dotsByVillage.has(village.id) ? (
+                    <button
+                      className={`map-report-dot ${dotsByVillage.get(village.id)!.dot}`}
+                      onPointerDown={(event) => event.stopPropagation()}
+                      title={reportDotLabel[dotsByVillage.get(village.id)!.dot]}
+                      aria-label={reportDotLabel[dotsByVillage.get(village.id)!.dot]}
+                      onClick={() => go('reports', { id: dotsByVillage.get(village.id)!.reportId })}
+                    />
                   ) : null}
                   {x % 5 === 0 ? (
                     <span
@@ -505,8 +533,14 @@ function MapCanvas({ snapshot, options }: { snapshot: VillageSnapshot; options: 
           <button
             key={label}
             type="button"
-            title={label === 'centro' ? 'Centro do mundo (500|500)' : `Rolar para o ${label.toLowerCase()}`}
-            aria-label={label === 'centro' ? 'Ir ao centro do mundo' : `Rolar para o ${label.toLowerCase()}`}
+            title={
+              label === 'centro'
+                ? 'Centro do mundo (500|500)'
+                : `Rolar para o ${label.toLowerCase()}`
+            }
+            aria-label={
+              label === 'centro' ? 'Ir ao centro do mundo' : `Rolar para o ${label.toLowerCase()}`
+            }
             onClick={() => {
               closeMenus();
               if (label === 'centro') nav.focus(500, 500);

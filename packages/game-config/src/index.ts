@@ -44,5 +44,6 @@ export {
   minimumBuildingLevels,
   type BattleSide,
   type BattleRecord,
+  type NoticePayload,
 } from './combat.js';
 export { avatarLimits } from './profile.js';

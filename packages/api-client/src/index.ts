@@ -243,6 +243,7 @@ export type MapSettings = {
   popup: boolean;
   popupUnits: boolean;
   popupTimes: boolean;
+  reportDots: boolean;
 };
 export type MapMark = { playerId: number; username: string; color: string };
 export type MapAction =
@@ -284,10 +285,18 @@ export type MapCommand = {
   incoming: boolean;
   count: number;
 };
+/** Resultado do seu último ataque a uma aldeia do mapa (ponto colorido ao lado dela). */
+export type MapReportDot = {
+  villageId: number;
+  reportId: number;
+  /** verde: venceu sem perder tropas; amarelo: venceu com perdas ou empatou; vermelho: perdeu. */
+  dot: 'green' | 'yellow' | 'red';
+};
 export type MapSnapshot = {
   center: { x: number; y: number };
   villages: PublicVillage[];
   commands: MapCommand[];
+  reports: MapReportDot[];
   settings: MapSettings;
   marks: MapMark[];
 };
@@ -379,17 +388,22 @@ export type ReportSide = {
   x: number;
   y: number;
 };
-export type ReportGroup = 'all' | 'attack' | 'defense' | 'support';
+export type ReportGroup = 'all' | 'attack' | 'defense' | 'support' | 'trade';
+/** Relatórios de batalha e avisos (comércio, chegada de apoio) têm numerações separadas. */
+export type ReportRef = { source: 'battle' | 'notice'; id: number };
 export type ReportAction =
-  | { type: 'delete'; ids: number[] }
-  | { type: 'read'; ids?: number[]; group?: ReportGroup };
+  | { type: 'delete'; items: ReportRef[] }
+  | { type: 'delete'; group: ReportGroup }
+  | { type: 'read'; items?: ReportRef[]; group?: ReportGroup }
+  | { type: 'unread'; items: ReportRef[] };
 export type ReportPlace = { name: string; username: string; x: number; y: number };
 export type BattleReportSummary = {
+  source: 'battle';
   id: number;
   title: string;
   occurredAt: string;
   role: 'attacker' | 'defender' | 'support';
-  group: Exclude<ReportGroup, 'all'>;
+  group: Exclude<ReportGroup, 'all' | 'trade'>;
   read: boolean;
   winner: 'attacker' | 'defender' | 'draw';
   /** Resultado do ponto de vista de quem lê: vitória, derrota ou empate. */
@@ -403,9 +417,23 @@ export type BattleReportSummary = {
   spy: boolean;
   lossless: boolean;
 };
+export type NoticeReportSummary = {
+  source: 'notice';
+  id: number;
+  kind: 'trade' | 'support';
+  group: 'trade' | 'support';
+  title: string;
+  occurredAt: string;
+  read: boolean;
+  /** Se quem lê enviou ou recebeu os recursos ou o apoio. */
+  role: 'sender' | 'receiver';
+  origin: ReportPlace;
+  target: ReportPlace;
+};
+export type ReportSummary = BattleReportSummary | NoticeReportSummary;
 export type BattleReportView = BattleReportSummary & {
-  previousId: number | null;
-  nextId: number | null;
+  previous: ReportRef | null;
+  next: ReportRef | null;
   from: ReportSide;
   to: ReportSide;
   unitTypes: { code: string; name: string }[];
@@ -428,6 +456,16 @@ export type BattleReportView = BattleReportSummary & {
     outsideTroops?: TroopCounts;
   } | null;
 };
+export type NoticeReportView = NoticeReportSummary & {
+  previous: ReportRef | null;
+  next: ReportRef | null;
+  from: ReportSide;
+  to: ReportSide;
+  mode: 'normal' | 'offer' | null;
+  resources: Resources | null;
+  troops: TroopCounts | null;
+  unitTypes: { code: string; name: string }[];
+};
 export type ReportsSnapshot = {
   page: number;
   pageCount: number;
@@ -435,7 +473,7 @@ export type ReportsSnapshot = {
   unread: number;
   group: ReportGroup;
   groups: Record<ReportGroup, { total: number; unread: number }>;
-  reports: BattleReportSummary[];
+  reports: ReportSummary[];
 };
 
 export class ApiError extends Error {
@@ -500,6 +538,8 @@ export const api = {
     }),
   report: (worldId: number, reportId: number) =>
     request<BattleReportView>(`/worlds/${worldId}/reports/${reportId}`),
+  notice: (worldId: number, reportId: number) =>
+    request<NoticeReportView>(`/worlds/${worldId}/reports/notices/${reportId}`),
   me: () => request<Account>('/auth/me'),
   login: (username: string, password: string) =>
     request<Account>('/auth/login', {
@@ -550,7 +590,9 @@ export const api = {
   publicVillage: (worldId: number, villageId: number, targetId: number) =>
     request<PublicVillage>(`/worlds/${worldId}/villages/${villageId}/map/villages/${targetId}`),
   villagePopup: (worldId: number, villageId: number, targetId: number) =>
-    request<VillagePopupInfo>(`/worlds/${worldId}/villages/${villageId}/map/villages/${targetId}/popup`),
+    request<VillagePopupInfo>(
+      `/worlds/${worldId}/villages/${villageId}/map/villages/${targetId}/popup`,
+    ),
   publicPlayer: (worldId: number, villageId: number, playerId: number) =>
     request<PublicPlayer>(`/worlds/${worldId}/villages/${villageId}/map/players/${playerId}`),
   build: (worldId: number, villageId: number, buildingCode: string, requestId: string) =>

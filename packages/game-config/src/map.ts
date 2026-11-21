@@ -8,6 +8,8 @@ export type MapSettings = {
   popupUnits: boolean;
   /** Popup: mostra o tempo de viagem de cada unidade até a aldeia. */
   popupTimes: boolean;
+  /** Mapa: ponto colorido ao lado das aldeias que você atacou, com o resultado do último ataque. */
+  reportDots: boolean;
 };
 export const defaultMapSettings: MapSettings = {
   width: 13,
@@ -17,4 +19,5 @@ export const defaultMapSettings: MapSettings = {
   popup: true,
   popupUnits: true,
   popupTimes: true,
+  reportDots: true,
 };
