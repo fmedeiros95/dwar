@@ -3494,6 +3494,7 @@ input:focus {
   place-items: center;
   width: 30px;
   height: 28px;
+  padding: 0;
   color: var(--muted);
   background: transparent;
   border: 0;
