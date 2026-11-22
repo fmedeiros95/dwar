@@ -75,6 +75,7 @@ export function VillagePage({
   const isBackground = backgroundScreens.includes(rawScreen);
   const lastBackground = useRef('overview');
   const handledSearch = useRef('');
+  const mapCenter = useRef<{ x: string; y: string } | null>(null);
   const windows = useWindowManager(windowSize);
   const openWindow = windows.open;
   const selectedVillageId = params.has('village') ? Number(params.get('village')) : undefined;
@@ -115,6 +116,9 @@ export function VillagePage({
     if (isBackground) {
       lastBackground.current = rawScreen;
       handledSearch.current = '';
+      // Guarda onde o mapa estava: abrir uma janela a partir dele não pode recentralizá-lo.
+      if (rawScreen === 'map' && params.has('x') && params.has('y'))
+        mapCenter.current = { x: params.get('x')!, y: params.get('y')! };
       return;
     }
     if (handledSearch.current === params.toString()) return;
@@ -125,6 +129,10 @@ export function VillagePage({
     const next = new URLSearchParams();
     next.set('village', search.get('village')!);
     next.set('screen', lastBackground.current);
+    if (lastBackground.current === 'map' && mapCenter.current) {
+      next.set('x', mapCenter.current.x);
+      next.set('y', mapCenter.current.y);
+    }
     setParams(next, { replace: true });
   }, [canonicalVillageId, isBackground, rawScreen, params, openWindow, setParams]);
   const planner = usePlannerState(canonicalVillageId ?? 0);

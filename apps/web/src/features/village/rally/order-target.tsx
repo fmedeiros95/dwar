@@ -19,7 +19,7 @@ export const relationLabel: Record<OwnerKind, string> = {
   barbarian: 'Aldeia abandonada',
 };
 /** Atacar estes donos quase sempre é engano. */
-const friendly: OwnerKind[] = ['current', 'own', 'tribe', 'ally', 'nap'];
+export const friendly: OwnerKind[] = ['current', 'own', 'tribe', 'ally', 'nap'];
 
 export type OrderTargetInfo = {
   village: PublicVillage | null;
