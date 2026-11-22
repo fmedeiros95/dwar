@@ -11,7 +11,7 @@ import {
 import { useGameSearchParams } from '../../../routing.js';
 import { ReportList } from './report-list.js';
 import { BattleDetail, NoticeDetail } from './report-detail.js';
-import { tabs } from './report-parts.js';
+import { refKey, tabs } from './report-parts.js';
 import { targetScreen } from '../shared/index.js';
 
 export function ReportsPanel({ snapshot, clock }: { snapshot: VillageSnapshot; clock: number }) {
@@ -59,6 +59,7 @@ export function ReportsPanel({ snapshot, clock }: { snapshot: VillageSnapshot; c
       screen: 'reports',
       ...(group === 'all' ? {} : { group }),
       ...(onlyHere ? { scope: 'village' } : {}),
+      ...(page > 1 ? { page } : {}),
       ...extra,
     });
   }
@@ -105,75 +106,91 @@ export function ReportsPanel({ snapshot, clock }: { snapshot: VillageSnapshot; c
           {error.message}
         </p>
       ) : null}
-      {id > 0 ? (
-        data ? (
-          data.source === 'notice' ? (
-            <NoticeDetail
-              {...shared}
-              data={data}
-              onDelete={() => removeThen(data.next ?? data.previous)}
-            />
-          ) : (
-            <BattleDetail
-              {...shared}
-              data={data}
-              snapshot={snapshot}
-              onDelete={() => removeThen(data.next ?? data.previous)}
-            />
-          )
-        ) : (
-          <p className="muted">Carregando relatório…</p>
-        )
-      ) : list.data ? (
-        <>
-          <nav className="report-tabs" aria-label="Tipo de relatório">
-            {tabs.map((tab) => (
-              <button
-                key={tab.code}
-                className={tab.code === group ? 'active' : undefined}
-                aria-current={tab.code === group ? 'page' : undefined}
-                onClick={() =>
-                  setParams({
-                    village: snapshot.village.id,
-                    screen: 'reports',
-                    ...(tab.code === 'all' ? {} : { group: tab.code }),
-                    ...(onlyHere ? { scope: 'village' } : {}),
-                  })
-                }
-              >
-                {tab.label}
-                {list.data.groups[tab.code].unread ? (
-                  <span className="report-count">{list.data.groups[tab.code].unread}</span>
-                ) : null}
-              </button>
-            ))}
-            <label className="report-scope">
-              <input
-                type="checkbox"
-                checked={onlyHere}
-                onChange={(event) =>
-                  setParams({
-                    village: snapshot.village.id,
-                    screen: 'reports',
-                    ...(group === 'all' ? {} : { group }),
-                    ...(event.target.checked ? { scope: 'village' } : {}),
-                  })
-                }
-              />
-              Só desta aldeia
-            </label>
-          </nav>
-          <ReportList
-            key={`${group}-${list.data.page}-${villageFilter ?? 0}`}
-            data={list.data}
-            clock={clock}
-            group={group}
-            pending={action.isPending}
-            onOpen={open}
-            onAction={(input) => action.mutate(input)}
-            onPage={(next) => go({ page: next })}
-          />
-        </>
+      {id > 0 || list.data ? (
+        <div className="split-host">
+          <div className={id > 0 ? 'split-view has-detail' : 'split-view'}>
+            {list.data ? (
+              <div className="split-list">
+                <nav className="report-tabs" aria-label="Tipo de relatório">
+                  {tabs.map((tab) => (
+                    <button
+                      key={tab.code}
+                      className={tab.code === group ? 'active' : undefined}
+                      aria-current={tab.code === group ? 'page' : undefined}
+                      onClick={() =>
+                        setParams({
+                          village: snapshot.village.id,
+                          screen: 'reports',
+                          ...(tab.code === 'all' ? {} : { group: tab.code }),
+                          ...(onlyHere ? { scope: 'village' } : {}),
+                          ...(id > 0
+                            ? { id, ...(source === 'notice' ? { kind: 'notice' } : {}) }
+                            : {}),
+                        })
+                      }
+                    >
+                      {tab.label}
+                      {list.data.groups[tab.code].unread ? (
+                        <span className="report-count">{list.data.groups[tab.code].unread}</span>
+                      ) : null}
+                    </button>
+                  ))}
+                  <label className="report-scope">
+                    <input
+                      type="checkbox"
+                      checked={onlyHere}
+                      onChange={(event) =>
+                        setParams({
+                          village: snapshot.village.id,
+                          screen: 'reports',
+                          ...(group === 'all' ? {} : { group }),
+                          ...(event.target.checked ? { scope: 'village' } : {}),
+                          ...(id > 0
+                            ? { id, ...(source === 'notice' ? { kind: 'notice' } : {}) }
+                            : {}),
+                        })
+                      }
+                    />
+                    Só desta aldeia
+                  </label>
+                </nav>
+                <ReportList
+                  key={`${group}-${list.data.page}-${villageFilter ?? 0}`}
+                  data={list.data}
+                  clock={clock}
+                  group={group}
+                  pending={action.isPending}
+                  activeKey={id > 0 ? refKey(current) : undefined}
+                  onOpen={open}
+                  onAction={(input) => action.mutate(input)}
+                  onPage={(next) => go({ page: next })}
+                />
+              </div>
+            ) : null}
+            {id > 0 ? (
+              <div className="split-detail">
+                {data ? (
+                  data.source === 'notice' ? (
+                    <NoticeDetail
+                      {...shared}
+                      data={data}
+                      onDelete={() => removeThen(data.next ?? data.previous)}
+                    />
+                  ) : (
+                    <BattleDetail
+                      {...shared}
+                      data={data}
+                      snapshot={snapshot}
+                      onDelete={() => removeThen(data.next ?? data.previous)}
+                    />
+                  )
+                ) : (
+                  <p className="muted">Carregando relatório…</p>
+                )}
+              </div>
+            ) : null}
+          </div>
+        </div>
       ) : (
         <p className="muted">Carregando relatórios…</p>
       )}

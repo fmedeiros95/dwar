@@ -174,21 +174,53 @@ export function MailPanel({ snapshot, clock }: { snapshot: VillageSnapshot; cloc
             {notice}
           </p>
         ) : null}
-        {mode === 'in' ? (
-          mailbox.data ? (
-            <MailList
-              key={mailbox.data.page}
-              data={mailbox.data}
-              pending={pending}
-              clock={clock}
-              onOpen={(id) => navigate('view', { id })}
-              onDelete={(ids) => perform({ type: 'delete', threadIds: ids })}
-              onPlayer={(id) => onTarget('player', id)}
-              onPage={(page) => navigate('in', { page: String(page) })}
-            />
-          ) : (
-            <p className="muted">Carregando mensagens…</p>
-          )
+        {mode === 'in' || mode === 'view' ? (
+          <div className="split-host">
+            <div className={mode === 'view' ? 'split-view has-detail' : 'split-view'}>
+              <div className="split-list">
+                {mailbox.data ? (
+                  <MailList
+                    key={mailbox.data.page}
+                    data={mailbox.data}
+                    pending={pending}
+                    clock={clock}
+                    activeId={mode === 'view' ? threadId : undefined}
+                    onOpen={(id) =>
+                      navigate('view', { id, ...(page > 1 ? { page: String(page) } : {}) })
+                    }
+                    onDelete={(ids) => perform({ type: 'delete', threadIds: ids })}
+                    onPlayer={(id) => onTarget('player', id)}
+                    onPage={(next) =>
+                      mode === 'view'
+                        ? navigate('view', { id: threadId, page: String(next) })
+                        : navigate('in', { page: String(next) })
+                    }
+                  />
+                ) : (
+                  <p className="muted">Carregando mensagens…</p>
+                )}
+              </div>
+              {mode === 'view' ? (
+                <div className="split-detail">
+                  {thread.data ? (
+                    <Conversation
+                      key={`${threadId}:${conversationVersion}`}
+                      data={thread.data}
+                      pending={pending}
+                      clock={clock}
+                      onReply={(text) => perform({ type: 'reply', threadId, text })}
+                      onDelete={() => perform({ type: 'delete', threadIds: [threadId] })}
+                      onTarget={onTarget}
+                    />
+                  ) : (
+                    <p className="muted">
+                      {threadId ? 'Carregando conversa…' : 'Mensagem não encontrada.'}
+                    </p>
+                  )}
+                </div>
+              ) : null}
+            </div>
+          </div>
         ) : null}
         {mode === 'new' ? (
           recipientId && !target.data && !target.isError ? (
@@ -203,23 +235,6 @@ export function MailPanel({ snapshot, clock }: { snapshot: VillageSnapshot; cloc
               preview={preview}
               onTarget={onTarget}
             />
-          )
-        ) : null}
-        {mode === 'view' ? (
-          thread.data ? (
-            <Conversation
-              key={`${threadId}:${conversationVersion}`}
-              data={thread.data}
-              pending={pending}
-              clock={clock}
-              onReply={(text) => perform({ type: 'reply', threadId, text })}
-              onDelete={() => perform({ type: 'delete', threadIds: [threadId] })}
-              onTarget={onTarget}
-            />
-          ) : (
-            <p className="muted">
-              {threadId ? 'Carregando conversa…' : 'Mensagem não encontrada.'}
-            </p>
           )
         ) : null}
         {mode === 'block' ? (

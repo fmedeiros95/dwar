@@ -51,6 +51,7 @@ export function MailList({
   data,
   pending,
   clock,
+  activeId,
   onOpen,
   onDelete,
   onPlayer,
@@ -59,6 +60,7 @@ export function MailList({
   data: MailboxSnapshot;
   pending: boolean;
   clock: number;
+  activeId?: number;
   onOpen: (id: number) => void;
   onDelete: (ids: number[]) => void;
   onPlayer: (id: number) => void;
@@ -96,7 +98,11 @@ export function MailList({
       </div>
       <ul className="mail-rows">
         {data.threads.map((row) => (
-          <li key={row.id} className={`mail-row ${row.status}`}>
+          <li
+            key={row.id}
+            className={`mail-row ${row.status}${row.id === activeId ? ' active' : ''}`}
+            aria-current={row.id === activeId ? 'true' : undefined}
+          >
             <input
               aria-label={`Selecionar ${row.title}`}
               type="checkbox"

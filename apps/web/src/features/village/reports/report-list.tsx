@@ -10,6 +10,7 @@ export function ReportList({
   clock,
   group,
   pending,
+  activeKey,
   onOpen,
   onAction,
   onPage,
@@ -18,6 +19,7 @@ export function ReportList({
   clock: number;
   group: ReportGroup;
   pending: boolean;
+  activeKey?: string;
   onOpen: (ref: ReportRef) => void;
   onAction: (action: ReportAction) => void;
   onPage: (page: number) => void;
@@ -106,7 +108,11 @@ export function ReportList({
               const Icon = kindIcon[r.group];
               const tone = r.source === 'battle' ? r.outcome : 'neutral';
               return (
-                <li key={refKey(r)} className={`report-item ${tone}${r.read ? '' : ' unread'}`}>
+                <li
+                  key={refKey(r)}
+                  className={`report-item ${tone}${r.read ? '' : ' unread'}${refKey(r) === activeKey ? ' active' : ''}`}
+                  aria-current={refKey(r) === activeKey ? 'true' : undefined}
+                >
                   <input
                     type="checkbox"
                     aria-label={`Selecionar relatório: ${r.title}`}

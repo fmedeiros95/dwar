@@ -54,6 +54,10 @@ texturas legadas, então telas ainda não redesenhadas herdam cores e superfíci
 - Ferraria (pesquisa) em cartões `tech-tile` e Academia em cartões `academy-card`.
 - Menu de contexto do mapa (opção `contextMenu`) com atalhos para aldeia e perfil.
 - Identidade: logo e título já são "DWar".
+- Mensagens e relatórios em duas colunas (`split.css`, container query a partir de 940 px de
+  largura útil): lista compacta à esquerda e leitura à direita, com o item aberto destacado
+  (`aria-current`); a página da lista é mantida ao abrir um item. Abaixo do limiar, a leitura
+  continua ocupando o lugar da lista.
 - Testes de `packages/game-core` (`pnpm test`): economia, Tesouraria e Moleiro, recrutamento,
   mercado, viagem, combate (perdas exatas, muralha, aríetes, catapultas, espiões, saque, apoio),
   patentes, permissões da tribo, formatação de mensagens, posicionamento e crescimento bárbaro.
@@ -74,11 +78,10 @@ texturas legadas, então telas ainda não redesenhadas herdam cores e superfíci
    (`tribe-sections.tsx`), histórico de guerras (`tribe-diplomacy.tsx`), unidades do relatório
    (`report-parts.tsx`, `rally-units`) e opções/legenda do mapa. Reaproveitar `.rank-list`
    quando fizer sentido; a grade de unidades pode continuar tabela.
-2. **Mensagens e relatórios, visão em duas colunas (opcional):** as telas já têm lista moderna,
-   abas/filtros, não lidos destacados, seleção em massa, paginação e estado vazio; a leitura
-   abre no lugar da lista. A janela abre com 860 px, apertado para lista + leitura lado a lado:
-   se for feito, usar container query (só a partir de ~1000 px) e manter a leitura em tela
-   cheia abaixo disso.
+2. **Duas colunas: validar no navegador.** Implementado sem checagem visual; conferir com a
+   janela maximizada (lista à esquerda, leitura à direita, item aberto destacado, rolagem
+   independente da lista) e na janela padrão de 860 px (leitura no lugar da lista, como antes).
+   Ajustar o limiar de 940 px em `split.css` se ficar apertado.
 3. **Acessibilidade, o que sobra:** auditar com leitor de tela e só teclado (tab order das
    janelas, armadilha de foco no diálogo, restaurar foco ao fechar), e medir com Lighthouse.
 4. **Testes, o que sobra:** `packages/game-core` já tem 78 testes (`pnpm test`). Faltam
