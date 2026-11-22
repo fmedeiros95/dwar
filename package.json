@@ -12,6 +12,7 @@
     "build:packages": "pnpm --filter \"./packages/**\" -r build",
     "build": "pnpm -r build",
     "typecheck": "pnpm -r typecheck",
+    "test": "pnpm -r --if-present test",
     "lint": "eslint apps packages scripts",
     "db:migrate": "pnpm --filter @dwar/database migrate",
     "db:barbarians": "node --env-file=.env scripts/populate-barbarians.mjs",

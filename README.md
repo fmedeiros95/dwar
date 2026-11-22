@@ -50,9 +50,10 @@ Crie uma conta na interface, entre no Mundo Beta e confirme em **Construir** par
 pnpm build
 pnpm typecheck
 pnpm lint
+pnpm test
 ```
 
-Validação funcional manual. Não há testes unitários, E2E ou Playwright no projeto.
+`pnpm test` roda os testes unitários de `packages/game-core` (`node:test` com `tsx`, sem dependências novas e sem banco). O restante é validação funcional manual; não há testes E2E nem Playwright.
 
 Para executar os processos compilados separadamente, depois de `pnpm build`:
 
