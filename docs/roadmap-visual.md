@@ -65,8 +65,11 @@ texturas legadas, então telas ainda não redesenhadas herdam cores e superfíci
    (`tribe-sections.tsx`), histórico de guerras (`tribe-diplomacy.tsx`), unidades do relatório
    (`report-parts.tsx`, `rally-units`) e opções/legenda do mapa. Reaproveitar `.rank-list`
    quando fizer sentido; a grade de unidades pode continuar tabela.
-2. **Mensagens e relatórios:** lista e leitura em duas colunas, filtros, estado vazio (conferir
-   o que já existe antes de refazer).
+2. **Mensagens e relatórios, visão em duas colunas (opcional):** as telas já têm lista moderna,
+   abas/filtros, não lidos destacados, seleção em massa, paginação e estado vazio; a leitura
+   abre no lugar da lista. A janela abre com 860 px, apertado para lista + leitura lado a lado:
+   se for feito, usar container query (só a partir de ~1000 px) e manter a leitura em tela
+   cheia abaixo disso.
 3. **Acessibilidade e desempenho:** contraste, foco visível, `prefers-reduced-motion`, imagens
    do cenário em tamanho adequado.
 4. **Testes:** não há nenhum; começar pelas fórmulas de `packages/game-core`.
