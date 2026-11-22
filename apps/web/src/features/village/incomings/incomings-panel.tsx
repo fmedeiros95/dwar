@@ -1,7 +1,7 @@
 import type { IncomingCommand, IncomingOverview, VillageSnapshot } from '@dwar/api-client';
-import { HeartHandshake, ShieldCheck } from 'lucide-react';
+import { HeartHandshake, Shield, ShieldCheck, Swords } from 'lucide-react';
 import { EmptyState } from '../../../components/empty-state.js';
-import { numbers, duration } from '../shared/index.js';
+import { completionDate, duration } from '../shared/index.js';
 
 function villageLabel(village: IncomingCommand['from']) {
   return `${village.name} (${village.x}|${village.y})`;
@@ -39,40 +39,46 @@ export function IncomingsPanel({
           </EmptyState>
         )
       ) : (
-        <div className="table-scroll">
-          <table className="legacy-table incoming-table">
-            <thead>
-              <tr>
-                <th>Comando</th>
-                <th>Origem</th>
-                <th>Destino</th>
-                <th>Jogador</th>
-                <th>Chegada</th>
-                <th>Em</th>
-              </tr>
-            </thead>
-            <tbody>
-              {rows.map((item) => {
-                const remaining = Math.max(0, (new Date(item.endsAt).getTime() - clock) / 1000);
-                return (
-                  <tr key={item.id}>
-                    <td>{item.kind === 'attack' ? 'Ataque' : 'Apoio'}</td>
-                    <td>{villageLabel(item.from)}</td>
-                    <td>
-                      {villageLabel(item.to)}
-                      {item.to.id === snapshot.village.id ? ' · atual' : ''}
-                    </td>
-                    <td>{item.sender}</td>
-                    <td>{new Date(item.endsAt).toLocaleString('pt-BR')}</td>
-                    <td>
-                      {numbers.format(Math.ceil(remaining))}s ({duration(remaining)})
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
+        <ul className="incoming-list">
+          {rows
+            .slice()
+            .sort((a, b) => new Date(a.endsAt).getTime() - new Date(b.endsAt).getTime())
+            .map((item) => {
+              const remaining = Math.max(0, (new Date(item.endsAt).getTime() - clock) / 1000);
+              const attack = item.kind === 'attack';
+              return (
+                <li key={item.id} className="incoming-card" data-kind={item.kind}>
+                  <span className="incoming-kind">
+                    {attack ? (
+                      <Swords size={18} aria-hidden="true" />
+                    ) : (
+                      <Shield size={18} aria-hidden="true" />
+                    )}
+                    {attack ? 'Ataque' : 'Apoio'}
+                  </span>
+                  <div className="incoming-when">
+                    <strong>{duration(remaining)}</strong>
+                    <small>chega {completionDate(item.endsAt, clock)}</small>
+                  </div>
+                  <dl>
+                    <div>
+                      <dt>Para</dt>
+                      <dd>
+                        {villageLabel(item.to)}
+                        {item.to.id === snapshot.village.id ? <em> · aldeia atual</em> : null}
+                      </dd>
+                    </div>
+                    <div>
+                      <dt>De</dt>
+                      <dd>
+                        {item.sender} · {villageLabel(item.from)}
+                      </dd>
+                    </div>
+                  </dl>
+                </li>
+              );
+            })}
+        </ul>
       )}
     </div>
   );

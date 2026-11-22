@@ -4,6 +4,7 @@ import type { RallySnapshot, TroopCounts } from '@dwar/api-client';
 import { numbers } from '../shared/index.js';
 import { PanelCard } from '../shared/panel-head.js';
 import { unitIconSrc } from '../../../components/unit-icon.js';
+import { OrderTarget, useOrderTarget } from './order-target.js';
 
 type UnitTypes = RallySnapshot['unitTypes'];
 
@@ -40,6 +41,8 @@ export type SendDraft = {
 };
 
 export function SendForm({
+  worldId,
+  villageId,
   data,
   pending,
   x,
@@ -48,6 +51,8 @@ export function SendForm({
   onDraft,
   onPreview,
 }: {
+  worldId: number;
+  villageId: number;
   data: RallySnapshot;
   pending: boolean;
   x: string;
@@ -64,6 +69,9 @@ export function SendForm({
 }) {
   const [counts, setCounts] = useState<Record<string, string>>(initial?.counts ?? {});
   const [kind, setKind] = useState<'support' | 'attack'>(initial?.kind ?? 'attack');
+  const [coords, setCoords] = useState({ x: initial?.x ?? x, y: initial?.y ?? y });
+  const toCoord = (value: string) => (/^\d{1,3}$/.test(value) ? Number(value) : null);
+  const target = useOrderTarget(worldId, villageId, toCoord(coords.x), toCoord(coords.y));
   const chosen = data.unitTypes.reduce((sum, { code }) => sum + (Number(counts[code]) || 0), 0);
   // Só as unidades que existem na aldeia (ou que já vieram preenchidas de um rascunho).
   const available = data.unitTypes.filter(
@@ -194,7 +202,10 @@ export function SendForm({
               inputMode="numeric"
               pattern="[0-9]+"
               required
-              defaultValue={initial?.x ?? x}
+              value={coords.x}
+              onChange={(event) =>
+                setCoords({ ...coords, x: event.target.value.replace(/\D/g, '') })
+              }
               disabled={pending}
             />
           </label>
@@ -210,11 +221,15 @@ export function SendForm({
               inputMode="numeric"
               pattern="[0-9]+"
               required
-              defaultValue={initial?.y ?? y}
+              value={coords.y}
+              onChange={(event) =>
+                setCoords({ ...coords, y: event.target.value.replace(/\D/g, '') })
+              }
               disabled={pending}
             />
           </label>
         </div>
+        <OrderTarget info={target} x={coords.x} y={coords.y} attack={kind === 'attack'} />
         {kind === 'attack' && Number(counts.catapult ?? 0) > 0 ? (
           <label className="order-field">
             <span>Alvo das catapultas</span>

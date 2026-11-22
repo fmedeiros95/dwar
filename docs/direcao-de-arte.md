@@ -154,16 +154,55 @@ Sinais do brasão de dono: estrela para a aldeia atual, liso para suas aldeias, 
 tribo e aliados, traço horizontal para pacto, xis para inimigo e liso bronze para outros jogadores.
 Abandonadas não têm brasão.
 
-### A produzir (raster)
+### Raster, produzidos na rodada 2
 
-1. **Aldeias abandonadas em PNG com transparência.** Os arquivos atuais
-   (`/legacy/map/new/left_*n.jpg`) trazem a grama embutida, o que impede filtros e contornos
-   limpos. Exportar em 60×60 px, com a mesma perspectiva e luz das aldeias de jogador
-   (`vil_*n.png`) e seis faixas de pontos.
-2. **Retratos de unidade com moldura única.** Hoje cada retrato tem fundo diferente. Recortar em
-   64×64 px, busto a três quartos voltado para a direita, fundo couro escuro e filete de 1 px.
-3. **Ícone de recurso em 3 tamanhos** (16, 20 e 24 px), desenhados para cada tamanho em vez de
-   reduzidos, com silhuetas distintas: toras, tijolos e lingote.
+Os três scripts regeneram as peças a partir das fontes do Tribul que já estão no projeto. A prancha
+`direcao-de-arte/rodada-2/assets.jpg` mostra cada peça no tamanho real, ampliada 2x.
+
+| Peça | Arquivos | Script | Onde aparece |
+| --- | --- | --- | --- |
+| Ícones de recurso em 16, 20 e 24 px, 1x e 2x | `public/game/resources/icons/` | `scripts/make-resource-icons.py` | Barra superior (24), painéis e cartão de foco (20), chips de custo (16) |
+| Retratos com moldura única, 28 e 56 px | `public/game/troops/framed/` | `scripts/make-unit-portraits.py` | Painel da aldeia, Praça, quartel e relatórios |
+| Aldeias do mapa em PNG com transparência, 60 px | `public/legacy/map/cut/` | `scripts/make-map-villages.py` | Mapa |
+
+- **Ícones de recurso.** Partem dos ícones pintados de 36 px, que já têm as silhuetas da
+  especificação: toras, tijolos de argila e lingotes. Cada tamanho é recortado pela área pintada,
+  para os três ocuparem o mesmo espaço. Quanto menor o tamanho, mais contraste, saturação e
+  nitidez recebe. Um contorno escuro proporcional separa o ícone das barras escuras e do papel. O
+  ferro recebe 20% a mais de brilho, porque some sobre a barra escura. Armazém e população
+  continuam vetoriais, em tom apagado, porque são medidas da aldeia e não recursos que se gastam.
+- **Retratos.** O busto original de 24 px entra em 1:1 sobre couro com luz do alto à esquerda e
+  filete bronze. Antes, a ampliação para 30 px o borrava. Os bustos ficaram menores, mas nítidos e
+  com a mesma moldura.
+- **Aldeias do mapa.** A grama sai por cor e as bordas recebem meio pixel de suavização. Uma sombra
+  de contato curta vem da mesma luz. As aldeias de jogador perdem o círculo de dono antigo, que o
+  brasão substitui. Nos dois níveis menores, parte da terra batida esmaeceu junto com a grama.
+
+### Ainda a produzir: retrato pintado de 64 px
+
+O único retrato existente tem 24 px, e ampliar não cria detalhe. Nas telas que mostram o retrato
+grande, como os cartões do quartel com cerca de 64 px, ele continua borrado. Briefing para
+ilustração:
+
+- **Peças.** São 10, uma por unidade: lanceiro, espadachim, bárbaro, arqueiro, explorador,
+  cavalaria leve, cavalaria pesada, aríete, catapulta e nobre.
+- **Formato.** PNG de 128×128 px com fundo transparente, exibido a 64 px e a 28 px. Gerar também
+  56×56 px para o painel em telas 2x.
+- **Composição.**
+  - Soldados aparecem em busto a três quartos, voltados para a direita, que é para onde as ordens
+    partem na revisão.
+  - A cabeça fica no terço superior, e a arma característica cruza o quadro na diagonal, da base
+    esquerda ao topo direito.
+  - Aríete e catapulta aparecem em perspectiva de três quartos, com o mesmo enquadramento.
+- **Luz e material.**
+  - A luz vem do alto à esquerda, quente e de fim de tarde, como na aldeia.
+  - Metal tem brilho contido e couro e madeira saem foscos.
+  - A paleta é a mesma dos edifícios: madeira mel, pedra cinza-azulada e telhados ocre.
+- **Silhueta.** Cada unidade precisa ser reconhecível a 28 px só pelo contorno. Lança vertical,
+  espada curta, machado de lâmina larga, arco, capuz, elmo com crina, elmo fechado, viga do
+  aríete, braço da catapulta e chapéu de nobre.
+- **Moldura.** Não vai na arte. O script `make-unit-portraits.py` aplica a moldura de couro e
+  filete bronze, então basta trocar a fonte e rodar o script.
 
 ## 8. Retorno e movimento
 
@@ -175,7 +214,9 @@ Abandonadas não têm brasão.
 | Recurso ganho fora do ritmo (saque, comércio) | Pílula musgo "+N" | 1,6 s | Média |
 | Obra em andamento | Contorno do brasão preenche em tempo real | Contínuo | Baixa |
 | Obra concluída | Comemoração no cenário (já existia) | cerca de 2 s | Alta |
-| Ataque inimigo a caminho | Trilho e marcador do mapa pulsam em carmesim | Contínuo | Máxima |
+| Ataque inimigo aparece | Bordas do palco pulsam duas vezes e um cartão desce do selo | 2,6 s e 8 s | Máxima |
+| Ataque inimigo a caminho | Selo carmesim na barra superior, trilho e marcador do mapa | Contínuo, parado | Alta |
+| Ataque a menos de 5 minutos | Selo pulsa com halo crescente | Ciclo de 1,1 s | Máxima |
 | Armazém cheio | Barra e número em âmbar, sem pulsar | Estático | Baixa |
 
 Com `prefers-reduced-motion`, as pílulas aparecem sem deslocamento e os pulsos param.
@@ -194,3 +235,84 @@ Feita em Chrome headless a 1366×768 e 390×844, com uma aldeia de meio de parti
 - `pnpm lint`, `pnpm --filter @dwar/web typecheck` e `pnpm --filter @dwar/web build` passaram.
 
 Não testado: Firefox e Safari, leitor de tela, telas de 4K e um ataque inimigo real chegando.
+
+## 10. Rodada 2: identidade da aldeia, ordem militar e ataque chegando
+
+O "antes" desta rodada é o commit `60ea8d5`. Os comparativos estão em `direcao-de-arte/rodada-2/`.
+
+### A aldeia sem marcadores
+
+Com brasões e painéis ocultos, a identidade do DWar está no terreno pintado: montanhas, lago,
+estradas de terra e luz quente de fim de tarde.
+
+Destoavam dois elementos. O primeiro, e o de maior impacto, era a muralha. No nível 8 ela aparecia
+como 14 cilindros cinzentos soltos, sem textura nem luz, dominando a composição. Não era a arte da
+muralha, que tem paliçada e torres. Era um defeito do cenário: qualquer obra na fila, mesmo sem ter
+começado, trocava o edifício pelo andaime do estágio seguinte. A aldeia parecia demolida sempre que
+o jogador usava a fila, e o mesmo acontecia com o Quartel e o Estábulo.
+
+A correção está em `overview/village-scene.tsx`. O cenário mostra o que está de pé. O andaime só
+aparece quando a obra já começou e muda o estágio da arte, ou num edifício novo. Com a paliçada e as
+torres, a aldeia passa a ter silhueta de vila fortificada. Ver `aldeia-sem-marcadores.jpg`.
+
+O segundo elemento era a moldura da interface: ícones vetoriais chapados ao lado de uma pintura. Os
+ícones pintados e os retratos com moldura resolvem isso. Ver `aldeia-antes-depois.jpg`.
+
+Com os brasões de volta, eles continuam fáceis de achar. Os dourados, que pedem ação, chamam o olhar
+sem competir entre si. O da muralha fica na torre do portão.
+
+### Decisão militar
+
+O percurso vai da aldeia ao mapa, depois ao menu da aldeia escolhida, a "Enviar tropas", à escolha
+de tropas e à revisão. O ponto de maior dúvida era o formulário da Praça. O destino aparecia só como
+X e Y, e o jogador apertava "Atacar com 100" sem ver de quem era a aldeia. Ela podia ser abandonada,
+da própria tribo ou do próprio jogador.
+
+- **Formulário.** Logo abaixo das coordenadas, um quadro identifica a aldeia. Ele traz o brasão de
+  dono do mapa, o nome, a relação ("Aldeia abandonada", "Sua tribo", "Tribo inimiga"…), o dono e os
+  pontos. Se a ordem for ataque contra a própria aldeia, a tribo ou um aliado, aparece um aviso em
+  âmbar. A consulta usa o mesmo recorte de mapa que o mapa usa, com raio 1.
+- **Revisão.** No topo entra uma faixa que responde às três perguntas de relance. Primeiro, o tipo
+  de ordem: "ATAQUE" com espadas em carmesim ou "APOIO" com escudo em aço, por palavra, símbolo e
+  cor. Depois, o destino com brasão e relação. Por fim, quem vai, com os retratos e o total. "Ficam
+  na aldeia" passou a ser informação secundária. No celular, a faixa entra à vista ao abrir a
+  revisão.
+- **Mapa no celular.** O painel de coordenadas cobria um quarto do mapa e escondia "Enviar tropas".
+  Agora é uma faixa só com X e Y.
+
+Ver `ordem-formulario.jpg` e `ordem-revisao.jpg`.
+
+### Ataque chegando
+
+Antes, com o jogador na fila de obras, o único sinal era um "1" vermelho de 12 px no trilho. Não
+aparecia a aldeia afetada nem o tempo restante, e os detalhes ficavam numa tabela de seis colunas.
+
+1. **Chegada.** Na primeira vez que um ataque aparece, as bordas do palco pulsam em carmesim duas
+   vezes, por 2,6 s no total. Um cartão desce do selo com a aldeia, as coordenadas, o tempo
+   restante, a hora, a origem e o botão "Ver ataques". Ele some em 8 s, recolhendo-se no selo, e
+   não volta ao recarregar a página.
+2. **Selo.** Fica na barra superior, que nenhuma janela cobre, com "Ataque em 0:23:03" e o nome da
+   aldeia. Fica parado enquanto o ataque está longe e pulsa a menos de 5 minutos.
+3. **Detalhes.** O selo abre "Ataques chegando" numa janela própria, e a janela da fila continua
+   aberta. A tabela virou cartões com o tempo restante em destaque, o alvo e o atacante. Eles
+   funcionam também em 390 px.
+
+O carmesim continua reservado ao hostil. O aviso usa a mesma família de forma, o escudo, no ícone
+do selo. Ver `alerta-ataque.jpg` e `celular.jpg`.
+
+### Situações reproduzidas
+
+Ambiente de desenvolvimento, Chrome headless, 1366×768 e 390×844.
+
+| Situação | Como | Notebook | Celular |
+| --- | --- | --- | --- |
+| Aldeia com obras na fila e na obra | Estado de meio de partida no banco local | Sim | Sim |
+| Mapa, menu da aldeia e "Enviar tropas" | Clique real no mapa | Sim | Sim |
+| Ataque a outro jogador e apoio a abandonada até a revisão | Formulário real, sem confirmar | Sim | Ataque |
+| Ataque real a caminho com o jogador na fila de obras | Conta "invasor" a 2 campos, ataque enviado pela API do jogo | Sim | Sim |
+| Selo urgente, abaixo de 5 minutos | Atributo forçado no navegador, porque adiantar o ataque o faria chegar | Visual | Não |
+
+Não reproduzido: a chegada efetiva do ataque, com batalha e relatório. O ataque de teste foi
+removido do banco antes de chegar e as tropas voltaram ao invasor. Também não foram reproduzidos
+vários ataques simultâneos contra aldeias diferentes, ataque contra a própria tribo e leitor de
+tela.

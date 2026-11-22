@@ -53,7 +53,35 @@ const resourceIcon: Record<string, IconName> = {
   storage: 'storage',
 };
 
-export function ResourceIcon({ code, label }: { code: string; label: string }) {
+/** Recursos com ícone pintado, produzido em cada tamanho (scripts/make-resource-icons.py). */
+const paintedResources = ['wood', 'stone', 'iron'];
+
+export function ResourceIcon({
+  code,
+  label,
+  size = 20,
+}: {
+  code: string;
+  label: string;
+  /** 24 na barra superior, 20 nos painéis, 16 nos chips de custo. */
+  size?: 16 | 20 | 24;
+}) {
+  if (paintedResources.includes(code)) {
+    const file = `/game/resources/icons/${code}-${size}`;
+    return (
+      <img
+        className={`resource-icon ri-${code} painted`}
+        src={`${file}.png`}
+        srcSet={`${file}.png 1x, ${file}@2x.png 2x`}
+        width={size}
+        height={size}
+        style={{ width: size, height: size }}
+        alt={label}
+        title={label}
+        draggable={false}
+      />
+    );
+  }
   const icon = resourceIcon[code];
   if (!icon)
     return (

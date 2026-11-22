@@ -80,9 +80,9 @@ texturas legadas, então telas ainda não redesenhadas herdam cores e superfíci
 
 ## Próximos passos (ordem de impacto)
 
-0. **Assets raster da direção de arte:** aldeias abandonadas em PNG com transparência, retratos
-   de unidade com moldura única e ícones de recurso em 16, 20 e 24 px. As especificações estão
-   em `docs/direcao-de-arte.md`, seção 7.
+0. **Retratos de unidade pintados em 64 px:** ícones de recurso, retratos com moldura única e
+   aldeias do mapa recortadas já foram produzidos. Falta ilustrar os retratos maiores, que hoje
+   saem da tira de 24 px. O briefing está em `docs/direcao-de-arte.md`, seção 7.
 
 1. **Tabelas legadas restantes** (matrizes com ações ou muitas colunas): gestão de membros
    (`tribe-sections.tsx`), histórico de guerras (`tribe-diplomacy.tsx`), unidades do relatório

@@ -37,7 +37,7 @@ export function CostChips({
               short ? `Faltam ${numbers.format(value - have[code])} de ${name.toLowerCase()}` : name
             }
           >
-            <ResourceIcon code={code} label={name} />
+            <ResourceIcon code={code} label={name} size={16} />
             {numbers.format(value)}
           </li>
         );

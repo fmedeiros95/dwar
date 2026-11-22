@@ -133,9 +133,9 @@ export function VillageScene({
       buildings
         .filter((building) => building.level > 0 || building.queuedLevel > 0)
         .flatMap((building) => {
-          const displayLevel =
-            building.queuedLevel > building.level ? building.queuedLevel : building.level;
-          const placed = placeBuilding(building.code, displayLevel, building.maxLevel);
+          // O cenário mostra o que está de pé. Uma obra na fila não derruba o edifício atual.
+          const builtLevel = building.level > 0 ? building.level : building.queuedLevel;
+          const placed = placeBuilding(building.code, builtLevel, building.maxLevel);
           return placed ? [{ building, placed }] : [];
         })
         .sort(
@@ -174,13 +174,24 @@ export function VillageScene({
             width={sceneSize.width}
             height={sceneSize.height}
           />
-          {layers.map(({ building, placed }) => {
+          {layers.map(({ building, placed: built }) => {
+            const event = queue.find((item) => item.buildingCode === building.code);
+            const running = event && new Date(event.startsAt).getTime() <= clock ? event : null;
+            // Andaime só quando a obra já começou e muda o estágio da arte, ou num edifício novo.
+            const upgrade = running
+              ? placeBuilding(building.code, running.targetLevel, building.maxLevel)
+              : null;
+            const placed =
+              upgrade && (building.level === 0 || upgrade.tier !== built.tier) ? upgrade : built;
+            const phase =
+              placed === upgrade && running
+                ? phaseFor(placed.artId, progressOf(running, clock))
+                : building.level === 0 && event
+                  ? phaseFor(placed.artId, 0)
+                  : null;
             const { slot } = placed;
             const container = slot.container;
             if (!container || !slot.sprite) return null;
-            const event = queue.find((item) => item.buildingCode === building.code);
-            const progress = event ? progressOf(event, clock) : 0;
-            const phase = event ? phaseFor(placed.artId, progress) : null;
             const road = slot.road ? roadUrl(placed.artId, theme) : null;
             const hit = slot.hit;
             return (
