@@ -236,75 +236,79 @@ export function RankingScreen({ snapshot }: { snapshot: VillageSnapshot }) {
           {ranking.error.message}
         </p>
       ) : null}
-      <div className="table-scroll">
-        <table className="legacy-table rank-table">
-          <thead>
-            <tr>
-              <th>#</th>
-              <th>Jogador</th>
-              <th>{metric}</th>
-              <th>{board === 'continent' ? 'Aldeias no continente' : 'Aldeias'}</th>
-              <th>Ingressou</th>
-            </tr>
-          </thead>
-          <tbody>
-            {data?.entries.map((entry) => (
-              <tr key={entry.id} className={entry.own ? 'selected-row' : undefined}>
-                <td>
-                  <span className={`rank-pos${entry.rank <= 3 ? ` top-${entry.rank}` : ''}`}>
-                    {numbers.format(entry.rank)}
-                  </span>
-                </td>
-                <td>
-                  <span className="rank-player">
-                    <button
-                      className="text-button"
-                      onClick={() =>
-                        setParams({
-                          village: snapshot.village.id,
-                          screen: 'info_player',
-                          id: entry.id,
-                        })
-                      }
-                    >
-                      {entry.username}
-                    </button>
-                    <TribeTag
-                      tribe={entry.tribe}
-                      onOpen={(tribeId) =>
-                        setParams({
-                          village: snapshot.village.id,
-                          screen: 'info_tribe',
-                          id: tribeId,
-                        })
-                      }
-                    />
-                    {entry.own ? <em className="rank-you">você</em> : null}
-                  </span>
-                </td>
-                <td className="num">{numbers.format(entry.points)}</td>
-                <td className="num">{numbers.format(entry.villageCount)}</td>
-                <td>{new Date(entry.joinedAt).toLocaleDateString('pt-BR')}</td>
-              </tr>
-            ))}
-            {data && !data.entries.length ? (
-              <tr>
-                <td colSpan={5} className="empty-cell">
-                  {board === 'continent' && data.mode === 'list'
-                    ? `Nenhum jogador no continente ${continentLabel(continent)}.`
-                    : 'Nenhum jogador encontrado.'}
-                </td>
-              </tr>
-            ) : null}
-            {!data ? (
-              <tr>
-                <td colSpan={5} className="empty-cell">
-                  {ranking.isPending ? 'Carregando…' : 'Nenhum jogador encontrado.'}
-                </td>
-              </tr>
-            ) : null}
-          </tbody>
-        </table>
+      <div className="rank-list" role="table" aria-label={heading}>
+        <div className="rank-row rank-head" role="row">
+          <span role="columnheader">#</span>
+          <span role="columnheader">Jogador</span>
+          <span role="columnheader" className="num">
+            {metric}
+          </span>
+          <span role="columnheader" className="num">
+            {board === 'continent' ? 'Aldeias no continente' : 'Aldeias'}
+          </span>
+          <span role="columnheader" className="rank-joined">
+            Ingressou
+          </span>
+        </div>
+        {data?.entries.map((entry) => (
+          <div
+            key={entry.id}
+            role="row"
+            className={entry.own ? 'rank-row selected-row' : 'rank-row'}
+          >
+            <span role="cell">
+              <span className={`rank-pos${entry.rank <= 3 ? ` top-${entry.rank}` : ''}`}>
+                {numbers.format(entry.rank)}
+              </span>
+            </span>
+            <span role="cell" className="rank-player">
+              <button
+                className="text-button"
+                onClick={() =>
+                  setParams({
+                    village: snapshot.village.id,
+                    screen: 'info_player',
+                    id: entry.id,
+                  })
+                }
+              >
+                {entry.username}
+              </button>
+              <TribeTag
+                tribe={entry.tribe}
+                onOpen={(tribeId) =>
+                  setParams({
+                    village: snapshot.village.id,
+                    screen: 'info_tribe',
+                    id: tribeId,
+                  })
+                }
+              />
+              {entry.own ? <em className="rank-you">você</em> : null}
+            </span>
+            <span role="cell" className="num">
+              {numbers.format(entry.points)}
+            </span>
+            <span role="cell" className="num">
+              {numbers.format(entry.villageCount)}
+            </span>
+            <span role="cell" className="rank-joined">
+              {new Date(entry.joinedAt).toLocaleDateString('pt-BR')}
+            </span>
+          </div>
+        ))}
+        {data && !data.entries.length ? (
+          <p className="empty-cell">
+            {board === 'continent' && data.mode === 'list'
+              ? `Nenhum jogador no continente ${continentLabel(continent)}.`
+              : 'Nenhum jogador encontrado.'}
+          </p>
+        ) : null}
+        {!data ? (
+          <p className="empty-cell">
+            {ranking.isPending ? 'Carregando…' : 'Nenhum jogador encontrado.'}
+          </p>
+        ) : null}
       </div>
       {data && data.mode === 'list' ? (
         <nav className="pager" aria-label="Páginas do ranking">

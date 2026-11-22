@@ -1084,27 +1084,6 @@ body:has(.village-foundation)::before {
   padding: 0;
   width: 15px;
 }
-.public-village-layout {
-  display: grid;
-  grid-template-columns: 30% 1fr;
-  gap: 8px;
-  align-items: start;
-}
-.public-player-layout {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 8px;
-  align-items: start;
-}
-.public-spacer {
-  background: none !important;
-}
-@media (max-width: 680px) {
-  .public-village-layout,
-  .public-player-layout {
-    grid-template-columns: 1fr;
-  }
-}
 .rally-units {
   min-width: 660px;
   margin: 12px 0;
