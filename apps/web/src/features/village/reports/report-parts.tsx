@@ -106,7 +106,13 @@ export function TroopTable({
             <th></th>
             {unitTypes.map((u) => (
               <th key={u.code}>
-                <img src={unitIconSrc(u.code)} alt={u.name} title={u.name} />
+                <img
+                  src={unitIconSrc(u.code)}
+                  alt={u.name}
+                  title={u.name}
+                  loading="lazy"
+                  decoding="async"
+                />
               </th>
             ))}
           </tr>

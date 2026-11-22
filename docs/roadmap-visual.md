@@ -54,6 +54,11 @@ texturas legadas, então telas ainda não redesenhadas herdam cores e superfíci
 - Ferraria (pesquisa) em cartões `tech-tile` e Academia em cartões `academy-card`.
 - Menu de contexto do mapa (opção `contextMenu`) com atalhos para aldeia e perfil.
 - Identidade: logo e título já são "DWar".
+- Acessibilidade e desempenho (`a11y.css`): anéis de foco no mapa, minimapa, pontos de relatório
+  e edifícios; contorno em modo de alto contraste (`forced-colors`); `decoding="async"` e
+  `loading="lazy"` nas imagens de listas. Já estavam bons: `prefers-reduced-motion` global
+  (`ui.css`), contraste dos tokens de texto (6,1 a 13,3:1, acima de AA), `lang="pt-BR"`, papéis
+  ARIA nas janelas e notificações, sprites WebP de ~150×113 px e preload do fundo da aldeia.
 - Telas públicas de aldeia e de jogador (`public.css`): cabeçalho, fatos rápidos, ações e
   `PanelCard` (relatórios, nota, aldeias, perfil, medalhas). Ranking de jogadores em linhas de
   grade (`.rank-list`, com `role="table"`) no lugar da tabela legada. O ranking de tribos e a
@@ -70,8 +75,8 @@ texturas legadas, então telas ainda não redesenhadas herdam cores e superfíci
    abre no lugar da lista. A janela abre com 860 px, apertado para lista + leitura lado a lado:
    se for feito, usar container query (só a partir de ~1000 px) e manter a leitura em tela
    cheia abaixo disso.
-3. **Acessibilidade e desempenho:** contraste, foco visível, `prefers-reduced-motion`, imagens
-   do cenário em tamanho adequado.
+3. **Acessibilidade, o que sobra:** auditar com leitor de tela e só teclado (tab order das
+   janelas, armadilha de foco no diálogo, restaurar foco ao fechar), e medir com Lighthouse.
 4. **Testes:** não há nenhum; começar pelas fórmulas de `packages/game-core`.
 
 ## Mecânicas

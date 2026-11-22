@@ -12,7 +12,11 @@ export function PanelHead({
 }) {
   return (
     <header className="panel-head">
-      <img src={buildingArt(building.code, building.level, building.maxLevel)} alt="" />
+      <img
+        src={buildingArt(building.code, building.level, building.maxLevel)}
+        alt=""
+        decoding="async"
+      />
       <div className="panel-head-title">
         <h1>
           {building.name} <span className="panel-level">Nível {building.level}</span>
