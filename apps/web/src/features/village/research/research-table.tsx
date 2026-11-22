@@ -42,7 +42,7 @@ function Technology({
   return (
     <li className="tech-tile" data-state={status}>
       <div className="tech-portrait">
-        <img src={unitIconSrc(technology.code)} alt="" />
+        <img src={unitIconSrc(technology.code)} alt="" loading="lazy" decoding="async" />
         {status === 'researched' ? (
           <span className="tech-badge done" aria-hidden="true">
             <Check size={13} strokeWidth={3} />

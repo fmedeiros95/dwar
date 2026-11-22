@@ -1,0 +1,33 @@
+/* ---- Acessibilidade: foco visível onde o navegador foi silenciado ---- */
+
+/* Região do mapa e minimapa são focáveis por teclado, mas não tinham indicador. */
+.world-map-region:focus-visible,
+.world-minimap-surface:focus-visible {
+  outline: 2px solid var(--gold-bright, #ffd98a);
+  outline-offset: -2px;
+}
+
+/* Pontos de relatório no mapa: antes só mudavam de escala. */
+.map-report-dot:focus-visible {
+  box-shadow:
+    0 0 0 2px #1a120a,
+    0 0 0 4px var(--gold-bright, #ffd98a);
+}
+
+/* Edifícios da aldeia: brilho já existe; o anel garante o contorno em cenários claros. */
+.scene-building:focus-visible {
+  filter: brightness(1.15) drop-shadow(0 0 3px #ffd98a) drop-shadow(0 0 1px #1a120a);
+}
+
+/* Modo de alto contraste do sistema: restaura contornos nativos. */
+@media (forced-colors: active) {
+  button:focus-visible,
+  .button:focus-visible,
+  a:focus-visible,
+  input:focus-visible,
+  select:focus-visible,
+  textarea:focus-visible {
+    outline: 2px solid Highlight;
+    outline-offset: 2px;
+  }
+}

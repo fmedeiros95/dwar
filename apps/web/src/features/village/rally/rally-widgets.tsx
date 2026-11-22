@@ -23,7 +23,7 @@ export function UnitStrip({
     <ul className="unit-strip">
       {present.map(({ code, name }) => (
         <li key={code} title={`${numbers.format(counts[code] ?? 0)} ${name}`}>
-          <img src={unitIconSrc(code)} alt={name} />
+          <img src={unitIconSrc(code)} alt={name} loading="lazy" decoding="async" />
           <strong>{numbers.format(counts[code] ?? 0)}</strong>
         </li>
       ))}
@@ -127,7 +127,7 @@ export function SendForm({
                 data-empty={home === 0 ? 'true' : undefined}
                 data-picked={picked > 0 ? 'true' : undefined}
               >
-                <img src={unitIconSrc(code)} alt="" />
+                <img src={unitIconSrc(code)} alt="" loading="lazy" decoding="async" />
                 <label className="troop-name" htmlFor={`troop-${code}`}>
                   {name}
                 </label>

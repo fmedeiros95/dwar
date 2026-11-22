@@ -290,7 +290,11 @@ export function BuildingOverview({
     <div className="bview">
       <section className="bview-hero">
         <div className="bview-art">
-          <img src={buildingArt(building.code, building.level, building.maxLevel)} alt="" />
+          <img
+            src={buildingArt(building.code, building.level, building.maxLevel)}
+            alt=""
+            decoding="async"
+          />
         </div>
         <div className="bview-intro">
           <h1>{building.name}</h1>

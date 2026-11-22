@@ -70,7 +70,13 @@ export function RecruitmentPanel({
                 key={unit.code}
                 data-state={locked ? 'locked' : quantity > 0 ? 'picked' : undefined}
               >
-                <img className="unit-portrait" src={unitIconSrc(unit.code)} alt="" />
+                <img
+                  className="unit-portrait"
+                  src={unitIconSrc(unit.code)}
+                  alt=""
+                  loading="lazy"
+                  decoding="async"
+                />
                 <div className="unit-info">
                   <h3>{unit.name}</h3>
                   <span className="unit-stock">

@@ -28,6 +28,7 @@ import './controls.css';
 import './trade.css';
 import './building.css';
 import './public.css';
+import './a11y.css';
 
 const client = new QueryClient({
   defaultOptions: { queries: { retry: false, refetchOnWindowFocus: true } },
