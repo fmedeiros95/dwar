@@ -54,6 +54,10 @@ texturas legadas, então telas ainda não redesenhadas herdam cores e superfíci
 - Ferraria (pesquisa) em cartões `tech-tile` e Academia em cartões `academy-card`.
 - Menu de contexto do mapa (opção `contextMenu`) com atalhos para aldeia e perfil.
 - Identidade: logo e título já são "DWar".
+- Testes de `packages/game-core` (`pnpm test`): economia, Tesouraria e Moleiro, recrutamento,
+  mercado, viagem, combate (perdas exatas, muralha, aríetes, catapultas, espiões, saque, apoio),
+  patentes, permissões da tribo, formatação de mensagens, posicionamento e crescimento bárbaro.
+  Validados com mutação manual das fórmulas principais: nenhum mutante sobrevive.
 - Acessibilidade e desempenho (`a11y.css`): anéis de foco no mapa, minimapa, pontos de relatório
   e edifícios; contorno em modo de alto contraste (`forced-colors`); `decoding="async"` e
   `loading="lazy"` nas imagens de listas. Já estavam bons: `prefers-reduced-motion` global
@@ -77,7 +81,10 @@ texturas legadas, então telas ainda não redesenhadas herdam cores e superfíci
    cheia abaixo disso.
 3. **Acessibilidade, o que sobra:** auditar com leitor de tela e só teclado (tab order das
    janelas, armadilha de foco no diálogo, restaurar foco ao fechar), e medir com Lighthouse.
-4. **Testes:** não há nenhum; começar pelas fórmulas de `packages/game-core`.
+4. **Testes, o que sobra:** `packages/game-core` já tem 78 testes (`pnpm test`). Faltam
+   `packages/game-server` (casos de uso, precisam de banco) e um fluxo E2E mínimo.
+   Decidir sobre a Tesouraria nível 1, que vale 15 pontos em vez de 14 por arredondamento de
+   ponto flutuante herdado do Speed Wars (`buildingPoints`); o teste atual documenta o quirk.
 
 ## Mecânicas
 
