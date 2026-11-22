@@ -83,8 +83,8 @@ texturas legadas, então telas ainda não redesenhadas herdam cores e superfíci
    janelas, armadilha de foco no diálogo, restaurar foco ao fechar), e medir com Lighthouse.
 4. **Testes, o que sobra:** `packages/game-core` já tem 78 testes (`pnpm test`). Faltam
    `packages/game-server` (casos de uso, precisam de banco) e um fluxo E2E mínimo.
-   Decidir sobre a Tesouraria nível 1, que vale 15 pontos em vez de 14 por arredondamento de
-   ponto flutuante herdado do Speed Wars (`buildingPoints`); o teste atual documenta o quirk.
+   Decisão: a Tesouraria nível 1 continua valendo 15 pontos (não 14), por arredondamento de
+   ponto flutuante herdado do Speed Wars em `buildingPoints`; o teste documenta o quirk.
 
 ## Mecânicas
 
