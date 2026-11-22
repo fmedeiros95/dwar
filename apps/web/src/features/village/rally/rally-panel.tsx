@@ -13,7 +13,8 @@ import {
   type VillageSnapshot,
 } from '@dwar/api-client';
 import { CornerDownLeft, Shield, Swords } from 'lucide-react';
-import { numbers, speedLabel } from '../shared/index.js';
+import { completionDate, numbers, speedLabel } from '../shared/index.js';
+import { OrderBanner } from './order-target.js';
 import { TripSummary } from '../shared/trip-summary.js';
 import { PanelCard, PanelHead } from '../shared/panel-head.js';
 import { TransitRow } from '../shared/transit.js';
@@ -140,6 +141,18 @@ export function RallyPanel({
     return (
       <div className="legacy-content confirm">
         {alert}
+        <OrderBanner
+          worldId={worldId}
+          villageId={villageId}
+          attack={attack}
+          target={target}
+          types={data.unitTypes}
+          troops={confirmation.troops}
+          arrival={completionDate(
+            new Date(clock + confirmation.durationSeconds * 1000).toISOString(),
+            clock,
+          )}
+        />
         <TripSummary
           label={attack ? 'Ataque' : 'Apoio'}
           tone={attack ? 'attack' : 'support'}
@@ -189,11 +202,7 @@ export function RallyPanel({
             </li>
           ) : null}
         </ul>
-        <section className="confirm-block">
-          <h2>Tropas enviadas</h2>
-          <UnitStrip types={data.unitTypes} counts={confirmation.troops} />
-        </section>
-        <section className="confirm-block">
+        <section className="confirm-block confirm-remaining">
           <h2>Ficam na aldeia</h2>
           <UnitStrip
             types={data.unitTypes}
@@ -216,6 +225,11 @@ export function RallyPanel({
               })
             }
           >
+            {attack ? (
+              <Swords size={17} aria-hidden="true" />
+            ) : (
+              <Shield size={17} aria-hidden="true" />
+            )}
             {attack ? 'Confirmar ataque' : 'Confirmar apoio'}
           </button>
           <button disabled={pending} className="button" onClick={() => setConfirmation(null)}>
@@ -260,6 +274,8 @@ export function RallyPanel({
       ) : null}
       <SendForm
         key={`${version}:${params.get('x')}:${params.get('y')}`}
+        worldId={worldId}
+        villageId={villageId}
         data={data}
         pending={pending}
         x={params.get('x') ?? ''}

@@ -15,7 +15,12 @@ const portrait: Record<string, number> = {
   noble: 11,
 };
 
+/** Retrato com a moldura única do jogo (scripts/make-unit-portraits.py), 28 px. */
 export function unitIconSrc(code: string): string {
-  const index = portrait[code];
-  return index ? `/game/troops/${index}.png` : `/legacy/unit/unit_${code}.png`;
+  return portrait[code] ? `/game/troops/framed/${code}.png` : `/legacy/unit/unit_${code}.png`;
+}
+export function unitIconSrcSet(code: string): string | undefined {
+  return portrait[code]
+    ? `/game/troops/framed/${code}.png 1x, /game/troops/framed/${code}@2x.png 2x`
+    : undefined;
 }

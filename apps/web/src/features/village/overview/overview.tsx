@@ -6,7 +6,7 @@ import { VillageScene, crestLabels, crestState } from './village-scene.js';
 import { buildingArt, sceneThemes, type SceneTheme } from './scene-model.js';
 import { completionDate, duration, numbers, resources } from '../shared/index.js';
 import { currentResources } from '../shared/current-resources.js';
-import { unitIconSrc } from '../../../components/unit-icon.js';
+import { unitIconSrc, unitIconSrcSet } from '../../../components/unit-icon.js';
 
 function ConstructionCard({
   queue,
@@ -327,7 +327,7 @@ function VillageLedger({
               <ul className="ledger-troops">
                 {troops.map((unit) => (
                   <li key={unit.code} title={`${numbers.format(unit.present)} ${unit.name}`}>
-                    <img src={unitIconSrc(unit.code)} alt="" />
+                    <img src={unitIconSrc(unit.code)} srcSet={unitIconSrcSet(unit.code)} alt="" />
                     <strong>{numbers.format(unit.present)}</strong>
                     <span>{unit.name}</span>
                   </li>

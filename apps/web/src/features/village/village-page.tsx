@@ -23,6 +23,7 @@ import { TribePanel, TribeProfileScreen } from './tribes/index.js';
 import { RankingScreen } from './ranking/index.js';
 import { SettingsScreen } from './settings/index.js';
 import { IncomingsPanel } from './incomings/incomings-panel.js';
+import { ThreatAlert } from './incomings/threat.js';
 import { useVillageActions } from './use-village-actions.js';
 import { duration, numbers, resources, timeFormat } from './shared/index.js';
 import { currentResources } from './shared/current-resources.js';
@@ -473,6 +474,7 @@ export function VillagePage({
               </button>
             </div>
           )}
+          <ThreatAlert data={incomings.data} clock={clock} onOpen={() => openIncomings('attack')} />
           <div className="legacy-resources" aria-label="Recursos da aldeia">
             {resources.map(({ code, name: resourceName }) => {
               const amount = have[code];
@@ -493,7 +495,7 @@ export function VillagePage({
                         : 'sem produção'
                   }`}
                 >
-                  <ResourceIcon code={code} label={resourceName} />
+                  <ResourceIcon code={code} label={resourceName} size={24} />
                   <span className={amount >= data.village.capacity ? 'full-resource' : undefined}>
                     {numbers.format(amount)}
                   </span>

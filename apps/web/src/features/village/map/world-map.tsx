@@ -356,8 +356,8 @@ function MapCanvas({ snapshot, options }: { snapshot: VillageSnapshot; options: 
                       <img
                         src={
                           village.playerId === null
-                            ? `/legacy/map/new/left_${villageGraphic(village.points)}n.jpg`
-                            : `/legacy/map/new/vil_${villageGraphic(village.points)}n.png`
+                            ? `/legacy/map/cut/left_${villageGraphic(village.points)}.png`
+                            : `/legacy/map/cut/vil_${villageGraphic(village.points)}.png`
                         }
                         alt=""
                         draggable={false}
