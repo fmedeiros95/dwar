@@ -132,6 +132,13 @@
   border-radius: 6px;
   font-size: 13px;
 }
+.rank-tribes .rank-row {
+  grid-template-columns: 52px minmax(180px, 1fr) minmax(80px, 140px) 90px 90px;
+}
+.rank-members .rank-row {
+  grid-template-columns: 52px minmax(160px, 1fr) minmax(100px, 180px) minmax(80px, 110px);
+  min-width: 480px;
+}
 .rank-row:not(.rank-head):nth-of-type(even) {
   background: var(--surface-sunken);
 }

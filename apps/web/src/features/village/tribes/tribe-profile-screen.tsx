@@ -122,34 +122,32 @@ export function TribeProfileScreen({ snapshot }: { snapshot: VillageSnapshot }) 
       ) : null}
       <section className="tribe-card" aria-label="Membros da tribo">
         <h2>Membros</h2>
-        <div className="table-scroll">
-          <table className="legacy-table rank-table">
-            <thead>
-              <tr>
-                <th>#</th>
-                <th>Jogador</th>
-                <th>Cargo</th>
-                <th>Pontos</th>
-              </tr>
-            </thead>
-            <tbody>
-              {data.members.map((member) => (
-                <tr key={member.playerId}>
-                  <td>{member.rank}</td>
-                  <td>
-                    <button
-                      className="text-button"
-                      onClick={() => go('info_player', { id: member.playerId })}
-                    >
-                      {member.username}
-                    </button>
-                  </td>
-                  <td>{member.title || '—'}</td>
-                  <td className="num">{numbers.format(member.points)}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+        <div className="rank-list rank-members" role="table" aria-label="Membros da tribo">
+          <div className="rank-row rank-head" role="row">
+            <span role="columnheader">#</span>
+            <span role="columnheader">Jogador</span>
+            <span role="columnheader">Cargo</span>
+            <span role="columnheader" className="num">
+              Pontos
+            </span>
+          </div>
+          {data.members.map((member) => (
+            <div key={member.playerId} role="row" className="rank-row">
+              <span role="cell">{member.rank}</span>
+              <span role="cell" className="rank-player">
+                <button
+                  className="text-button"
+                  onClick={() => go('info_player', { id: member.playerId })}
+                >
+                  {member.username}
+                </button>
+              </span>
+              <span role="cell">{member.title || '—'}</span>
+              <span role="cell" className="num">
+                {numbers.format(member.points)}
+              </span>
+            </div>
+          ))}
         </div>
       </section>
     </div>

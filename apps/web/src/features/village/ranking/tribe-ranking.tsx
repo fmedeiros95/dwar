@@ -93,57 +93,61 @@ export function TribeRanking({ snapshot, tabs }: { snapshot: VillageSnapshot; ta
           {ranking.error.message}
         </p>
       ) : null}
-      <div className="table-scroll">
-        <table className="legacy-table rank-table">
-          <thead>
-            <tr>
-              <th>#</th>
-              <th>Tribo</th>
-              <th>{label}</th>
-              <th>Membros</th>
-              <th>Aldeias</th>
-            </tr>
-          </thead>
-          <tbody>
-            {data?.entries.map((entry) => (
-              <tr key={entry.id} className={entry.own ? 'selected-row' : undefined}>
-                <td>
-                  <span className={`rank-pos${entry.rank <= 3 ? ` top-${entry.rank}` : ''}`}>
-                    {numbers.format(entry.rank)}
-                  </span>
-                </td>
-                <td>
-                  <span className="rank-player">
-                    <button className="text-button" onClick={() => open(entry.id)}>
-                      {entry.name}
-                    </button>
-                    <span className="tribe-tag static">{entry.tag}</span>
-                    {entry.own ? <em className="rank-you">sua tribo</em> : null}
-                  </span>
-                </td>
-                <td className="num">{numbers.format(entry.value)}</td>
-                <td className="num">{numbers.format(entry.members)}</td>
-                <td className="num">{numbers.format(entry.villages)}</td>
-              </tr>
-            ))}
-            {data && !data.entries.length ? (
-              <tr>
-                <td colSpan={5} className="empty-cell">
-                  {data.mode === 'search'
-                    ? 'Nenhuma tribo encontrada.'
-                    : 'Nenhuma tribo neste mundo ainda.'}
-                </td>
-              </tr>
-            ) : null}
-            {!data ? (
-              <tr>
-                <td colSpan={5} className="empty-cell">
-                  {ranking.isPending ? 'Carregando…' : 'Nenhuma tribo encontrada.'}
-                </td>
-              </tr>
-            ) : null}
-          </tbody>
-        </table>
+      <div className="rank-list rank-tribes" role="table" aria-label="Ranking de tribos">
+        <div className="rank-row rank-head" role="row">
+          <span role="columnheader">#</span>
+          <span role="columnheader">Tribo</span>
+          <span role="columnheader" className="num">
+            {label}
+          </span>
+          <span role="columnheader" className="num">
+            Membros
+          </span>
+          <span role="columnheader" className="num">
+            Aldeias
+          </span>
+        </div>
+        {data?.entries.map((entry) => (
+          <div
+            key={entry.id}
+            role="row"
+            className={entry.own ? 'rank-row selected-row' : 'rank-row'}
+          >
+            <span role="cell">
+              <span className={`rank-pos${entry.rank <= 3 ? ` top-${entry.rank}` : ''}`}>
+                {numbers.format(entry.rank)}
+              </span>
+            </span>
+            <span role="cell" className="rank-player">
+              <button className="text-button" onClick={() => open(entry.id)}>
+                {entry.name}
+              </button>
+              <span className="tribe-tag static">{entry.tag}</span>
+              {entry.own ? <em className="rank-you">sua tribo</em> : null}
+            </span>
+            <span role="cell" className="num">
+              {numbers.format(entry.value)}
+            </span>
+            <span role="cell" className="num">
+              {numbers.format(entry.members)}
+            </span>
+            <span role="cell" className="num">
+              {numbers.format(entry.villages)}
+            </span>
+          </div>
+        ))}
+        {data && !data.entries.length ? (
+          <p className="empty-cell">
+            {data.mode === 'search'
+              ? 'Nenhuma tribo encontrada.'
+              : 'Nenhuma tribo neste mundo ainda.'}
+          </p>
+        ) : null}
+        {!data ? (
+          <p className="empty-cell">
+            {ranking.isPending ? 'Carregando…' : 'Nenhuma tribo encontrada.'}
+          </p>
+        ) : null}
       </div>
       {data && data.mode === 'list' && data.pageCount > 1 ? (
         <nav className="pager" aria-label="Páginas do ranking de tribos">
