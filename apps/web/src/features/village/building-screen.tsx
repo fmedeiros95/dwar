@@ -1,6 +1,6 @@
 import type { CSSProperties } from 'react';
 import type { BuildingView, VillageSnapshot, RecruitmentOrder } from '@dwar/api-client';
-import { BuildingTable, ConstructionQueue } from './building/index.js';
+import { BuildPlanner, type PlannerState } from './planner/build-planner.js';
 import { BuildingOverview } from './building/building-overview.js';
 import { ResearchTable, researchProgress } from './research/index.js';
 import { RecruitmentPanel } from './recruitment/index.js';
@@ -81,6 +81,7 @@ export function BuildingScreen({
   snapshot,
   building,
   clock,
+  planner,
   pending,
   pendingCode,
   onCancel,
@@ -98,6 +99,7 @@ export function BuildingScreen({
   snapshot: VillageSnapshot;
   building: BuildingView;
   clock: number;
+  planner: PlannerState;
   pending: boolean;
   pendingCode?: string | undefined;
   onCancel: (id: number) => void;
@@ -123,19 +125,16 @@ export function BuildingScreen({
         <PanelHead building={building}>
           <MainStats snapshot={snapshot} />
         </PanelHead>
-        <ConstructionQueue
+        <BuildPlanner
+          variant="window"
           snapshot={snapshot}
           clock={clock}
-          onCancel={onCancel}
-          pending={pending}
-        />
-        <BuildingTable
-          snapshot={snapshot}
+          planner={planner}
           pending={pending}
           pendingCode={pendingCode}
-          clock={clock}
           onConstruct={onConstruct}
-          onSelect={onSelect}
+          onCancel={onCancel}
+          onOpen={onSelect}
         />
       </div>
     );

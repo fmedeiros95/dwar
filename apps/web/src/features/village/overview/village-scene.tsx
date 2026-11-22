@@ -86,6 +86,8 @@ export function VillageScene({
   villageId,
   buildings,
   onSelect,
+  onCrest,
+  compared = [],
   onHover,
   queue,
   clock,
@@ -96,6 +98,10 @@ export function VillageScene({
   villageId: number;
   buildings: BuildingView[];
   onSelect: (code: string) => void;
+  /** Clique no brasão: leva a obra para a comparação, sem abrir janela. */
+  onCrest?: (code: string) => void;
+  /** Edifícios em comparação na mesa de obras: o brasão ganha um anel. */
+  compared?: string[];
   onHover?: (code: string | null) => void;
   queue: Construction[];
   clock: number;
@@ -295,8 +301,26 @@ export function VillageScene({
               <g
                 key={`label-${building.code}`}
                 className={`scene-label crest-${state}`}
+                data-compared={compared.includes(building.code) ? 'true' : undefined}
+                data-crest={building.code}
                 transform={`translate(${placed.label.left - 2}, ${placed.label.top - 4})`}
+                onClick={
+                  onCrest
+                    ? (clickEvent) => {
+                        clickEvent.stopPropagation();
+                        if (!pan.didDrag()) onCrest(building.code);
+                      }
+                    : undefined
+                }
+                onMouseEnter={() => onHover?.(building.code)}
+                onMouseLeave={() => onHover?.(null)}
               >
+                {onCrest ? (
+                  <circle className="crest-hit" cx={crestSize.width / 2} cy={17} r={24} />
+                ) : null}
+                {compared.includes(building.code) ? (
+                  <path className="crest-compare-ring" d={crestPath} />
+                ) : null}
                 <path className="crest-shape" d={crestPath} />
                 {state === 'working' && works ? (
                   <path

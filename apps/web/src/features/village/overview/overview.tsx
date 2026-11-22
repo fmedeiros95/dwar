@@ -1,94 +1,13 @@
 import { useState, type CSSProperties } from 'react';
-import type { BuildingView, Construction, VillageSnapshot } from '@dwar/api-client';
-import { ChevronDown, Hammer, List } from 'lucide-react';
+import type { BuildingView, VillageSnapshot } from '@dwar/api-client';
+import { ChevronDown, List } from 'lucide-react';
 import { ResourceIcon } from '../../../components/legacy-frame.js';
 import { VillageScene, crestLabels, crestState } from './village-scene.js';
 import { buildingArt, sceneThemes, type SceneTheme } from './scene-model.js';
-import { completionDate, duration, numbers, resources } from '../shared/index.js';
+import { BuildPlanner, type PlannerState } from '../planner/build-planner.js';
+import { duration, numbers, resources } from '../shared/index.js';
 import { currentResources } from '../shared/current-resources.js';
 import { unitIconSrc, unitIconSrcSet } from '../../../components/unit-icon.js';
-
-function ConstructionCard({
-  queue,
-  buildings,
-  clock,
-  maxQueue,
-}: {
-  queue: Construction[];
-  buildings: BuildingView[];
-  clock: number;
-  maxQueue: number;
-}) {
-  return (
-    <section
-      className="hud-card hud-construction"
-      aria-label="Obras em andamento"
-      onPointerDown={(event) => event.stopPropagation()}
-    >
-      <h2>
-        <span>
-          <Hammer size={15} aria-hidden="true" /> Obras
-        </span>
-        {maxQueue <= 8 ? (
-          <small className="hud-slots" aria-label={`${queue.length} de ${maxQueue} vagas usadas`}>
-            {Array.from({ length: maxQueue }, (_, slot) => (
-              <i key={slot} data-used={slot < queue.length ? 'true' : undefined} />
-            ))}
-          </small>
-        ) : (
-          <small
-            className="hud-slots-count"
-            aria-label={`${queue.length} de ${maxQueue} vagas usadas`}
-          >
-            <b>{queue.length}</b>/{maxQueue} vagas
-          </small>
-        )}
-      </h2>
-      {queue.length === 0 ? (
-        <p className="hud-empty">
-          Nenhuma obra em andamento.
-          <br />
-          Clique em um edifício para construir.
-        </p>
-      ) : (
-        <ul>
-          {queue.map((item) => {
-            const start = new Date(item.startsAt).getTime();
-            const end = new Date(item.endsAt).getTime();
-            const running = start <= clock;
-            const progress = Math.min(1, Math.max(0, (clock - start) / Math.max(1, end - start)));
-            return (
-              <li
-                key={item.id}
-                data-running={running ? 'true' : undefined}
-                style={{ '--progress': progress } as CSSProperties}
-              >
-                <img
-                  className="hud-thumb"
-                  src={buildingArt(
-                    item.buildingCode,
-                    item.targetLevel,
-                    buildings.find((b) => b.code === item.buildingCode)?.maxLevel,
-                  )}
-                  alt=""
-                />
-                <span className="hud-row">
-                  <strong>{item.name}</strong>
-                  <em>
-                    Nível {item.targetLevel} ·{' '}
-                    {running ? completionDate(item.endsAt, clock) : 'na fila'}
-                  </em>
-                </span>
-                <time>{duration((end - clock) / 1000)}</time>
-                <span className="hud-bar" aria-hidden="true" />
-              </li>
-            );
-          })}
-        </ul>
-      )}
-    </section>
-  );
-}
 
 /**
  * Cartão do edifício sob o cursor: tudo o que sustenta a decisão "evoluo este agora?".
@@ -177,11 +96,10 @@ function BuildingCard({
             </p>
           ) : state === 'blocked' && building.unavailableReason ? (
             <p className="hud-reason">{building.unavailableReason}</p>
-          ) : state === 'ready' ? (
-            <p className="hud-reason" data-tone="ready">
-              Clique para abrir e evoluir
-            </p>
           ) : null}
+          <p className="hud-hint">
+            <b>Brasão</b>: comparar na mesa de obras · <b>edifício</b>: abrir
+          </p>
         </>
       )}
     </aside>
@@ -350,6 +268,11 @@ export function Overview({
   onPreference,
   onSelect,
   clock,
+  planner,
+  pending,
+  pendingCode,
+  onConstruct,
+  onCancel,
 }: {
   snapshot: VillageSnapshot;
   graphical: boolean;
@@ -357,6 +280,11 @@ export function Overview({
   onPreference: (value: boolean) => void;
   onSelect: (code: string) => void;
   clock: number;
+  planner: PlannerState;
+  pending: boolean;
+  pendingCode?: string | undefined;
+  onConstruct: (code: string) => void;
+  onCancel: (id: number) => void;
 }) {
   const [hovered, setHovered] = useState<string | null>(null);
   const [theme, setTheme] = useState<SceneTheme>(() => {
@@ -432,18 +360,32 @@ export function Overview({
     <VillageScene
       villageId={snapshot.village.id}
       buildings={snapshot.buildings}
-      onSelect={onSelect}
+      onSelect={(code) => {
+        // O Edifício principal é a própria mesa de obras: abre o painel em vez de uma janela.
+        if (code === 'main') planner.setOpen(true);
+        else onSelect(code);
+      }}
+      onCrest={(code) => {
+        planner.compare(code, true);
+        planner.setOpen(true);
+      }}
+      compared={planner.compared}
       onHover={setHovered}
       queue={snapshot.queue}
       clock={clock}
       theme={theme}
       onThemeChange={changeTheme}
     >
-      <ConstructionCard
-        queue={snapshot.queue}
-        buildings={snapshot.buildings}
+      <BuildPlanner
+        variant="dock"
+        snapshot={snapshot}
         clock={clock}
-        maxQueue={snapshot.world.maxBuildQueue}
+        planner={planner}
+        pending={pending}
+        pendingCode={pendingCode}
+        onConstruct={onConstruct}
+        onCancel={onCancel}
+        onOpen={onSelect}
       />
       {hoveredBuilding ? (
         <BuildingCard building={hoveredBuilding} snapshot={snapshot} clock={clock} />

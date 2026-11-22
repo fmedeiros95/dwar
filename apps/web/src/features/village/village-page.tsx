@@ -25,6 +25,7 @@ import { SettingsScreen } from './settings/index.js';
 import { IncomingsPanel } from './incomings/incomings-panel.js';
 import { ThreatAlert } from './incomings/threat.js';
 import { useVillageActions } from './use-village-actions.js';
+import { usePlannerState } from './planner/build-planner.js';
 import { duration, numbers, resources, timeFormat } from './shared/index.js';
 import { currentResources } from './shared/current-resources.js';
 import { useResourceDeltas } from './shared/resource-delta.js';
@@ -126,6 +127,7 @@ export function VillagePage({
     next.set('screen', lastBackground.current);
     setParams(next, { replace: true });
   }, [canonicalVillageId, isBackground, rawScreen, params, openWindow, setParams]);
+  const planner = usePlannerState(canonicalVillageId ?? 0);
   const reports = useQuery({
     queryKey: ['reports', worldId, 1],
     queryFn: () => api.reports(worldId, 1),
@@ -207,6 +209,16 @@ export function VillagePage({
     }
   }, [village.error, client, navigate, worldId, world.slug]);
   function setScreen(value: string) {
+    // Na aldeia, o Edifício principal é a mesa de obras acoplada ao cenário.
+    if (
+      value === 'main' &&
+      lastBackground.current === 'overview' &&
+      isBackground &&
+      account.graphicalOverview !== false
+    ) {
+      planner.setOpen(true);
+      return;
+    }
     if (backgroundScreens.includes(value)) {
       const next = new URLSearchParams(params);
       next.set('screen', value);
@@ -631,6 +643,11 @@ export function VillagePage({
           onPreference={(value) => preference.mutate(value)}
           onSelect={setScreen}
           clock={clock}
+          planner={planner}
+          pending={pending}
+          pendingCode={build.isPending ? build.variables?.buildingCode : undefined}
+          onConstruct={construct}
+          onCancel={(id) => cancel.mutate(id)}
         />
       ) : (
         <WorldMap snapshot={data} />
@@ -660,6 +677,7 @@ export function VillagePage({
                 snapshot={data}
                 building={building}
                 clock={clock}
+                planner={planner}
                 pending={pending}
                 pendingCode={build.isPending ? build.variables?.buildingCode : undefined}
                 onCancel={(id) => cancel.mutate(id)}
