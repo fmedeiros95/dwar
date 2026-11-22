@@ -1604,3 +1604,50 @@ th[data-state='wait'] .cmp-build:disabled {
   transform: none;
   display: inline-grid;
 }
+
+/* Depois da chegada: do alerta ao relatório, sem procurar no trilho. */
+.threat {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.threat-after {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 40px;
+  padding: 4px 12px 4px 10px;
+  font: 600 12px/1.15 var(--font-ui);
+  color: #f6ead0;
+  text-align: left;
+  background: rgb(20 13 7 / 0.9);
+  border: 1px solid rgb(241 210 138 / 0.4);
+  border-left: 3px solid var(--a-max);
+  border-radius: 9px;
+}
+.threat-after span {
+  display: grid;
+}
+.threat-after strong {
+  font-size: 13px;
+}
+.threat-after small {
+  color: #cdb98f;
+}
+.threat-after[data-outcome='won'] {
+  border-left-color: var(--a-ok);
+}
+.threat-after[data-outcome='won'] strong {
+  color: #b5dc9b;
+}
+.threat-after[data-outcome='lost'] {
+  border-left-color: var(--a-hostile);
+}
+.threat-after[data-outcome='lost'] strong {
+  color: #ff8a7a;
+}
+@media (max-width: 900px) {
+  .threat-after small {
+    display: none;
+  }
+}

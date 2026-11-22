@@ -494,7 +494,21 @@ export function VillagePage({
               </button>
             </div>
           )}
-          <ThreatAlert data={incomings.data} clock={clock} onOpen={() => openIncomings('attack')} />
+          <ThreatAlert
+            data={incomings.data}
+            clock={clock}
+            onOpen={() => openIncomings('attack')}
+            reports={reports.data?.reports}
+            onReport={(id) =>
+              openWindow(
+                new URLSearchParams({
+                  village: String(data.village.id),
+                  screen: 'reports',
+                  ...(id ? { id: String(id) } : {}),
+                }).toString(),
+              )
+            }
+          />
           <div className="legacy-resources" aria-label="Recursos da aldeia">
             {resources.map(({ code, name: resourceName }) => {
               const amount = have[code];
