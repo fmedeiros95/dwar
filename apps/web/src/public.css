@@ -1,0 +1,160 @@
+/* ---- Telas públicas (aldeia e jogador) e lista do ranking ---- */
+.public-page {
+  display: grid;
+  gap: 14px;
+  align-content: start;
+}
+.public-heading {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding-bottom: 2px;
+}
+.public-heading > div {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+.public-heading strong {
+  font-size: 20px;
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+}
+.public-heading small {
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+.public-heading-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: auto;
+}
+.public-avatar {
+  width: 56px;
+  height: 56px;
+  object-fit: cover;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+}
+.public-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.public-actions .button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.public-columns {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+  align-items: start;
+}
+.public-list {
+  display: grid;
+  gap: 2px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.public-list li {
+  padding: 7px 10px;
+  border-radius: 6px;
+}
+.public-list li:nth-child(odd) {
+  background: var(--surface-sunken);
+}
+.public-village-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 12px;
+}
+.public-coords {
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+.public-profile {
+  display: grid;
+  gap: 4px;
+  margin: 0;
+}
+.public-profile div {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 6px 10px;
+  background: var(--surface-sunken);
+  border-radius: 6px;
+}
+.public-profile dt {
+  color: var(--muted);
+}
+.public-profile dd {
+  margin: 0;
+  font-weight: 600;
+}
+.public-subtitle {
+  margin: 14px 0 6px;
+  font-size: 13px;
+  color: var(--muted);
+}
+.public-text {
+  margin: 0;
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+}
+@media (max-width: 680px) {
+  .public-columns {
+    grid-template-columns: 1fr;
+  }
+  .public-heading-action {
+    margin-left: 0;
+  }
+}
+
+/* Ranking de jogadores: linhas em grade no lugar da tabela */
+.rank-list {
+  display: grid;
+  gap: 2px;
+  overflow-x: auto;
+}
+.rank-row {
+  display: grid;
+  grid-template-columns: 52px minmax(180px, 1fr) minmax(80px, 110px) minmax(80px, 140px) 100px;
+  align-items: center;
+  gap: 12px;
+  min-width: 560px;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 13px;
+}
+.rank-row:not(.rank-head):nth-of-type(even) {
+  background: var(--surface-sunken);
+}
+.rank-row:not(.rank-head):hover {
+  background: rgb(214 168 86 / 0.1);
+}
+.rank-row.selected-row,
+.rank-row.selected-row:hover {
+  background: rgb(214 168 86 / 0.18);
+  box-shadow: inset 3px 0 0 var(--gold);
+}
+.rank-head {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--muted);
+  border-bottom: 1px solid var(--line-soft);
+  border-radius: 0;
+}
+.rank-joined {
+  color: var(--muted);
+}
+.rank-list > .empty-cell {
+  margin: 0;
+}

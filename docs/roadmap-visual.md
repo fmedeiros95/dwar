@@ -51,18 +51,27 @@ texturas legadas, então telas ainda não redesenhadas herdam cores e superfíci
 - Arte dos edifícios na interface (`buildingArt`): cabeçalhos, cartões e filas usam o sprite
   renderizado da aldeia, no estágio do nível atual, no lugar das ilustrações rabiscadas.
 
+- Ferraria (pesquisa) em cartões `tech-tile` e Academia em cartões `academy-card`.
+- Menu de contexto do mapa (opção `contextMenu`) com atalhos para aldeia e perfil.
+- Identidade: logo e título já são "DWar".
+- Telas públicas de aldeia e de jogador (`public.css`): cabeçalho, fatos rápidos, ações e
+  `PanelCard` (relatórios, nota, aldeias, perfil, medalhas). Ranking de jogadores em linhas de
+  grade (`.rank-list`, com `role="table"`) no lugar da tabela legada.
+
 ## Próximos passos (ordem de impacto)
 
-1. **Ferraria (pesquisa) e Academia:** ainda usam tabelas legadas; levar para cartões como o
-   recrutamento.
-2. **Menu de contexto do mapa e telas de aldeia/jogador públicos.**
-3. **Mensagens, relatórios e ranking:** lista e leitura em duas colunas, filtros, estado vazio.
-4. **Mercado e praça de reunião:** fluxo de envio com resumo antes de confirmar.
-5. **Acessibilidade e desempenho:** contraste, foco visível, `prefers-reduced-motion`, imagens
+1. **Tabelas legadas restantes:** unidades do relatório (`report-parts.tsx`, `rally-units`),
+   membros da tribo (`tribe-profile-screen.tsx`), diplomacia, ranking de tribos
+   (`tribe-ranking.tsx`) e opções/legenda do mapa. Reaproveitar `.rank-list`.
+2. **Mensagens e relatórios:** lista e leitura em duas colunas, filtros, estado vazio (conferir
+   o que já existe antes de refazer).
+3. **Acessibilidade e desempenho:** contraste, foco visível, `prefers-reduced-motion`, imagens
    do cenário em tamanho adequado.
-6. **Identidade:** o logo ainda é "Gods of War"; o jogo se chama DWar.
+4. **Testes:** não há nenhum; começar pelas fórmulas de `packages/game-core`.
 
 ## Mecânicas
 
-Nenhuma alteração ainda. Proposta de Tesouraria e Moleiro em `docs/proposta-novas-construcoes.md`. Qualquer mudança de regra deve ser aditiva (novas colunas/tabelas com
-valores padrão), nunca destrutiva, e passar por `packages/game-core` com testes das fórmulas.
+Tesouraria (reduz o custo de moedas) e Moleiro (amplia a população) já estão implementados;
+a proposta original está em `docs/proposta-novas-construcoes.md`. Qualquer mudança de regra deve
+ser aditiva (novas colunas/tabelas com valores padrão), nunca destrutiva, e passar por
+`packages/game-core` com testes das fórmulas.
