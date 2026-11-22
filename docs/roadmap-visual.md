@@ -56,13 +56,15 @@ texturas legadas, então telas ainda não redesenhadas herdam cores e superfíci
 - Identidade: logo e título já são "DWar".
 - Telas públicas de aldeia e de jogador (`public.css`): cabeçalho, fatos rápidos, ações e
   `PanelCard` (relatórios, nota, aldeias, perfil, medalhas). Ranking de jogadores em linhas de
-  grade (`.rank-list`, com `role="table"`) no lugar da tabela legada.
+  grade (`.rank-list`, com `role="table"`) no lugar da tabela legada. O ranking de tribos e a
+  lista de membros do perfil da tribo usam a mesma peça (`.rank-tribes`, `.rank-members`).
 
 ## Próximos passos (ordem de impacto)
 
-1. **Tabelas legadas restantes:** unidades do relatório (`report-parts.tsx`, `rally-units`),
-   membros da tribo (`tribe-profile-screen.tsx`), diplomacia, ranking de tribos
-   (`tribe-ranking.tsx`) e opções/legenda do mapa. Reaproveitar `.rank-list`.
+1. **Tabelas legadas restantes** (matrizes com ações ou muitas colunas): gestão de membros
+   (`tribe-sections.tsx`), histórico de guerras (`tribe-diplomacy.tsx`), unidades do relatório
+   (`report-parts.tsx`, `rally-units`) e opções/legenda do mapa. Reaproveitar `.rank-list`
+   quando fizer sentido; a grade de unidades pode continuar tabela.
 2. **Mensagens e relatórios:** lista e leitura em duas colunas, filtros, estado vazio (conferir
    o que já existe antes de refazer).
 3. **Acessibilidade e desempenho:** contraste, foco visível, `prefers-reduced-motion`, imagens
