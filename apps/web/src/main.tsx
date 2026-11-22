@@ -28,6 +28,7 @@ import './controls.css';
 import './trade.css';
 import './building.css';
 import './public.css';
+import './split.css';
 import './a11y.css';
 
 const client = new QueryClient({

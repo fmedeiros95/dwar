@@ -1,0 +1,66 @@
+/* ---- Lista + leitura lado a lado (relatórios e mensagens) ----
+ * Só vale quando a janela é larga (container query). Abaixo disso a leitura ocupa o lugar da
+ * lista, como antes. A janela abre com 860 px; maximizada (ou ampliada) ativa as duas colunas. */
+.split-host {
+  container-type: inline-size;
+  container-name: split;
+}
+.split-view.has-detail > .split-list {
+  display: none;
+}
+.split-detail {
+  min-width: 0;
+}
+
+@container split (min-width: 940px) {
+  .split-view.has-detail {
+    display: grid;
+    grid-template-columns: minmax(300px, 360px) minmax(0, 1fr);
+    gap: 18px;
+    align-items: start;
+  }
+  .split-view.has-detail > .split-list {
+    display: block;
+    position: sticky;
+    top: 0;
+    max-height: calc(100vh - 230px);
+    padding-right: 4px;
+    overflow-y: auto;
+  }
+
+  /* Lista compacta: marcas e hora descem para a segunda linha do item. */
+  .split-list .report-item .report-row {
+    grid-template-columns: 10px 18px minmax(0, 1fr);
+    gap: 8px 10px;
+  }
+  .split-list .report-item .report-marks,
+  .split-list .report-item .report-row time {
+    grid-column: 3;
+  }
+  .split-list .report-tools {
+    flex-wrap: wrap;
+  }
+  .split-list .mail-row {
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: 4px 10px;
+    padding: 8px 10px;
+  }
+  .split-list .mail-row .mail-partner,
+  .split-list .mail-row time {
+    grid-column: 2;
+  }
+  .split-list .mail-row:hover,
+  .split-list .report-row:hover:not(:disabled) {
+    transform: none;
+  }
+}
+
+/* Item aberto na leitura. */
+.report-item.active .report-row,
+.mail-row.active {
+  background: #fffaf0;
+  border-color: rgb(125 43 34 / 0.55);
+  box-shadow:
+    0 0 0 1px rgb(125 43 34 / 0.35),
+    0 3px 10px rgb(70 45 18 / 0.14);
+}
