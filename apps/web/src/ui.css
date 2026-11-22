@@ -70,7 +70,7 @@
   width: 66px;
   height: 66px;
   margin-bottom: 6px;
-  color: #7d2b22;
+  color: var(--seal);
   background: radial-gradient(circle at 50% 35%, rgb(255 250 235 / 0.9), rgb(214 190 140 / 0.55));
   border: 1px solid rgb(125 43 34 / 0.3);
   border-radius: 50%;
@@ -163,7 +163,7 @@
   color: #ffb39f;
 }
 .resource-amount[data-state='full']::after {
-  background: linear-gradient(90deg, #8e2a1e, #ef6a4e);
+  background: linear-gradient(90deg, #a3611c, #f0a24b);
   animation: storage-full 1.4s ease-in-out infinite;
 }
 .resource-amount .resource-rate {
@@ -238,7 +238,7 @@
 .mail-partner {
   padding: 0;
   font-weight: 650;
-  color: #7d2b22;
+  color: var(--seal);
 }
 .mail-partner:hover:not(:disabled) {
   text-decoration: underline;

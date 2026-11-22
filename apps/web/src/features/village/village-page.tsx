@@ -26,6 +26,9 @@ import { IncomingsPanel } from './incomings/incomings-panel.js';
 import { useVillageActions } from './use-village-actions.js';
 import { duration, numbers, resources, timeFormat } from './shared/index.js';
 import { currentResources } from './shared/current-resources.js';
+import { useResourceDeltas } from './shared/resource-delta.js';
+
+const idleResources = { wood: 0, stone: 0, iron: 0 };
 
 const backgroundScreens = ['overview', 'map'];
 const windowTitles: Record<string, string> = {
@@ -234,6 +237,17 @@ export function VillagePage({
     event.preventDefault();
     rename.mutate(name);
   }
+  const deltas = useResourceDeltas(
+    data?.village.id ?? 0,
+    data
+      ? currentResources(
+          data,
+          new Date(data.serverTime).getTime() + Math.max(0, now - village.dataUpdatedAt),
+        )
+      : idleResources,
+    data?.village.productionPerHour ?? idleResources,
+    data?.village.capacity ?? 0,
+  );
   if (!data)
     return (
       <LegacyFrame>
@@ -483,6 +497,17 @@ export function VillagePage({
                   <span className={amount >= data.village.capacity ? 'full-resource' : undefined}>
                     {numbers.format(amount)}
                   </span>
+                  {deltas[code] ? (
+                    <span
+                      key={deltas[code].id}
+                      className="resource-delta"
+                      data-sign={deltas[code].amount < 0 ? 'spend' : 'gain'}
+                      aria-hidden="true"
+                    >
+                      {deltas[code].amount > 0 ? '+' : '−'}
+                      {numbers.format(Math.abs(deltas[code].amount))}
+                    </span>
+                  ) : null}
                 </span>
               );
             })}

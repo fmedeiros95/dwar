@@ -2,7 +2,7 @@ import { useState, type CSSProperties } from 'react';
 import type { BuildingView, Construction, VillageSnapshot } from '@dwar/api-client';
 import { ChevronDown, Hammer, List } from 'lucide-react';
 import { ResourceIcon } from '../../../components/legacy-frame.js';
-import { VillageScene } from './village-scene.js';
+import { VillageScene, crestLabels, crestState } from './village-scene.js';
 import { buildingArt, sceneThemes, type SceneTheme } from './scene-model.js';
 import { completionDate, duration, numbers, resources } from '../shared/index.js';
 import { currentResources } from '../shared/current-resources.js';
@@ -29,11 +29,20 @@ function ConstructionCard({
         <span>
           <Hammer size={15} aria-hidden="true" /> Obras
         </span>
-        <small className="hud-slots" aria-label={`${queue.length} de ${maxQueue} vagas usadas`}>
-          {Array.from({ length: maxQueue }, (_, slot) => (
-            <i key={slot} data-used={slot < queue.length ? 'true' : undefined} />
-          ))}
-        </small>
+        {maxQueue <= 8 ? (
+          <small className="hud-slots" aria-label={`${queue.length} de ${maxQueue} vagas usadas`}>
+            {Array.from({ length: maxQueue }, (_, slot) => (
+              <i key={slot} data-used={slot < queue.length ? 'true' : undefined} />
+            ))}
+          </small>
+        ) : (
+          <small
+            className="hud-slots-count"
+            aria-label={`${queue.length} de ${maxQueue} vagas usadas`}
+          >
+            <b>{queue.length}</b>/{maxQueue} vagas
+          </small>
+        )}
       </h2>
       {queue.length === 0 ? (
         <p className="hud-empty">
@@ -81,38 +90,97 @@ function ConstructionCard({
   );
 }
 
-function BuildingCard({ building }: { building: BuildingView }) {
+/**
+ * Cartão do edifício sob o cursor: tudo o que sustenta a decisão "evoluo este agora?".
+ * Estado no topo (mesma cor do brasão), ganho do próximo nível, custo com o que falta e quando
+ * os recursos chegam.
+ */
+function BuildingCard({
+  building,
+  snapshot,
+  clock,
+}: {
+  building: BuildingView;
+  snapshot: VillageSnapshot;
+  clock: number;
+}) {
   const next = building.queuedLevel > building.level ? building.queuedLevel : building.level;
-  const maxed = next >= building.maxLevel;
+  const state = crestState(building, snapshot.queue, clock);
+  const maxed = state === 'max';
+  const have = currentResources(snapshot, clock);
+  const gain = building.details.find((detail) => detail.next !== null);
+  const readyAt = building.resourcesAvailableAt
+    ? new Date(building.resourcesAvailableAt).getTime()
+    : null;
   return (
-    <aside className="hud-card hud-building" aria-live="polite">
+    <aside className="hud-card hud-building" data-state={state} aria-live="polite">
       <header>
-        <h2>{building.name}</h2>
+        <img
+          className="hud-building-art"
+          src={buildingArt(building.code, Math.max(1, next), building.maxLevel)}
+          alt=""
+        />
+        <div>
+          <h2>{building.name}</h2>
+          <span className="hud-state">
+            <i aria-hidden="true" />
+            {crestLabels[state]}
+          </span>
+        </div>
         <span className="hud-level">
           {building.level > 0 ? `Nível ${building.level}` : 'Não construído'}
         </span>
       </header>
-      <p>{building.description}</p>
       {maxed ? (
-        <p className="hud-maxed">Nível máximo</p>
+        <p className="hud-maxed">{building.description}</p>
       ) : (
         <>
-          <span className="hud-next">Próximo nível: {next + 1}</span>
+          <div className="hud-next">
+            <span>Nível {next + 1}</span>
+            {gain ? (
+              <span className="hud-gain">
+                {gain.label}: {numbers.format(gain.current)} <b>→ {numbers.format(gain.next!)}</b>
+                {gain.unit ? ` ${gain.unit}` : ''}
+              </span>
+            ) : (
+              <span className="hud-gain">{building.description}</span>
+            )}
+          </div>
           <ul className="hud-cost">
-            {resources.map(({ code, name }) => (
-              <li key={code}>
-                <ResourceIcon code={code} label={name} />
-                {numbers.format(building.cost[code])}
-              </li>
-            ))}
+            {resources.map(({ code, name }) => {
+              const missing = building.cost[code] - Math.floor(have[code]);
+              return (
+                <li
+                  key={code}
+                  data-short={missing > 0 ? 'true' : undefined}
+                  title={
+                    missing > 0
+                      ? `Faltam ${numbers.format(missing)} de ${name}`
+                      : `${name} suficiente`
+                  }
+                >
+                  <ResourceIcon code={code} label={name} />
+                  {numbers.format(building.cost[code])}
+                  {missing > 0 ? <small>−{numbers.format(missing)}</small> : null}
+                </li>
+              );
+            })}
             <li>
               <ResourceIcon code="peasants" label="População" />
               {numbers.format(building.population)}
             </li>
             <li className="hud-time">{duration(building.durationSeconds)}</li>
           </ul>
-          {!building.canBuild && building.unavailableReason ? (
+          {state === 'wait' && readyAt ? (
+            <p className="hud-reason" data-tone="wait">
+              Recursos suficientes em <b>{duration((readyAt - clock) / 1000)}</b>
+            </p>
+          ) : state === 'blocked' && building.unavailableReason ? (
             <p className="hud-reason">{building.unavailableReason}</p>
+          ) : state === 'ready' ? (
+            <p className="hud-reason" data-tone="ready">
+              Clique para abrir e evoluir
+            </p>
           ) : null}
         </>
       )}
@@ -377,7 +445,9 @@ export function Overview({
         clock={clock}
         maxQueue={snapshot.world.maxBuildQueue}
       />
-      {hoveredBuilding ? <BuildingCard building={hoveredBuilding} /> : null}
+      {hoveredBuilding ? (
+        <BuildingCard building={hoveredBuilding} snapshot={snapshot} clock={clock} />
+      ) : null}
       <VillageLedger
         snapshot={snapshot}
         clock={clock}

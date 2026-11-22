@@ -71,8 +71,18 @@ texturas legadas, então telas ainda não redesenhadas herdam cores e superfíci
   `PanelCard` (relatórios, nota, aldeias, perfil, medalhas). Ranking de jogadores em linhas de
   grade (`.rank-list`, com `role="table"`) no lugar da tabela legada. O ranking de tribos e a
   lista de membros do perfil da tribo usam a mesma peça (`.rank-tribes`, `.rank-members`).
+- Direção de arte **Heráldica de campanha** (`docs/direcao-de-arte.md`, `art.css` carregado por
+  último). Ela traz o escudo como motivo e a paleta funcional, em que ouro é ação e o vermelho
+  fica só para o hostil. Os brasões de estado ficam sobre os edifícios, com cartão de foco que
+  mostra custo faltante e prazo. Há retorno de gasto e ganho nos recursos e brasão de dono no
+  mapa. As janelas ganharam título em Cinzel com selo e os avisos saíram de cima do cartão de
+  Obras.
 
 ## Próximos passos (ordem de impacto)
+
+0. **Assets raster da direção de arte:** aldeias abandonadas em PNG com transparência, retratos
+   de unidade com moldura única e ícones de recurso em 16, 20 e 24 px. As especificações estão
+   em `docs/direcao-de-arte.md`, seção 7.
 
 1. **Tabelas legadas restantes** (matrizes com ações ou muitas colunas): gestão de membros
    (`tribe-sections.tsx`), histórico de guerras (`tribe-diplomacy.tsx`), unidades do relatório

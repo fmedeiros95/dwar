@@ -190,7 +190,7 @@
   text-shadow: none;
 }
 .panel-card h2 svg {
-  color: #7d2b22;
+  color: var(--seal);
 }
 .panel-count {
   min-width: 24px;
@@ -199,7 +199,7 @@
   font-weight: 700;
   text-align: center;
   color: #fbf1da;
-  background: #7d2b22;
+  background: var(--seal);
   border-radius: 999px;
 }
 .panel-actions {
@@ -329,7 +329,7 @@ button.wide {
   transition: width 0.25s ease;
 }
 .capacity-meter[data-over='true'] span {
-  background: linear-gradient(90deg, #8e2a1e, #ef6a4e);
+  background: linear-gradient(90deg, #a3611c, #f0a24b);
 }
 .capacity-note {
   margin: 6px 0 0;
@@ -339,7 +339,7 @@ button.wide {
 }
 .capacity-meter[data-over='true'] + .capacity-note {
   font-weight: 650;
-  color: #a3261c;
+  color: var(--a-warn-ink);
 }
 
 /* ---- Carga e tropas como fichas ---- */
@@ -544,7 +544,7 @@ button.wide {
   color: #7a6142;
 }
 .offer-arrow {
-  color: #7d2b22;
+  color: var(--seal);
 }
 .offer-meta {
   display: grid;
@@ -579,7 +579,7 @@ button.wide {
   background: rgb(201 154 58 / 0.22);
 }
 .ratio-badge.bad {
-  color: #8e2a1e;
+  color: var(--a-warn-ink);
   background: rgb(181 56 46 / 0.15);
 }
 .offer-card > button {
@@ -618,7 +618,7 @@ button.wide {
   width: 40px;
   height: 40px;
   color: #fbf1da;
-  background: #7d2b22;
+  background: var(--seal);
   border-radius: 50%;
   box-shadow: 0 4px 10px rgb(125 43 34 / 0.3);
 }
@@ -670,7 +670,7 @@ button.wide {
   transform: translateY(-1px);
 }
 .resource-picker label[data-checked='true'] {
-  border-color: #7d2b22;
+  border-color: var(--seal);
   box-shadow: 0 0 0 3px rgb(125 43 34 / 0.15);
 }
 .resource-picker input,
@@ -709,7 +709,7 @@ button.wide {
     opacity 0.15s ease;
 }
 .troop-grid li[data-picked='true'] {
-  border-color: #7d2b22;
+  border-color: var(--seal);
   box-shadow: 0 0 0 2px rgb(125 43 34 / 0.12);
 }
 .troop-grid li[data-empty='true'] {
@@ -762,7 +762,7 @@ button.wide {
 }
 .troop-all:hover:not(:disabled) {
   color: #fbf1da;
-  background: #7d2b22;
+  background: var(--seal);
 }
 .troop-all:disabled {
   opacity: 1;
@@ -912,7 +912,7 @@ button.order-go.support:not(:disabled) {
   font-weight: 750;
   text-align: center;
   color: #fbf1da;
-  background: #7d2b22;
+  background: var(--seal);
   border-radius: 999px;
 }
 .seg-tabs .active .seg-count {

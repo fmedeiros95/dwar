@@ -40,6 +40,42 @@ const phaseChip = {
   },
 } as const;
 
+/**
+ * Brasão de cada edifício no cenário. A forma de escudo vem do emblema do jogo; o preenchimento
+ * diz o que o jogador pode fazer ali sem abrir nenhuma janela:
+ *   ready    dourado com aba ↑   pode evoluir agora
+ *   wait     escuro, filete âmbar falta recurso (chega sozinho com o tempo)
+ *   blocked  escuro e apagado     requisito, fila cheia ou população
+ *   working  escuro, contorno de progresso dourado   em obra
+ *   queued   escuro, contorno tracejado               na fila, ainda não começou
+ *   max      prata com coroa      nível máximo
+ */
+export type CrestState = 'ready' | 'wait' | 'blocked' | 'working' | 'queued' | 'max';
+export const crestSize = { width: 30, height: 34 };
+const crestPath = 'M1.5 3.5 Q15 -0.5 28.5 3.5 L28.5 16 Q28.5 27.5 15 33.5 Q1.5 27.5 1.5 16 Z';
+export const crestLabels: Record<CrestState, string> = {
+  ready: 'pode evoluir',
+  wait: 'aguardando recursos',
+  blocked: 'indisponível',
+  working: 'em obra',
+  queued: 'na fila de obras',
+  max: 'nível máximo',
+};
+
+export function crestState(
+  building: BuildingView,
+  queue: Construction[],
+  clock: number,
+): CrestState {
+  const event = queue.find((item) => item.buildingCode === building.code);
+  if (event) return new Date(event.startsAt).getTime() <= clock ? 'working' : 'queued';
+  const next = Math.max(building.level, building.queuedLevel);
+  if (next >= building.maxLevel) return 'max';
+  if (building.canBuild) return 'ready';
+  if (building.resourcesAvailableAt) return 'wait';
+  return 'blocked';
+}
+
 function progressOf(event: Construction, clock: number) {
   const start = new Date(event.startsAt).getTime();
   const end = new Date(event.endsAt).getTime();
@@ -152,7 +188,7 @@ export function VillageScene({
                 key={building.code}
                 role="button"
                 tabIndex={0}
-                aria-label={`${building.name}, nível ${building.level}`}
+                aria-label={`${building.name}, nível ${building.level}, ${crestLabels[crestState(building, queue, clock)]}`}
                 className="scene-building"
                 onClick={() => {
                   if (!pan.didDrag()) onSelect(building.code);
@@ -238,48 +274,52 @@ export function VillageScene({
         >
           {layers.map(({ building, placed }) => {
             if (!placed.label) return null;
-            const timedEvent =
-              building.code === 'main' || building.level === 0 ? queue.at(-1) : undefined;
-            const width = timedEvent ? 64 : building.level >= 10 ? 30 : 26;
-            const height = timedEvent && building.level > 0 ? 40 : 26;
+            const state = crestState(building, queue, clock);
             const works = queue.find(
               (item) =>
                 item.buildingCode === building.code && new Date(item.startsAt).getTime() <= clock,
             );
+            const timedEvent = works;
             return (
               <g
                 key={`label-${building.code}`}
-                className={`scene-label${works ? ' working' : ''}`}
-                transform={`translate(${placed.label.left}, ${placed.label.top})`}
+                className={`scene-label crest-${state}`}
+                transform={`translate(${placed.label.left - 2}, ${placed.label.top - 4})`}
               >
-                <rect
-                  className="scene-badge"
-                  width={width}
-                  height={height}
-                  rx={timedEvent ? 10 : 13}
-                />
-                <text
-                  className="scene-badge-level"
-                  textAnchor={timedEvent ? 'start' : 'middle'}
-                  x={timedEvent ? 9 : width / 2}
-                  y="18"
-                >
-                  {building.level > 0 ? building.level : ''}
-                </text>
-                {timedEvent ? (
-                  <text className="scene-badge-timer" x="9" y={building.level > 0 ? 33 : 18}>
-                    {duration((new Date(timedEvent.endsAt).getTime() - clock) / 1000)}
-                  </text>
+                <path className="crest-shape" d={crestPath} />
+                {state === 'working' && works ? (
+                  <path
+                    className="crest-progress"
+                    d={crestPath}
+                    pathLength={100}
+                    strokeDasharray={`${progressOf(works, clock) * 100} 100`}
+                  />
                 ) : null}
-                {works ? (
-                  <g className="scene-badge-progress" transform={`translate(0, ${height + 4})`}>
-                    <rect className="track" width={width} height={5} rx={2.5} />
-                    <rect
-                      className="fill"
-                      width={Math.max(5, width * progressOf(works, clock))}
-                      height={5}
-                      rx={2.5}
-                    />
+                <text className="crest-level" x={crestSize.width / 2} y={21} textAnchor="middle">
+                  {building.level > 0 ? building.level : '+'}
+                </text>
+                {state === 'ready' ? (
+                  <g className="crest-tab" transform={`translate(${crestSize.width - 5}, -3)`}>
+                    <circle r={7} cx={0} cy={4} />
+                    <path d="M-3.2 5.6 L0 2 L3.2 5.6" />
+                  </g>
+                ) : null}
+                {state === 'max' ? (
+                  <path
+                    className="crest-crown"
+                    transform={`translate(${crestSize.width / 2 - 7}, -7)`}
+                    d="M0 8 L2 1 L5 5 L7 0 L9 5 L12 1 L14 8 Z"
+                  />
+                ) : null}
+                {timedEvent ? (
+                  <g
+                    className="crest-timer"
+                    transform={`translate(${crestSize.width + 3}, ${crestSize.height / 2 - 9})`}
+                  >
+                    <rect width={58} height={18} rx={9} />
+                    <text x={29} y={12.5} textAnchor="middle">
+                      {duration((new Date(timedEvent.endsAt).getTime() - clock) / 1000)}
+                    </text>
                   </g>
                 ) : null}
               </g>

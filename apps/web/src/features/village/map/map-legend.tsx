@@ -20,12 +20,45 @@ export function villageGraphic(points: number): number {
             : 6;
 }
 
+/**
+ * Dono de cada aldeia no mapa. As famílias de cor seguem a convenção do gênero (você em ouro,
+ * tribo em azul, inimigos em vermelho), afinadas à paleta do jogo. Cada tipo também tem um sinal
+ * próprio no brasão, para não depender só da cor.
+ */
+export type OwnerKind =
+  'current' | 'own' | 'tribe' | 'ally' | 'nap' | 'enemy' | 'marked' | 'player' | 'barbarian';
+export const ownerPalette: Record<Exclude<OwnerKind, 'marked'>, string> = {
+  current: '#fff1c7',
+  own: '#e8be6a',
+  tribe: '#4f86d9',
+  ally: '#5fc2e8',
+  nap: '#a070c8',
+  enemy: '#d8402f',
+  player: '#9a6236',
+  barbarian: '#8e9196',
+};
+
 /** Cores das relações entre tribos no mapa, iguais às da legenda. */
 export const relationColors: Record<RelationKind, string> = {
-  ally: '#00a0f4',
-  nap: '#800080',
-  enemy: '#f40000',
+  ally: ownerPalette.ally,
+  nap: ownerPalette.nap,
+  enemy: ownerPalette.enemy,
 };
+
+export function ownerKind(
+  village: PublicVillage,
+  currentId: number,
+  marks: MapSnapshot['marks'],
+  ownTribeId: number | null = null,
+  relations: Record<number, RelationKind> = {},
+): OwnerKind {
+  if (village.id === currentId) return 'current';
+  if (village.own) return 'own';
+  if (marks.some((mark) => mark.playerId === village.playerId)) return 'marked';
+  if (ownTribeId !== null && village.tribe?.id === ownTribeId) return 'tribe';
+  if (village.tribe && relations[village.tribe.id]) return relations[village.tribe.id]!;
+  return village.playerId ? 'player' : 'barbarian';
+}
 
 export function ownerColor(
   village: PublicVillage,
@@ -34,31 +67,50 @@ export function ownerColor(
   ownTribeId: number | null = null,
   relations: Record<number, RelationKind> = {},
 ) {
-  return village.id === currentId
-    ? '#ffffff'
-    : village.own
-      ? '#f0c800'
-      : (marks.find((mark) => mark.playerId === village.playerId)?.color ??
-        (ownTribeId !== null && village.tribe?.id === ownTribeId
-          ? '#0000f4'
-          : village.tribe && relations[village.tribe.id]
-            ? relationColors[relations[village.tribe.id]!]
-            : village.playerId
-              ? '#823c0a'
-              : '#969696'));
+  const kind = ownerKind(village, currentId, marks, ownTribeId, relations);
+  return kind === 'marked'
+    ? (marks.find((mark) => mark.playerId === village.playerId)?.color ?? ownerPalette.player)
+    : ownerPalette[kind];
 }
 
-const villageLegend = [
-  ['#ffffff', 'Aldeia atual'],
-  ['#f0c800', 'Suas aldeias'],
-  ['#0000f4', 'Sua tribo'],
-  ['#969696', 'Aldeias abandonadas'],
-  ['#823c0a', 'Outras aldeias'],
+/** Brasão do dono sobre a aldeia: mesma silhueta dos selos da aldeia, cor e sinal por tipo. */
+export function MapCrest({ kind, color }: { kind: OwnerKind; color: string }) {
+  if (kind === 'barbarian') return null;
+  return (
+    <span className="map-crest" data-kind={kind} style={{ color }} aria-hidden="true">
+      <svg viewBox="0 0 30 34" width="15" height="17">
+        <path
+          className="map-crest-shape"
+          d="M1.5 3.5 Q15 -0.5 28.5 3.5 L28.5 16 Q28.5 27.5 15 33.5 Q1.5 27.5 1.5 16 Z"
+        />
+        {kind === 'current' ? (
+          <path
+            className="map-crest-sign"
+            d="M15 7 L17.6 13.4 L24.4 13.8 L19.2 18.2 L20.9 24.8 L15 21.1 L9.1 24.8 L10.8 18.2 L5.6 13.8 L12.4 13.4 Z"
+          />
+        ) : kind === 'enemy' ? (
+          <path className="map-crest-sign stroke" d="M8 9 L22 24 M22 9 L8 24" />
+        ) : kind === 'tribe' || kind === 'ally' ? (
+          <path className="map-crest-sign" d="M3 4.5 Q15 1.5 27 4.5 L27 11 L3 11 Z" />
+        ) : kind === 'nap' ? (
+          <path className="map-crest-sign stroke" d="M7 16 L23 16" />
+        ) : null}
+      </svg>
+    </span>
+  );
+}
+
+const villageLegend: [OwnerKind, string][] = [
+  ['current', 'Aldeia atual'],
+  ['own', 'Suas aldeias'],
+  ['tribe', 'Sua tribo'],
+  ['player', 'Outros jogadores'],
+  ['barbarian', 'Abandonadas (sem brasão)'],
 ];
-const tribeLegend = [
-  ['#00a0f4', 'Aliados'],
-  ['#800080', 'Pacto de não agressão'],
-  ['#f40000', 'Inimigos'],
+const tribeLegend: [OwnerKind, string][] = [
+  ['ally', 'Aliados'],
+  ['nap', 'Pacto de não agressão'],
+  ['enemy', 'Inimigos'],
 ];
 
 export function MapLegend() {
@@ -94,9 +146,15 @@ export function MapLegend() {
         ].map(({ label, items }) => (
           <tr key={label}>
             <td>{label}</td>
-            {items.map(([color, name]) => (
-              <Fragment key={color}>
-                <td className="map-legend-swatch" style={{ backgroundColor: color }} />
+            {items.map(([kind, name]) => (
+              <Fragment key={kind}>
+                <td className="map-legend-swatch">
+                  {kind === 'barbarian' ? (
+                    <span className="map-legend-none" aria-hidden="true" />
+                  ) : (
+                    <MapCrest kind={kind} color={ownerPalette[kind as keyof typeof ownerPalette]} />
+                  )}
+                </td>
                 <td>{name}</td>
               </Fragment>
             ))}
