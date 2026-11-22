@@ -8,7 +8,7 @@
  * Só as cores mudam entre eles (variáveis --ctl-*); altura, raio, fonte e estados são iguais.
  *
  * Variantes de botão:
- *   primário   <button> sem classe, .green, .bcard-action      ação principal (lacre vermelho)
+ *   primário   <button> sem classe, .green, .bcard-action      ação principal (ouro, ver art.css)
  *   secundário .button, .ucard-max, .queue-cancel              ação de apoio (neutro)
  *   perigo     .button.danger                                  destrutivo (contorno vermelho)
  *   texto      .text-button                                    link
@@ -49,13 +49,13 @@
   --ctl-field-bg: #fffbf2;
   --ctl-field-bg-hover: #ffffff;
   --ctl-edge: rgb(70 45 18 / 0.3);
-  --ctl-edge-strong: #7d2b22;
+  --ctl-edge-strong: var(--seal);
   --ctl-sec-bg: linear-gradient(180deg, #fffaf0, #f1e6cd);
   --ctl-sec-bg-hover: linear-gradient(180deg, #ffffff, #f6ecd6);
   --ctl-tabs-bg: rgb(70 45 18 / 0.08);
   --ctl-tab-active-bg: #2a2017;
   --ctl-tab-active-text: #fbf1da;
-  --ctl-link: #7d2b22;
+  --ctl-link: var(--seal);
   --ctl-danger: #a3261c;
   --ctl-ring: 0 0 0 3px rgb(125 43 34 / 0.25);
   --ctl-chevron: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5l5 5 5-5' fill='none' stroke='%237d2b22' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
@@ -336,7 +336,7 @@ input[type='radio']::after {
 input[type='checkbox']:checked,
 input[type='radio']:checked,
 input[type='checkbox']:indeterminate {
-  background: #7d2b22;
+  background: var(--seal);
   border-color: #5a1b15;
 }
 input[type='checkbox']:checked::after,
@@ -354,7 +354,7 @@ input[type='checkbox']:indeterminate::after {
 }
 input[type='checkbox']:hover:not(:disabled),
 input[type='radio']:hover:not(:disabled) {
-  border-color: #a63c30;
+  border-color: var(--seal);
 }
 input[type='checkbox']:focus-visible,
 input[type='radio']:focus-visible {

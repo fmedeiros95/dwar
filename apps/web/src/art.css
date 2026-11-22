@@ -1,0 +1,659 @@
+/*
+ * Direção de arte "Heráldica de campanha" (docs/direcao-de-arte.md). Carregado por último.
+ *
+ * Motivo: o escudo do emblema do DWar. Ele marca tudo o que pertence a alguém ou pede decisão:
+ * brasões de edifício no cenário, brasões de dono no mapa, selo das janelas e do trilho.
+ *
+ * Cores de destaque com função única (não usar fora dela):
+ *   ouro      --a-own      seu, ação disponível, foco, progresso
+ *   carmesim  --a-hostile  hostil: atacar, inimigo, ataque chegando, derrota
+ *   âmbar     --a-warn     aviso econômico: falta recurso, armazém cheio
+ *   musgo     --a-ok       suficiente, concluído, ganho
+ *   aço       --a-ally     tribo, aliados, apoio
+ *   prata     --a-max      completo, nível máximo
+ *
+ * Tipografia: Cinzel nos títulos (janela, cabeçalho, cartões do HUD); Inter na interface, com
+ * algarismos tabulares nos números que mudam.
+ */
+:root {
+  --a-own: #e8be6a;
+  --a-own-bright: #ffd98a;
+  --a-own-deep: #9b6a22;
+  --a-hostile: #d8402f;
+  --a-hostile-deep: #8e2219;
+  --a-warn: #f0a24b;
+  --a-warn-ink: #93520b;
+  --a-ok: #86b46a;
+  --a-ok-ink: #3f6b26;
+  --a-ally: #4f86d9;
+  --a-ally-deep: #2c5a9a;
+  --a-max: #c9cdd2;
+
+  --font-ui:
+    'Inter Variable', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --font-display: 'Cinzel', 'Trajan Pro', 'Palatino Linotype', Georgia, serif;
+  --font-caps: var(--font-display);
+
+  /* Botão primário: ação disponível = ouro. O vermelho passa a ser só hostil. */
+  --ctl-primary: linear-gradient(180deg, #f4d58f 0%, #dfae55 52%, #c2913a 100%);
+  --ctl-primary-text: #2a1a0a;
+  --ctl-primary-edge: #6f4a14;
+  --ctl-ring: 0 0 0 3px rgb(255 217 138 / 0.5);
+
+  --ease-snap: cubic-bezier(0.2, 0.9, 0.3, 1.15);
+
+  /* O "lacre" das janelas era vermelho e fazia papel de ouro no pergaminho. Agora é bronze,
+     a versão do ouro que tem contraste sobre papel (4,6:1; o tom fundo passa de 7:1). */
+  --seal: #8a5a14;
+  --seal-deep: #5e3c0c;
+}
+/* Botões de ícone transparentes não herdam o texto escuro do botão primário. */
+.rename-village-icon,
+.rename-village-icon:hover:not(:disabled),
+.map-resizer,
+.map-resizer:hover:not(:disabled) {
+  color: var(--a-own);
+}
+
+/* ======================================================================
+ * Tipografia
+ * ====================================================================== */
+.gw-title,
+.hud-card h2,
+.gw-body .page-head h1,
+.gw-body .building-head h1,
+.landing-hero h1,
+.pregame-title,
+.world-card h2,
+.map-title strong {
+  font-family: var(--font-display);
+  letter-spacing: 0.03em;
+}
+.gw-title {
+  font-size: 16px;
+  font-weight: 700;
+}
+.hud-card h2 {
+  font-size: 15px;
+  font-weight: 700;
+}
+.resource-amount,
+.hud-cost li,
+.cost-chips li,
+.bcard-cost li,
+.crest-timer text,
+time {
+  font-variant-numeric: tabular-nums;
+}
+
+/* ======================================================================
+ * Botões: primário ouro (com texto escuro), hostil carmesim, apoio aço
+ * ====================================================================== */
+button,
+button.green,
+.bcard-action,
+.bcard-action.green {
+  text-shadow: none;
+  box-shadow:
+    inset 0 1px 0 rgb(255 246 214 / 0.7),
+    inset 0 -2px 0 rgb(111 74 20 / 0.25),
+    0 1px 2px rgb(0 0 0 / 0.3);
+}
+button:disabled,
+.button:disabled {
+  filter: saturate(0.2);
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+.gw-body {
+  --ctl-edge-strong: var(--a-own-deep);
+  --ctl-ring: 0 0 0 3px rgb(194 145 58 / 0.4);
+}
+/* Comandos hostis */
+.order-go.attack,
+.order-go.attack:hover:not(:disabled),
+.trip-confirm.attack,
+.trip-confirm.attack:hover:not(:disabled) {
+  color: #fff3e6;
+  background: linear-gradient(180deg, #d4513e 0%, #a8301f 55%, #8e2219 100%);
+  border-color: #4d0f09;
+  box-shadow:
+    inset 0 1px 0 rgb(255 200 180 / 0.4),
+    0 1px 2px rgb(0 0 0 / 0.35);
+}
+.order-go.support,
+.order-go.support:hover:not(:disabled),
+.trip-confirm.support,
+.trip-confirm.support:hover:not(:disabled) {
+  color: #f1f7ff;
+  background: linear-gradient(180deg, #5f95e0 0%, #3a6db5 55%, #2c5a9a 100%);
+  border-color: #17345d;
+  box-shadow:
+    inset 0 1px 0 rgb(220 236 255 / 0.45),
+    0 1px 2px rgb(0 0 0 / 0.35);
+}
+.order-kind label.attack[data-checked='true'] {
+  background: var(--a-hostile-deep);
+}
+.order-kind label.support[data-checked='true'] {
+  background: var(--a-ally-deep);
+}
+
+/* Falta recurso é aviso econômico (âmbar), não perigo. */
+.bcard-cost li.short,
+.cost-chips li.short,
+.recruit-bar .cost-chips li.short {
+  color: var(--a-warn-ink);
+  border-color: rgb(240 162 75 / 0.7);
+  background: rgb(240 162 75 / 0.14);
+}
+
+/* ======================================================================
+ * Barra superior: recursos com retorno de gasto e ganho
+ * ====================================================================== */
+.resource-amount {
+  overflow: visible;
+}
+.resource-amount[data-state='full'],
+.resource-amount:has(.full-resource) {
+  color: #ffd29a;
+  border-color: rgb(240 162 75 / 0.6);
+}
+.resource-amount[data-state='full']::after,
+.resource-amount:has(.full-resource)::after {
+  background: var(--a-warn);
+}
+.resource-delta {
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  z-index: 60;
+  padding: 2px 8px;
+  font: 800 13px/1.2 var(--font-ui);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  border-radius: 999px;
+  pointer-events: none;
+  transform: translateX(-50%);
+  animation: delta-rise 1.6s var(--ease-snap) both;
+}
+.resource-delta[data-sign='spend'] {
+  color: #2a1a0a;
+  background: var(--a-own);
+  box-shadow: 0 4px 12px rgb(0 0 0 / 0.45);
+}
+.resource-delta[data-sign='gain'] {
+  color: #10210a;
+  background: var(--a-ok);
+  box-shadow: 0 4px 12px rgb(0 0 0 / 0.45);
+}
+@keyframes delta-rise {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -14px) scale(0.85);
+  }
+  14% {
+    opacity: 1;
+    transform: translate(-50%, 4px) scale(1.06);
+  }
+  70% {
+    opacity: 1;
+    transform: translate(-50%, 6px) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, 18px) scale(0.96);
+  }
+}
+
+/* ======================================================================
+ * Cena da aldeia: brasões de edifício
+ * ====================================================================== */
+.scene-label .crest-shape {
+  fill: rgb(24 16 9 / 0.9);
+  stroke: rgb(214 168 86 / 0.75);
+  stroke-width: 1.5;
+  filter: drop-shadow(0 2px 2px rgb(0 0 0 / 0.55));
+}
+.scene-label .crest-level {
+  font: 800 14px var(--font-ui);
+  font-variant-numeric: tabular-nums;
+  fill: #f6e6c2;
+}
+/* Pode evoluir: o único brasão cheio de ouro. É para onde o olhar vai primeiro. */
+.crest-ready .crest-shape {
+  fill: #e8be6a;
+  stroke: #fff1c7;
+  stroke-width: 1.8;
+  filter: drop-shadow(0 0 6px rgb(255 217 138 / 0.65)) drop-shadow(0 2px 2px rgb(0 0 0 / 0.6));
+}
+.crest-ready .crest-level {
+  fill: #2a1a0a;
+}
+.crest-tab circle {
+  fill: #2a1a0a;
+  stroke: #fff1c7;
+  stroke-width: 1.4;
+}
+.crest-tab path {
+  fill: none;
+  stroke: #ffd98a;
+  stroke-width: 1.9;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+/* Aguardando recursos: escuro com filete âmbar. */
+.crest-wait .crest-shape {
+  stroke: var(--a-warn);
+  stroke-dasharray: none;
+}
+.crest-wait .crest-level {
+  fill: #ffd29a;
+}
+/* Indisponível: recua. */
+.crest-blocked .crest-shape {
+  fill: rgb(24 16 9 / 0.72);
+  stroke: rgb(200 190 170 / 0.35);
+}
+.crest-blocked .crest-level {
+  fill: rgb(246 230 194 / 0.55);
+}
+/* Na fila: contorno tracejado. */
+.crest-queued .crest-shape {
+  stroke: var(--a-own);
+  stroke-dasharray: 4 3;
+}
+/* Em obra: o contorno vira barra de progresso. */
+.crest-working .crest-shape {
+  stroke: rgb(0 0 0 / 0.6);
+  stroke-width: 3.5;
+}
+.crest-progress {
+  fill: none;
+  stroke: var(--a-own-bright);
+  stroke-width: 3.5;
+  stroke-linecap: round;
+  transition: stroke-dasharray 1s linear;
+  filter: drop-shadow(0 0 3px rgb(255 217 138 / 0.8));
+}
+/* Máximo: prata com coroa. */
+.crest-max .crest-shape {
+  fill: #d7dadf;
+  stroke: #ffffff;
+}
+.crest-max .crest-level {
+  fill: #23262b;
+}
+.crest-crown {
+  fill: #d7dadf;
+  stroke: #23262b;
+  stroke-width: 1;
+  stroke-linejoin: round;
+}
+.crest-timer rect {
+  fill: rgb(20 13 7 / 0.92);
+  stroke: rgb(255 217 138 / 0.55);
+  stroke-width: 1;
+}
+.crest-timer text {
+  fill: #fff1c7;
+  font: 700 11px var(--font-ui);
+}
+/* Edifício sob o cursor: o brasão sobe junto com o destaque do sprite. */
+.scene-label {
+  transition: opacity 0.2s ease;
+}
+.scene-viewport.dragging .scene-label {
+  opacity: 0.6;
+}
+
+/* ======================================================================
+ * HUD da aldeia
+ * ====================================================================== */
+.hud-slots-count {
+  font: 600 12px var(--font-ui);
+  color: var(--hud-muted, #d6c299);
+}
+.hud-slots-count b {
+  color: var(--a-own-bright);
+}
+.hud-construction li[data-running='true'] .hud-bar {
+  box-shadow: 0 0 8px rgb(255 217 138 / 0.35);
+}
+/* Armazém cheio é aviso econômico, sem pulsar como alarme. */
+.ledger-res li[data-state='full'] .ledger-bar::after {
+  background: linear-gradient(90deg, #a3611c, var(--a-warn));
+  animation: none;
+}
+.ledger-res li[data-state='full'] strong {
+  color: #ffd29a;
+}
+
+/* Cartão do edifício sob o cursor */
+.scene-viewport .hud-building {
+  --state: var(--a-own);
+  width: min(520px, calc(100% - 660px));
+  min-width: 380px;
+  padding: 12px 16px 14px;
+  border-color: color-mix(in srgb, var(--state) 55%, transparent);
+}
+.hud-building[data-state='wait'] {
+  --state: var(--a-warn);
+}
+.hud-building[data-state='blocked'] {
+  --state: #a89c86;
+}
+.hud-building[data-state='max'] {
+  --state: var(--a-max);
+}
+.hud-building header {
+  display: grid;
+  grid-template-columns: 52px 1fr auto;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+.hud-building-art {
+  width: 52px;
+  height: 44px;
+  object-fit: contain;
+  filter: drop-shadow(0 3px 4px rgb(0 0 0 / 0.5));
+}
+.hud-state {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 2px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--state);
+}
+.hud-state i {
+  width: 9px;
+  height: 10px;
+  background: currentColor;
+  clip-path: polygon(0 0, 100% 0, 100% 55%, 50% 100%, 0 55%);
+}
+.hud-building .hud-next {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin-bottom: 8px;
+  font-size: 12px;
+}
+.hud-building .hud-next > span:first-child {
+  font-weight: 800;
+  color: var(--a-own-bright);
+  white-space: nowrap;
+}
+.hud-gain {
+  overflow: hidden;
+  font-weight: 500;
+  color: #e9dcc0;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.hud-gain b {
+  color: var(--a-ok);
+}
+.hud-cost li[data-short='true'] {
+  color: #ffd29a;
+  border-color: rgb(240 162 75 / 0.65);
+  background: rgb(240 162 75 / 0.12);
+}
+.hud-cost li small {
+  margin-left: 2px;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--a-warn);
+}
+.hud-building .hud-reason {
+  margin: 10px 0 0;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: #d8ccb2;
+}
+.hud-building .hud-reason[data-tone='wait'] {
+  color: #ffd29a;
+}
+.hud-building .hud-reason[data-tone='ready'] {
+  color: var(--a-own-bright);
+}
+.hud-building .hud-maxed {
+  margin: 0;
+  font-weight: 500;
+  color: #d8ccb2;
+}
+
+/* ======================================================================
+ * Mapa: brasão do dono e hierarquia entre aldeias
+ * ====================================================================== */
+.world-map-village {
+  background: transparent !important;
+}
+.map-crest {
+  position: absolute;
+  top: 3px;
+  left: 4px;
+  z-index: 3;
+  display: block;
+  width: 15px;
+  height: 17px;
+  line-height: 0;
+  pointer-events: none;
+  filter: drop-shadow(0 1px 1.5px rgb(0 0 0 / 0.8));
+}
+.map-crest svg {
+  display: block;
+  overflow: visible;
+}
+.map-crest-shape {
+  fill: currentColor;
+  stroke: #1a120b;
+  stroke-width: 2.4;
+}
+.map-crest-sign {
+  fill: rgb(20 12 6 / 0.75);
+}
+.map-crest-sign.stroke {
+  fill: none;
+  stroke: #fff4e4;
+  stroke-width: 3.6;
+  stroke-linecap: round;
+}
+.map-crest[data-kind='tribe'] .map-crest-sign,
+.map-crest[data-kind='ally'] .map-crest-sign {
+  fill: rgb(255 255 255 / 0.55);
+}
+.map-crest[data-kind='current'] {
+  top: 1px;
+  left: 2px;
+  width: 19px;
+  height: 21px;
+}
+.map-crest[data-kind='current'] svg {
+  width: 19px;
+  height: 21px;
+}
+.map-crest[data-kind='current'] .map-crest-sign {
+  fill: #9b6a22;
+}
+/* As imagens das abandonadas são JPG com grama embutida: nada de filtro nelas (apareceriam
+   quadrados). A diferença vem do brasão, que só aldeias com dono têm. */
+.world-map-village::after {
+  content: '';
+  position: absolute;
+  inset: 4px;
+  z-index: 2;
+  border-radius: 50%;
+  pointer-events: none;
+  transition:
+    box-shadow 0.15s ease,
+    border-color 0.15s ease;
+  border: 2px solid transparent;
+}
+.world-map-village[data-owner='current']::after {
+  border-color: rgb(255 241 199 / 0.9);
+  box-shadow:
+    0 0 0 2px rgb(155 106 34 / 0.55),
+    0 0 16px rgb(255 217 138 / 0.6),
+    inset 0 0 12px rgb(255 217 138 / 0.35);
+}
+.world-map-village[data-owner='enemy']::after {
+  border-color: rgb(216 64 47 / 0.8);
+  box-shadow: 0 0 14px rgb(216 64 47 / 0.5);
+}
+.world-map-village:hover::after,
+.world-map-village:focus-visible::after {
+  border-color: var(--a-own-bright);
+  box-shadow:
+    0 0 0 2px rgb(20 12 6 / 0.5),
+    0 0 14px rgb(255 217 138 / 0.65);
+}
+.map-legend-swatch {
+  width: 22px;
+  text-align: center;
+  background: none !important;
+}
+.map-legend-swatch .map-crest {
+  position: static;
+  display: inline-block;
+}
+.map-legend-none {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border: 1.5px dashed rgb(200 190 170 / 0.6);
+  border-radius: 50%;
+}
+/* Ataque inimigo chegando: o único elemento do mapa que pulsa. */
+.map-command.incoming {
+  background: var(--a-hostile);
+  animation: hostile-pulse 1.2s ease-in-out infinite;
+}
+@keyframes hostile-pulse {
+  50% {
+    box-shadow: 0 0 0 5px rgb(216 64 47 / 0.25);
+  }
+}
+
+/* ======================================================================
+ * Janelas: pergaminho menos ofuscante, selo de escudo no título
+ * ====================================================================== */
+.game-window {
+  background-color: #eadfc6;
+  background-image: radial-gradient(140% 90% at 50% 0%, #f1e7d1 0%, #e6d9bc 60%, #dccaa4 100%);
+}
+.gw-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+}
+.gw-title::before {
+  content: '';
+  flex: none;
+  width: 12px;
+  height: 14px;
+  background: linear-gradient(180deg, var(--a-own-bright), var(--a-own-deep));
+  clip-path: polygon(0 0, 100% 0, 100% 55%, 50% 100%, 0 55%);
+}
+.game-window:not([data-focused='true']) .gw-title::before {
+  background: rgb(232 213 166 / 0.45);
+}
+/* O selo da janela no rodapé não fica por cima do conteúdo. */
+.window-dock {
+  bottom: 6px;
+}
+
+/* ======================================================================
+ * Trilho: item atual marcado com o escudo
+ * ====================================================================== */
+.rail-item[aria-current='page'] .rail-icon {
+  color: var(--a-own-bright);
+}
+.rail-item[data-alert='true'] .rail-icon {
+  color: var(--a-hostile);
+}
+
+/* ======================================================================
+ * Notificações: a cor diz o tipo de resultado
+ * ====================================================================== */
+.toast-success {
+  border-left: 3px solid var(--a-ok);
+}
+.toast-error {
+  border-left: 3px solid var(--a-warn);
+}
+.toast-info {
+  border-left: 3px solid var(--a-own);
+}
+
+/* ======================================================================
+ * Celular e toque
+ * ====================================================================== */
+@media (max-width: 900px) {
+  .shell-rail .rail-group {
+    flex: 0 0 auto;
+  }
+  .rail-item {
+    min-height: 52px;
+  }
+  .scene-viewport .hud-building {
+    display: none;
+  }
+}
+@media (pointer: coarse) {
+  .scene-tools button,
+  .map-toolbar button {
+    min-width: 44px;
+    min-height: 44px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .resource-delta {
+    animation: none;
+  }
+  .map-command.incoming,
+  .crest-progress {
+    animation: none;
+    transition: none;
+  }
+}
+
+/* Mercadores: livre = disponível (musgo), indo = sua ação em curso (ouro), voltando = neutro
+   (prata), em oferta = reservado (bronze apagado). Vermelho e azul ficam para hostil e aliado. */
+.merchant-bar .free,
+.merchant-legend .free::before {
+  background: #6f9a52;
+}
+.merchant-bar .out,
+.merchant-legend .out::before {
+  background: #d9a548;
+}
+.merchant-bar .back,
+.merchant-legend .back::before {
+  background: #9aa0a8;
+}
+
+/* Avisos no alto do palco, centralizados: o canto inferior direito é do cartão de Obras. */
+.toasts {
+  top: 128px;
+  right: auto;
+  bottom: auto;
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(400px, calc(100vw - 40px));
+}
+body:has(.shell-rail) .toasts {
+  left: calc(50% + 46px);
+}
+@media (max-width: 900px) {
+  .toasts {
+    top: auto;
+    bottom: 86px;
+  }
+  body:has(.shell-rail) .toasts {
+    left: 50%;
+  }
+}

@@ -29,7 +29,14 @@ import {
 import { useMapNavigation } from './map-navigation.js';
 import { MapResize } from './map-resize.js';
 import { MapOptions } from './map-options.js';
-import { MapLegend, VillagePopup, ownerColor, villageGraphic } from './map-legend.js';
+import {
+  MapCrest,
+  MapLegend,
+  VillagePopup,
+  ownerColor,
+  ownerKind,
+  villageGraphic,
+} from './map-legend.js';
 import { Icon } from '../../../components/icons.js';
 import { isNight } from '../shared/night.js';
 const commandLabel = {
@@ -329,16 +336,14 @@ function MapCanvas({ snapshot, options }: { snapshot: VillageSnapshot; options: 
                   {village ? (
                     <button
                       className="world-map-village"
+                      data-owner={ownerKind(
+                        village,
+                        snapshot.village.id,
+                        options.marks,
+                        map.data?.ownTribeId ?? null,
+                        map.data?.tribeRelations,
+                      )}
                       aria-label={`${village.name} (${x}|${y})`}
-                      style={{
-                        backgroundColor: ownerColor(
-                          village,
-                          snapshot.village.id,
-                          options.marks,
-                          map.data?.ownTribeId ?? null,
-                          map.data?.tribeRelations,
-                        ),
-                      }}
                       onClick={(event) => {
                         if (event.detail === 0) select(village);
                       }}
@@ -356,6 +361,22 @@ function MapCanvas({ snapshot, options }: { snapshot: VillageSnapshot; options: 
                         }
                         alt=""
                         draggable={false}
+                      />
+                      <MapCrest
+                        kind={ownerKind(
+                          village,
+                          snapshot.village.id,
+                          options.marks,
+                          map.data?.ownTribeId ?? null,
+                          map.data?.tribeRelations,
+                        )}
+                        color={ownerColor(
+                          village,
+                          snapshot.village.id,
+                          options.marks,
+                          map.data?.ownTribeId ?? null,
+                          map.data?.tribeRelations,
+                        )}
                       />
                     </button>
                   ) : null}

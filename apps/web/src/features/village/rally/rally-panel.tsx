@@ -203,6 +203,7 @@ export function RallyPanel({
         </section>
         <div className="confirm-actions">
           <button
+            className={`trip-confirm ${attack ? 'attack' : 'support'}`}
             disabled={pending}
             onClick={() =>
               perform({

@@ -303,7 +303,7 @@
   font-weight: 500;
 }
 .storage-times .full {
-  color: #a3261c;
+  color: var(--a-warn-ink);
 }
 
 /* Painel de evolução */
@@ -427,7 +427,7 @@
   color: #2f5a1f;
 }
 .req-list .unmet {
-  color: #8e2a1e;
+  color: var(--a-warn-ink);
   font-weight: 650;
 }
 .req-list .text-button {
@@ -447,7 +447,7 @@ button.req-chip:hover:not(:disabled) {
   gap: 4px;
   padding: 2px 9px;
   font: 650 12px var(--font-ui);
-  color: #8e2a1e;
+  color: var(--seal);
   background: rgb(163 38 28 / 0.07);
   border: 1px solid rgb(163 38 28 / 0.3);
   border-radius: 999px;
@@ -505,7 +505,7 @@ button.req-chip:hover:not(:disabled) {
 }
 .build-group h2 svg,
 .build-max summary svg {
-  color: #7d2b22;
+  color: var(--seal);
 }
 .bgrid2 {
   display: grid;
@@ -981,7 +981,7 @@ button.req-chip:hover:not(:disabled) {
     box-shadow 0.15s ease;
 }
 .unit-card[data-state='picked'] {
-  border-color: #7d2b22;
+  border-color: var(--seal);
   box-shadow: 0 0 0 3px rgb(125 43 34 / 0.1);
 }
 .unit-card[data-state='locked'] {
@@ -1066,7 +1066,7 @@ input[type='range']::-webkit-slider-runnable-track {
   height: 6px;
   background: linear-gradient(
     90deg,
-    #7d2b22 calc(var(--fill, 0) * 100%),
+    var(--seal) calc(var(--fill, 0) * 100%),
     rgb(70 45 18 / 0.15) calc(var(--fill, 0) * 100%)
   );
   border-radius: 999px;
@@ -1078,7 +1078,7 @@ input[type='range']::-moz-range-track {
 }
 input[type='range']::-moz-range-progress {
   height: 6px;
-  background: #7d2b22;
+  background: var(--seal);
   border-radius: 999px;
 }
 input[type='range']::-webkit-slider-thumb {
@@ -1088,7 +1088,7 @@ input[type='range']::-webkit-slider-thumb {
   -webkit-appearance: none;
   appearance: none;
   background: radial-gradient(circle at 35% 30%, #fff6dc, #e3b35d);
-  border: 2px solid #7d2b22;
+  border: 2px solid var(--seal);
   border-radius: 50%;
   box-shadow: 0 2px 4px rgb(0 0 0 / 0.3);
   transition: transform 0.15s ease;
@@ -1097,7 +1097,7 @@ input[type='range']::-moz-range-thumb {
   width: 14px;
   height: 14px;
   background: radial-gradient(circle at 35% 30%, #fff6dc, #e3b35d);
-  border: 2px solid #7d2b22;
+  border: 2px solid var(--seal);
   border-radius: 50%;
 }
 input[type='range']:hover:not(:disabled)::-webkit-slider-thumb {
