@@ -9,3 +9,4 @@ apps/api/storage/avatars/*
 !apps/api/storage/avatars/.gitkeep
 Thumbs.db
 desktop.ini
+dev.log
