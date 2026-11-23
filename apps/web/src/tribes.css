@@ -192,3 +192,77 @@
   border: 1px solid #3f8f4a;
   border-radius: 6px;
 }
+
+/* Membros e guerras encerradas: uma linha por item, que quebra no celular sem rolar de lado. */
+.tribe-members,
+.tribe-old-wars {
+  display: grid;
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.tribe-members > li,
+.tribe-old-wars > li {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 92px 92px 210px;
+  align-items: center;
+  gap: 6px 12px;
+  padding: 8px 12px;
+  background: rgb(0 0 0 / 0.05);
+  border-radius: 6px;
+}
+.tribe-old-wars > li {
+  grid-template-columns: minmax(0, 1fr) 150px 170px;
+}
+.tribe-members > li[data-self] {
+  background: rgb(214 168 86 / 0.18);
+  box-shadow: inset 3px 0 0 var(--gold);
+}
+.tribe-member-name {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.tribe-member-name .rank-you {
+  margin-left: 6px;
+  font-weight: 700;
+  color: #5e3c0c;
+}
+.tribe-member-name small {
+  display: block;
+  color: var(--muted);
+}
+.tribe-member-stat {
+  font-variant-numeric: tabular-nums;
+}
+.tribe-member-stat small {
+  color: var(--muted);
+}
+.tribe-members .tribe-row-actions {
+  justify-content: flex-end;
+}
+.tribe-members .tribe-rights {
+  grid-column: 1 / -1;
+  margin: 2px 0 0;
+}
+@media (max-width: 640px) {
+  .tribe-members > li,
+  .tribe-old-wars > li {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+  .tribe-member-name,
+  .tribe-members .tribe-row-actions {
+    grid-column: 1 / -1;
+  }
+  .tribe-members .tribe-row-actions {
+    justify-content: stretch;
+  }
+  .tribe-members .tribe-row-actions .button,
+  .tribe-right-list label {
+    flex: 1;
+    min-height: 44px;
+  }
+  .tribe-right-list label {
+    flex-basis: 45%;
+  }
+}

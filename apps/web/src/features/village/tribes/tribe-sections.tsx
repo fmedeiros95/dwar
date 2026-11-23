@@ -160,110 +160,86 @@ export function Members({ data, pending, onAction, onTarget }: Props) {
       <h2>
         Membros ({data.members.length} de {data.limits.members})
       </h2>
-      <div className="table-scroll">
-        <table className="legacy-table rank-table">
-          <thead>
-            <tr>
-              <th>Jogador</th>
-              <th>Cargo</th>
-              <th>Pontos</th>
-              <th>Aldeias</th>
-              <th>Entrou</th>
-              {me.canLead ? <th>Ações</th> : null}
-            </tr>
-          </thead>
-          <tbody>
-            {data.members.map((member) => {
-              const manageable = me.canLead && (!member.rights.isFounder || me.isFounder);
-              const self = member.playerId === data.me.playerId;
-              return (
-                <tr key={member.playerId} className={self ? 'selected-row' : undefined}>
-                  <td>
+      <ul className="tribe-members">
+        {data.members.map((member) => {
+          const manageable = me.canLead && (!member.rights.isFounder || me.isFounder);
+          const self = member.playerId === data.me.playerId;
+          const open = editing === member.playerId;
+          return (
+            <li key={member.playerId} data-self={self ? 'true' : undefined}>
+              <span className="tribe-member-name">
+                <button className="text-button" onClick={() => onTarget('player', member.playerId)}>
+                  {member.username}
+                </button>
+                {self ? <em className="rank-you">você</em> : null}
+                <small>
+                  {member.title ? <b>{member.title} · </b> : null}
+                  {roleOf(member)} · desde {new Date(member.joinedAt).toLocaleDateString('pt-BR')}
+                </small>
+              </span>
+              <span className="tribe-member-stat">
+                <b>{numbers.format(member.points)}</b> <small>pontos</small>
+              </span>
+              <span className="tribe-member-stat">
+                <b>{numbers.format(member.villages)}</b>{' '}
+                <small>{member.villages === 1 ? 'aldeia' : 'aldeias'}</small>
+              </span>
+              {manageable ? (
+                <span className="tribe-row-actions">
+                  <button
+                    className="button"
+                    disabled={pending}
+                    aria-expanded={open}
+                    aria-label={`Cargo de ${member.username}`}
+                    onClick={() => setEditing(open ? null : member.playerId)}
+                  >
+                    Cargo
+                  </button>
+                  {self ? null : kicking === member.playerId ? (
+                    <>
+                      <button
+                        className="button danger"
+                        disabled={pending}
+                        aria-label={`Confirmar expulsão de ${member.username}`}
+                        onClick={() => {
+                          setKicking(null);
+                          onAction({ type: 'kick', playerId: member.playerId });
+                        }}
+                      >
+                        Confirmar
+                      </button>
+                      <button className="button" onClick={() => setKicking(null)}>
+                        Não
+                      </button>
+                    </>
+                  ) : (
                     <button
-                      className="text-button"
-                      onClick={() => onTarget('player', member.playerId)}
+                      className="button"
+                      disabled={pending}
+                      aria-label={`Expulsar ${member.username}`}
+                      onClick={() => setKicking(member.playerId)}
                     >
-                      {member.username}
+                      Expulsar
                     </button>
-                    {self ? <em className="rank-you">você</em> : null}
-                  </td>
-                  <td>
-                    {member.title ? <strong>{member.title}</strong> : null}
-                    <small className="tribe-role"> {roleOf(member)}</small>
-                  </td>
-                  <td className="num">{numbers.format(member.points)}</td>
-                  <td className="num">{numbers.format(member.villages)}</td>
-                  <td>{new Date(member.joinedAt).toLocaleDateString('pt-BR')}</td>
-                  {me.canLead ? (
-                    <td>
-                      {manageable ? (
-                        <span className="tribe-row-actions">
-                          <button
-                            className="button"
-                            disabled={pending}
-                            onClick={() =>
-                              setEditing(editing === member.playerId ? null : member.playerId)
-                            }
-                          >
-                            Cargo
-                          </button>
-                          {!self ? (
-                            kicking === member.playerId ? (
-                              <>
-                                <button
-                                  className="button danger"
-                                  disabled={pending}
-                                  onClick={() => {
-                                    setKicking(null);
-                                    onAction({ type: 'kick', playerId: member.playerId });
-                                  }}
-                                >
-                                  Confirmar
-                                </button>
-                                <button className="button" onClick={() => setKicking(null)}>
-                                  Não
-                                </button>
-                              </>
-                            ) : (
-                              <button
-                                className="button"
-                                disabled={pending}
-                                onClick={() => setKicking(member.playerId)}
-                              >
-                                Expulsar
-                              </button>
-                            )
-                          ) : null}
-                        </span>
-                      ) : (
-                        <span className="muted">—</span>
-                      )}
-                    </td>
-                  ) : null}
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
-      </div>
-      {editing !== null
-        ? (() => {
-            const member = data.members.find((row) => row.playerId === editing);
-            return member ? (
-              <RightsEditor
-                key={member.playerId}
-                member={member}
-                actorIsFounder={me.isFounder}
-                pending={pending}
-                onCancel={() => setEditing(null)}
-                onSave={(title, rights) => {
-                  setEditing(null);
-                  onAction({ type: 'rights', playerId: member.playerId, title, rights });
-                }}
-              />
-            ) : null;
-          })()
-        : null}
+                  )}
+                </span>
+              ) : null}
+              {open && manageable ? (
+                <RightsEditor
+                  member={member}
+                  actorIsFounder={me.isFounder}
+                  pending={pending}
+                  onCancel={() => setEditing(null)}
+                  onSave={(title, rights) => {
+                    setEditing(null);
+                    onAction({ type: 'rights', playerId: member.playerId, title, rights });
+                  }}
+                />
+              ) : null}
+            </li>
+          );
+        })}
+      </ul>
     </section>
   );
 }

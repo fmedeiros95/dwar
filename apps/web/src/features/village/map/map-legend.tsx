@@ -1,4 +1,3 @@
-import { Fragment } from 'react';
 import { createPortal } from 'react-dom';
 import { useQuery } from '@tanstack/react-query';
 import { api, type PublicVillage, type MapSnapshot, type RelationKind } from '@dwar/api-client';
@@ -115,53 +114,57 @@ const tribeLegend: [OwnerKind, string][] = [
 
 export function MapLegend() {
   return (
-    <table className="legacy-table world-map-legend">
-      <tbody>
-        <tr>
-          <td>Ordens:</td>
-          <td colSpan={6}>
-            <span className="legend-commands">
-              <span className="map-command attack">
-                <Icon name="sword" size={12} />
-              </span>{' '}
-              Seu ataque
-              <span className="map-command support">
-                <Icon name="shield" size={12} />
-              </span>{' '}
-              Seu apoio
-              <span className="map-command return">
-                <Icon name="return" size={12} />
-              </span>{' '}
-              Tropas voltando
-              <span className="map-command attack incoming">
-                <Icon name="sword" size={12} />
-              </span>{' '}
-              Ataque inimigo
+    <dl className="map-key">
+      <div>
+        <dt>Ordens</dt>
+        <dd>
+          <span>
+            <span className="map-command attack">
+              <Icon name="sword" size={12} />
             </span>
-          </td>
-        </tr>
-        {[
-          { label: 'Aldeias:', items: villageLegend },
-          { label: 'Tribos:', items: tribeLegend },
-        ].map(({ label, items }) => (
-          <tr key={label}>
-            <td>{label}</td>
+            Seu ataque
+          </span>
+          <span>
+            <span className="map-command support">
+              <Icon name="shield" size={12} />
+            </span>
+            Seu apoio
+          </span>
+          <span>
+            <span className="map-command return">
+              <Icon name="return" size={12} />
+            </span>
+            Tropas voltando
+          </span>
+          <span>
+            <span className="map-command attack incoming">
+              <Icon name="sword" size={12} />
+            </span>
+            Ataque inimigo
+          </span>
+        </dd>
+      </div>
+      {[
+        { label: 'Aldeias', items: villageLegend },
+        { label: 'Tribos', items: tribeLegend },
+      ].map(({ label, items }) => (
+        <div key={label}>
+          <dt>{label}</dt>
+          <dd>
             {items.map(([kind, name]) => (
-              <Fragment key={kind}>
-                <td className="map-legend-swatch">
-                  {kind === 'barbarian' ? (
-                    <span className="map-legend-none" aria-hidden="true" />
-                  ) : (
-                    <MapCrest kind={kind} color={ownerPalette[kind as keyof typeof ownerPalette]} />
-                  )}
-                </td>
-                <td>{name}</td>
-              </Fragment>
+              <span key={kind}>
+                {kind === 'barbarian' ? (
+                  <span className="map-legend-none" aria-hidden="true" />
+                ) : (
+                  <MapCrest kind={kind} color={ownerPalette[kind as keyof typeof ownerPalette]} />
+                )}
+                {name}
+              </span>
             ))}
-          </tr>
-        ))}
-      </tbody>
-    </table>
+          </dd>
+        </div>
+      ))}
+    </dl>
   );
 }
 

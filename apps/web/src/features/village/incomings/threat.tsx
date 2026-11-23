@@ -29,10 +29,13 @@ function AftermathSeals({
   data,
   clock,
   onReport,
+  attacking,
 }: {
   data: IncomingOverview | undefined;
   clock: number;
   onReport: (id: number | null) => void;
+  /** Há ataque a caminho: o selo dele divide a barra com estes. */
+  attacking: boolean;
 }) {
   const resolved = data?.resolved ?? [];
   const fighting = (data?.commands ?? []).filter(
@@ -59,12 +62,19 @@ function AftermathSeals({
       })),
   ].sort((a, b) => new Date(b.at).getTime() - new Date(a.at).getTime() || b.id - a.id);
   if (!seals.length) return null;
-  const shown = seals.slice(0, maxSeals);
+  // No celular o ataque a caminho tem prioridade: um selo e o resto em "+N".
+  const compact = attacking && matchMedia('(max-width: 900px)').matches;
+  const shown = seals.slice(0, compact ? 1 : maxSeals);
   const rest = seals.length - shown.length;
   const several = seals.length > 1;
   const sameVillage = seals.every((item) => item.target.id === seals[0]!.target.id);
   return (
-    <div className="threat-seals" data-several={several ? 'true' : undefined} role="status">
+    <div
+      className="threat-seals"
+      data-several={several ? 'true' : undefined}
+      data-compact={compact ? 'true' : undefined}
+      role="status"
+    >
       {shown.map((seal) => {
         const label = seal.outcome === 'pending' ? 'Batalha agora' : defenseOutcome[seal.outcome];
         const time = timeFormat.format(new Date(seal.at));
@@ -184,7 +194,9 @@ export function ThreatAlert({
     setNotice(null);
   }
 
-  const seals = <AftermathSeals data={data} clock={clock} onReport={onReport} />;
+  const seals = (
+    <AftermathSeals attacking={!!first} data={data} clock={clock} onReport={onReport} />
+  );
   if (!first) return <div className="threat threat-done">{seals}</div>;
   const remaining = (new Date(first.endsAt).getTime() - clock) / 1000;
   const urgent = remaining <= urgentSeconds;

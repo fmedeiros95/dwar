@@ -338,44 +338,38 @@ export function Diplomacy({ data, pending, onAction, onTarget }: Props) {
       <section className="tribe-card" aria-label="Guerras encerradas">
         <h2>Guerras encerradas</h2>
         {diplomacy.endedWars.length ? (
-          <div className="table-scroll">
-            <table className="legacy-table rank-table">
-              <thead>
-                <tr>
-                  <th>Guerra</th>
-                  <th>Contra</th>
-                  <th>Período</th>
-                  <th>Ataques (nós × eles)</th>
-                  <th>Unidades (derrotamos × perdemos)</th>
-                </tr>
-              </thead>
-              <tbody>
-                {diplomacy.endedWars.map((war) => (
-                  <tr key={war.id}>
-                    <td>{war.title}</td>
-                    <td>
-                      <button
-                        className="text-button"
-                        onClick={() => onTarget('tribe', war.other.id)}
-                      >
-                        {war.other.name} <span className="tribe-tag static">{war.other.tag}</span>
-                      </button>
-                    </td>
-                    <td>
-                      {new Date(war.declaredAt).toLocaleDateString('pt-BR')} a{' '}
-                      {war.endedAt ? new Date(war.endedAt).toLocaleDateString('pt-BR') : '—'}
-                    </td>
-                    <td className="num">
-                      {war.stats.ourAttacks} × {war.stats.theirAttacks}
-                    </td>
-                    <td className="num">
-                      {numbers.format(war.stats.ourKills)} × {numbers.format(war.stats.theirKills)}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          <ul className="tribe-old-wars">
+            {diplomacy.endedWars.map((war) => (
+              <li key={war.id}>
+                <span className="tribe-member-name">
+                  <strong>{war.title}</strong>
+                  <small>
+                    contra{' '}
+                    <button className="text-button" onClick={() => onTarget('tribe', war.other.id)}>
+                      {war.other.name} <span className="tribe-tag static">{war.other.tag}</span>
+                    </button>
+                  </small>
+                  <small>
+                    {new Date(war.declaredAt).toLocaleDateString('pt-BR')} a{' '}
+                    {war.endedAt ? new Date(war.endedAt).toLocaleDateString('pt-BR') : '—'}
+                  </small>
+                </span>
+                <span className="tribe-member-stat">
+                  <b>
+                    {numbers.format(war.stats.ourAttacks)} ×{' '}
+                    {numbers.format(war.stats.theirAttacks)}
+                  </b>{' '}
+                  <small>ataques, nós × eles</small>
+                </span>
+                <span className="tribe-member-stat">
+                  <b>
+                    {numbers.format(war.stats.ourKills)} × {numbers.format(war.stats.theirKills)}
+                  </b>{' '}
+                  <small>derrotamos × perdemos</small>
+                </span>
+              </li>
+            ))}
+          </ul>
         ) : (
           <p className="muted">Nenhuma guerra encerrada.</p>
         )}

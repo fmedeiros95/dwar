@@ -64,3 +64,11 @@
     0 0 0 1px rgb(125 43 34 / 0.35),
     0 3px 10px rgb(70 45 18 / 0.14);
 }
+
+/* Lista estreita: ação em massa só aparece quando há algo selecionado. */
+@container split (min-width: 940px) {
+  .split-view.has-detail .split-list .mail-toolbar .button:disabled,
+  .split-view.has-detail .split-list .report-tools .button:disabled {
+    display: none;
+  }
+}
