@@ -32,6 +32,7 @@ import './split.css';
 import './a11y.css';
 import './art.css';
 import './flows.css';
+import './caravan.css';
 
 const client = new QueryClient({
   defaultOptions: { queries: { retry: false, refetchOnWindowFocus: true } },

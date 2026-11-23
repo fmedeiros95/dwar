@@ -15,6 +15,7 @@ import type { BuildingView, Construction } from '@dwar/api-client';
 import { usePanZoom } from '../../../components/use-pan-zoom.js';
 import { duration } from '../shared/index.js';
 import { dayPhase, nightHours } from '../shared/night.js';
+import { CaravanGlyph } from '../caravan/caravan-art.js';
 import { SceneCelebrations, SceneLife } from './scene-life.js';
 import {
   backingUrl,
@@ -91,6 +92,8 @@ export function VillageScene({
   onSelect,
   onCrest,
   compared = [],
+  cart = null,
+  onCart,
   onHover,
   coveredRight = 0,
   queue,
@@ -106,6 +109,9 @@ export function VillageScene({
   onCrest?: (code: string) => void;
   /** Edifícios em comparação na mesa de obras: o brasão ganha um anel. */
   compared?: string[];
+  /** Carroça da caravana parada diante do portão. */
+  cart?: 'sun' | 'moon' | null;
+  onCart?: () => void;
   /** O que está sob o cursor ou o foco: o brasão e o edifício fazem coisas diferentes. */
   onHover?: (target: SceneTarget | null) => void;
   /** Faixa à direita coberta pela mesa de obras: a vista pode deslizar para descobri-la. */
@@ -300,6 +306,36 @@ export function VillageScene({
           height={sceneSize.height}
           viewBox={`0 0 ${sceneSize.width} ${sceneSize.height}`}
         >
+          {cart ? (
+            <g
+              className="scene-cart"
+              role="button"
+              tabIndex={0}
+              aria-label="Carroça da caravana no portão. Abrir para descarregar"
+              transform={`translate(${sceneSize.width * 0.415} ${sceneSize.height * 0.735}) scale(1.35)`}
+              pointerEvents="all"
+              onClick={() => {
+                if (!pan.didDrag()) onCart?.();
+              }}
+              onKeyDown={(keyEvent) => {
+                if (keyEvent.key === 'Enter' || keyEvent.key === ' ') {
+                  keyEvent.preventDefault();
+                  onCart?.();
+                }
+              }}
+            >
+              <rect x={-6} y={-6} width={72} height={66} fill="transparent" />
+              <CaravanGlyph single={cart} />
+              <text
+                x={30}
+                y={64}
+                textAnchor="middle"
+                transform="translate(30 64) scale(0.8) translate(-30 -64)"
+              >
+                Carroça da caravana: descarregar
+              </text>
+            </g>
+          ) : null}
           {layers.map(({ building, placed }) => {
             if (!placed.label) return null;
             const state = crestState(building, queue, clock);

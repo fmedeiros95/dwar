@@ -28,6 +28,7 @@ export {
   mutateMail,
   sendMassMail,
 } from './mail.js';
+export { readCaravans, mutateCaravan, openCaravan } from './caravan.js';
 export { readMedals, readPlayerMedals } from './medals.js';
 export { readTribes, readTribe, mutateTribes } from './tribes.js';
 export { notesOverview, readPlayerNote, savePlayerNote } from './player-notes.js';

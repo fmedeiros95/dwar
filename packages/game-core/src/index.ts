@@ -179,3 +179,18 @@ export {
 export { battle, morale, loyaltyAt, plunder, distributeLosses, emptyTroops } from './combat.js';
 export { militaryRank } from './military-rank.js';
 export { normalizeRights, noRights, founderRights, canManageMember } from './tribe-rights.js';
+export {
+  caravanRules,
+  caravanLots,
+  caravanToll,
+  caravanSplit,
+  caravanSplitError,
+  caravanDefault,
+  caravanAbsentChoice,
+  caravanCargo,
+  caravanUnload,
+  otherLot,
+  lotTotal,
+  type CaravanLot,
+  type CaravanLots,
+} from './caravan.js';
