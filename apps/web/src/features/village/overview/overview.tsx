@@ -1,5 +1,5 @@
 import { useEffect, useState, type CSSProperties } from 'react';
-import type { BuildingView, CaravanView, VillageSnapshot } from '@dwar/api-client';
+import type { BuildingView, VillageSnapshot } from '@dwar/api-client';
 import { ChevronDown, List, MousePointerClick, X } from 'lucide-react';
 import { ResourceIcon } from '../../../components/legacy-frame.js';
 import { VillageScene, crestLabels, crestState, type SceneTarget } from './village-scene.js';
@@ -361,8 +361,6 @@ export function Overview({
   pendingCode,
   onConstruct,
   onCancel,
-  cart,
-  onCart,
 }: {
   snapshot: VillageSnapshot;
   graphical: boolean;
@@ -375,9 +373,6 @@ export function Overview({
   pendingCode?: string | undefined;
   onConstruct: (code: string) => void;
   onCancel: (id: number) => void;
-  /** Carroça da caravana esperando no portão. */
-  cart: CaravanView | null;
-  onCart: (caravan: CaravanView) => void;
 }) {
   const [hovered, setHovered] = useState<SceneTarget | null>(null);
   const guide = useSceneGuide();
@@ -468,8 +463,6 @@ export function Overview({
       }}
       coveredRight={planner.open ? plannerWidth : 0}
       compared={planner.compared}
-      cart={cart?.mine ?? null}
-      onCart={() => cart && onCart(cart)}
       onHover={setHovered}
       queue={snapshot.queue}
       clock={clock}

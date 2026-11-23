@@ -11,7 +11,6 @@ import { RallyModule } from './rally/rally.module.js';
 import { RankingModule } from './ranking/ranking.module.js';
 import { RecruitmentModule } from './recruitment/recruitment.module.js';
 import { ReportsModule } from './reports/reports.module.js';
-import { CaravansModule } from './caravans/caravans.module.js';
 import { NotesModule } from './notes/notes.module.js';
 import { MedalsModule } from './medals/medals.module.js';
 import { TribesModule } from './tribes/tribes.module.js';
@@ -34,7 +33,6 @@ import { WorldsModule } from './worlds/worlds.module.js';
     RallyModule,
     MailModule,
     ReportsModule,
-    CaravansModule,
     NotesModule,
     MedalsModule,
     TribesModule,

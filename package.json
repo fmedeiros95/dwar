@@ -19,7 +19,6 @@
     "db:world": "node --env-file=.env scripts/world-settings.mjs",
     "db:points": "node --env-file=.env scripts/recalculate-points.mjs",
     "db:seed": "pnpm --filter @dwar/database seed",
-    "demo:caravana": "pnpm build:packages && node --env-file=.env scripts/demo-caravana.mjs",
     "db:up": "docker compose -f compose.modern.yml up -d",
     "start:api": "pnpm --filter @dwar/api start",
     "start:worker": "pnpm --filter @dwar/worker start",

@@ -45,7 +45,6 @@ import {
 } from './combat.js';
 import { capacity, resourceCodes } from '@dwar/game-core';
 import { combatRules, catapultTargets, buildings } from '@dwar/game-config';
-import { mapCaravans } from './caravan.js';
 import { mapOptions } from './map-options.js';
 import { addNotices } from './notices.js';
 import { tribesOf } from './tribe-lookup.js';
@@ -201,7 +200,6 @@ export async function mapView(
     villages: visible,
     commands: await mapCommands(tx, village, visible),
     reports: await mapReports(tx, village, visible),
-    caravans: await mapCaravans(tx, village.worldId, village.playerId),
     ownTribeId,
     tribeRelations: ownTribeId === null ? {} : await relationsFor(tx, ownTribeId),
     ...options,
