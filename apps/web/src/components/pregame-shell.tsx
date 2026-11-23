@@ -19,8 +19,9 @@ export function PregameShell({
     <div className="pregame">
       <div className="landing-bg" aria-hidden="true" />
       <header className="pregame-bar">
-        <Link to="/worlds" aria-label="DWar — mundos">
+        <Link to="/worlds">
           <Brand size={40} />
+          <span className="sr-only">Voltar aos mundos</span>
         </Link>
         {username ? (
           <div className="pregame-user">

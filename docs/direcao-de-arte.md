@@ -589,3 +589,25 @@ Testado em Chromium e Firefox 160 headless, num banco isolado. Os selos usaram r
 
 Pendente: retrato de 64 px, Safari e leitor de tela de verdade. O axe não mede contraste sobre a arte do
 cenário nem substitui o leitor.
+
+## Rodada 9: telas com dados, barra com números reais e WebKit
+
+O "antes" é o commit `bb9f0f0`. Comparativos em `direcao-de-arte/rodada-9/`, antes à esquerda.
+
+- **Barra superior.** Com recursos de cinco dígitos, o nome da aldeia encolhia para 9 px ou os recursos
+  saíam da barra, às vezes até sem alerta. Agora a marca some e os recursos podem ocupar duas linhas:
+  sempre até 1240 px, e até 1500 px só com aviso.
+- **Cartões.** Tribo, mensagens e relatórios usam o cartão claro das outras telas. O resumo do relatório
+  cabe numa linha.
+- **Ranking no celular.** A coluna de pontos saía da tela. Aldeias e data descem para a segunda linha.
+- **Abas no celular.** Uma linha que desliza, com a aba ativa à vista, no lugar de até três linhas.
+- **Antes do jogo.** Títulos na tipografia de exibição e estrutura da página para leitores de tela.
+- **Auditoria com dados.** axe-core em 37 telas e estados, mais os relatórios, em dois tamanhos: eram 9 tipos de falha, agora
+  nenhum. Inclui contraste de links, mercadores e avisos, e alvos do mapa e dos relatórios.
+
+Testado em Chromium, Firefox 160 e WebKitGTK 2.54 (motor do Safari), com batalhas, tribo, guerra e
+comércio feitos pela API num banco isolado. A barra foi medida em 54 combinações de largura e alertas,
+com resposta simulada. O WebKitGTK não é o Safari: falta conferir num Mac ou iPhone.
+
+Pendente: retrato de 64 px, Safari num aparelho e leitor de tela de verdade. O JavaScript sai num arquivo
+só de 634 kB (180 kB comprimido). `public/legacy/buildings` tem 9,8 MB e nenhuma referência direta no código.

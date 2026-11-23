@@ -103,11 +103,13 @@ export function TroopTable({
   const any = total(counts) > 0;
   const absent = (code: string) => (any && !counts[code] ? 'true' : undefined);
   return (
-    <div className="table-scroll">
+    <div className="table-scroll" role="group" aria-label="Tropas por unidade" tabIndex={0}>
       <table className="legacy-table rally-units">
         <thead>
           <tr>
-            <th></th>
+            <th>
+              <span className="sr-only">Tropas</span>
+            </th>
             {unitTypes.map((u) => (
               <th key={u.code} data-absent={absent(u.code)}>
                 <img

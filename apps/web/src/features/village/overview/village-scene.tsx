@@ -372,6 +372,7 @@ export function VillageScene({
                 {timedEvent ? (
                   <g
                     className="crest-timer"
+                    aria-hidden="true"
                     transform={`translate(${crestSize.width + 3}, ${crestSize.height / 2 - 9})`}
                   >
                     <rect width={58} height={18} rx={9} />

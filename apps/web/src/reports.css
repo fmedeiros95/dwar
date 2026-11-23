@@ -154,25 +154,38 @@
 /* Mapa: resultado do último ataque a cada aldeia. */
 .map-report-dot {
   position: absolute;
-  bottom: 3px;
-  left: 3px;
+  bottom: 0;
+  left: 0;
   z-index: 4;
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  background: none;
+  border: 0;
+  border-radius: 50%;
+  box-shadow: none;
+  cursor: pointer;
+}
+/* O ponto continua pequeno; o alvo de toque tem 24 px. */
+.map-report-dot::before {
+  content: '';
   width: 11px;
   height: 11px;
-  padding: 0;
   border: 1.5px solid rgba(255, 255, 255, 0.9);
   border-radius: 50%;
   box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.55);
-  cursor: pointer;
+  background: var(--dot);
 }
 .map-report-dot.green {
-  background: #3fae4f;
+  --dot: #3fae4f;
 }
 .map-report-dot.yellow {
-  background: #e3b82c;
+  --dot: #e3b82c;
 }
 .map-report-dot.red {
-  background: #d23a2e;
+  --dot: #d23a2e;
 }
 .map-report-dot:hover,
 .map-report-dot:focus-visible {

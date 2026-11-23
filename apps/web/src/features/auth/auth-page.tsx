@@ -91,7 +91,7 @@ export function AuthPage({ onAuthenticated }: { onAuthenticated: (account: Accou
   }
   const busy = login.isPending || registration.isPending;
   return (
-    <div className="landing">
+    <main className="landing">
       <div className="landing-bg" aria-hidden="true" />
       <section className="landing-hero">
         <Brand size={84} />
@@ -246,6 +246,6 @@ export function AuthPage({ onAuthenticated }: { onAuthenticated: (account: Accou
           )}
         </div>
       </section>
-    </div>
+    </main>
   );
 }

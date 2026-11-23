@@ -1,3 +1,4 @@
+import { revealTab } from '../../../components/reveal-tab.js';
 import { useGameSearchParams as useSearchParams } from '../../../routing.js';
 import { newRequestKey } from '@dwar/api-client';
 import { useRef, useState } from 'react';
@@ -136,6 +137,11 @@ export function MailPanel({ snapshot, clock }: { snapshot: VillageSnapshot; cloc
           {modes.map((item) => (
             <button
               key={item.code}
+              ref={
+                mode === item.code || (item.code === 'in' && mode === 'view')
+                  ? revealTab
+                  : undefined
+              }
               className={
                 mode === item.code || (item.code === 'in' && mode === 'view') ? 'active' : undefined
               }
