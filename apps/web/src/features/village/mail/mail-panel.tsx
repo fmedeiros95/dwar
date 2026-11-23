@@ -1,3 +1,4 @@
+import { LoadState } from '../../../components/load-state.js';
 import { revealTab } from '../../../components/reveal-tab.js';
 import { useGameSearchParams as useSearchParams } from '../../../routing.js';
 import { newRequestKey } from '@dwar/api-client';
@@ -203,7 +204,7 @@ export function MailPanel({ snapshot, clock }: { snapshot: VillageSnapshot; cloc
                     }
                   />
                 ) : (
-                  <p className="muted">Carregando mensagens…</p>
+                  <LoadState query={mailbox} loading="Carregando mensagens…" />
                 )}
               </div>
               {mode === 'view' ? (
@@ -218,10 +219,10 @@ export function MailPanel({ snapshot, clock }: { snapshot: VillageSnapshot; cloc
                       onDelete={() => perform({ type: 'delete', threadIds: [threadId] })}
                       onTarget={onTarget}
                     />
+                  ) : !threadId ? (
+                    <p className="muted">Mensagem não encontrada.</p>
                   ) : (
-                    <p className="muted">
-                      {threadId ? 'Carregando conversa…' : 'Mensagem não encontrada.'}
-                    </p>
+                    <LoadState query={thread} loading="Carregando conversa…" />
                   )}
                 </div>
               ) : null}

@@ -1,3 +1,4 @@
+import { LoadState } from '../../../components/load-state.js';
 import { useQuery } from '@tanstack/react-query';
 import { ChevronLeft } from 'lucide-react';
 import { api, type MessageTarget, type VillageSnapshot } from '@dwar/api-client';
@@ -99,7 +100,7 @@ export function NotesPanel({ snapshot }: { snapshot: VillageSnapshot }) {
           ) : overview.data ? (
             <p className="empty-state">Nenhuma aldeia com nota.</p>
           ) : (
-            <p className="muted">Carregando notas…</p>
+            <LoadState query={overview} loading="Carregando notas…" />
           )}
         </>
       )}

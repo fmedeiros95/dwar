@@ -2857,3 +2857,121 @@ th[data-state='wait'] .cmp-build:disabled {
   pointer-events: auto;
   cursor: pointer;
 }
+
+/* ======================================================================
+ * Rodada 11: celular e estados de espera
+ * ====================================================================== */
+.foundation-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+@media (pointer: coarse) {
+  /* Alvos de 44 px nas janelas, na barra e no mapa. */
+  .gw-body
+    :is(button, .button, select, input:not([type='checkbox'], [type='radio'], [type='color'])):not(
+      .text-button,
+      .tribe-tag,
+      .bb-swatch,
+      .unit-slider,
+      .cmp-art
+    ) {
+    min-height: 44px;
+  }
+  .gw-body :is(.bb-tool, .pager .button, .queue-cancel) {
+    min-width: 44px;
+  }
+  .gw-body .bb-swatches {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .gw-body .bb-swatch {
+    width: 36px;
+    height: 36px;
+  }
+  .gw-body .unit-slider {
+    min-height: 32px;
+  }
+  .gw-body summary {
+    display: list-item;
+    padding-block: 12px;
+  }
+  .gw-body :is(.report-scope, .report-select-all, .mail-select-all) {
+    min-height: 44px;
+  }
+  .gw-body :is(.report-item, .mail-row) input[type='checkbox'] {
+    position: relative;
+  }
+  /* Marca pequena, área de toque grande. */
+  .gw-body :is(.report-item, .mail-row) input[type='checkbox']::before {
+    content: '';
+    position: absolute;
+    inset: -13px;
+  }
+  /* Links no meio do texto: a área cresce sem mexer nas linhas. */
+  .gw-body :is(.text-button, .tribe-tag:not(.static), .mail-external-link) {
+    position: relative;
+  }
+  .gw-body :is(.text-button, .tribe-tag:not(.static), .mail-external-link)::after {
+    content: '';
+    position: absolute;
+    inset: -5px -2px;
+  }
+  .gw-actions button {
+    width: 44px;
+    height: 44px;
+  }
+  .shell-village .village-name {
+    min-height: 40px;
+  }
+  .shell-village .rename-village-icon {
+    width: 40px;
+    height: 40px;
+  }
+  .shell-subbar .subbar-link,
+  .shell-subbar .subbar-world {
+    display: inline-flex;
+    align-items: center;
+    min-height: 40px;
+  }
+  .map-arrows button,
+  .map-title .world-map-coordinates button,
+  .map-title .world-map-coordinates input {
+    height: 40px;
+  }
+  .map-arrows button {
+    width: 40px;
+  }
+}
+
+/* Falha sobre o papel: texto escuro em fundo claro, com a marca à esquerda. */
+.gw-body .error,
+.foundation-card .error,
+.landing-card .error {
+  margin: 0 0 12px;
+  padding: 10px 14px;
+  font-weight: 600;
+  color: #7d1a12;
+  background: #fbe6df;
+  border: 1px solid rgb(125 26 18 / 0.3);
+  border-left: 4px solid #a32a20;
+  border-radius: 10px;
+}
+.gw-body .error .text-button,
+.landing-card .error .text-button {
+  color: #7d1a12;
+  text-decoration: underline;
+}
+.screen-failed {
+  min-height: 0;
+}
+@media (pointer: coarse) {
+  .foundation-actions button,
+  .foundation-actions a,
+  .pregame-bar button {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+  }
+}

@@ -1,3 +1,4 @@
+import { LoadState } from '../../../components/load-state.js';
 import { useQuery } from '@tanstack/react-query';
 import { api, type VillageSnapshot } from '@dwar/api-client';
 import { Icon } from '../../../components/icons.js';
@@ -18,9 +19,11 @@ export function TribeProfileScreen({ snapshot }: { snapshot: VillageSnapshot }) 
   if (!data)
     return (
       <div className="legacy-content">
-        <p role={tribe.error ? 'alert' : 'status'}>
-          {tribe.error?.message ?? (tribeId ? 'Carregando tribo…' : 'Tribo não encontrada.')}
-        </p>
+        {tribeId ? (
+          <LoadState query={tribe} loading="Carregando tribo…" message />
+        ) : (
+          <p role="status">Tribo não encontrada.</p>
+        )}
       </div>
     );
   const go = (screen: string, extra: Record<string, string | number> = {}) =>

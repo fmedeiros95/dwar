@@ -73,85 +73,8 @@ p {
 .text-button:hover:not(:disabled) {
   background: none;
 }
-.legacy-site {
-  width: 950px;
-  max-width: calc(100% - 16px);
-  margin: auto;
-}
-.legacy-topnav {
-  min-height: 32px;
-  display: flex;
-  align-items: center;
-  justify-content: space-around;
-  gap: 0;
-}
-.legacy-topnav > a,
-.legacy-topnav > button,
-.legacy-topnav > span {
-  flex: 1;
-  text-align: center;
-  padding: 7px 5px;
-  font-size: 12px;
-  font-weight: bold;
-  text-transform: uppercase;
-  white-space: nowrap;
-}
-.legacy-topnav > button {
-  border: 0;
-  background: transparent;
-  text-shadow: none;
-  color: #fee47d;
-  border-radius: 0;
-}
-.legacy-topnav > button:hover:not(:disabled),
-.legacy-topnav > a:hover {
-  color: #fee47d;
-  background: url('/legacy/layout/meniu_over.png') center repeat-x;
-}
-.legacy-masthead {
-  height: 90px;
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-.legacy-logo {
-  height: 90px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  overflow: hidden;
-}
-.legacy-logo img {
-  flex-shrink: 0;
-  object-fit: contain;
-}
-.legacy-chain {
-  position: absolute;
-  width: 26px;
-  height: 90px;
-  top: 0;
-  background-repeat: no-repeat;
-  background-position: center;
-}
-.legacy-chain.left {
-  left: 10px;
-  background-image: url('/legacy/layout/ext_s.png');
-}
-.legacy-chain.right {
-  right: 10px;
-  background-image: url('/legacy/layout/ext_d.png');
-}
-.legacy-frame {
-  border: 2px solid #fee47d;
-  box-shadow: 0 0 15px #221603;
-  background: #533007;
-  margin-bottom: 30px;
-  padding: 2px;
-}
 .legacy-titlebar,
-.legacy-statusbar,
-.legacy-footer {
+.legacy-statusbar {
   background: #694111 url('/legacy/layout/th.jpg') repeat-x;
   color: #f7c456;
 }
@@ -161,18 +84,6 @@ p {
   padding: 5px;
   font-weight: bold;
   min-height: 27px;
-}
-.legacy-footer {
-  padding: 5px;
-  margin-top: 2px;
-  font-weight: bold;
-  min-height: 25px;
-  display: flex;
-  justify-content: space-between;
-  gap: 15px;
-}
-.legacy-footer time {
-  font-variant-numeric: tabular-nums;
 }
 .legacy-statusbar {
   display: grid;
@@ -376,11 +287,6 @@ p {
   color: #7f2800;
   margin-left: 7px;
 }
-.center-screen {
-  min-height: 100vh;
-  display: grid;
-  place-items: center;
-}
 .notice {
   padding: 20px;
   max-width: 600px;
@@ -393,14 +299,6 @@ p {
 }
 .notice button {
   margin-top: 10px;
-}
-.loading-message {
-  padding: 10px;
-  background: #694111;
-}
-.with-login .legacy-logo {
-  position: absolute;
-  left: 17%;
 }
 .portal-login {
   margin-left: auto;
@@ -489,26 +387,8 @@ p {
   .legacy-resources {
     flex-wrap: wrap;
   }
-  .legacy-topnav > span {
-    display: none;
-  }
 }
 @media (max-width: 680px) {
-  .legacy-topnav {
-    flex-wrap: wrap;
-  }
-  .legacy-topnav > a,
-  .legacy-topnav > button {
-    flex: 1 1 30%;
-    padding: 8px 3px;
-    font-size: 11px;
-  }
-  .legacy-site {
-    max-width: calc(100% - 10px);
-  }
-  .legacy-masthead {
-    height: 90px;
-  }
   .legacy-statusbar {
     display: block;
   }
@@ -551,10 +431,6 @@ p {
     min-width: 650px;
     width: 100%;
   }
-  .legacy-footer {
-    font-size: 11px;
-    flex-wrap: wrap;
-  }
   .portal-columns {
     grid-template-columns: 1fr;
   }
@@ -572,11 +448,6 @@ p {
     height: auto;
     min-height: 150px;
     padding-top: 90px;
-  }
-  .with-login .legacy-logo {
-    top: 0;
-    left: 50%;
-    transform: translateX(-50%);
   }
   .portal-login {
     margin: 0 10px 10px;

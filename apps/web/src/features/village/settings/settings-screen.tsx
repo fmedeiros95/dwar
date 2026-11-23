@@ -1,3 +1,4 @@
+import { LoadState } from '../../../components/load-state.js';
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useGameSearchParams as useSearchParams } from '../../../routing.js';
@@ -204,7 +205,7 @@ export function SettingsScreen({ snapshot }: { snapshot: VillageSnapshot }) {
               </PanelCard>
             </form>
           ) : (
-            <p>Carregando perfil…</p>
+            <LoadState query={profile} loading="Carregando perfil…" />
           )
         ) : null}
         {mode === 'password' ? (

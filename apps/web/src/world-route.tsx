@@ -1,7 +1,7 @@
-import { Link, useParams } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { api, type Account } from '@dwar/api-client';
-import { LegacyFrame } from './components/legacy-frame.js';
+import { StatusPage } from './components/status-page.js';
 import { WorldEntryPage } from './features/worlds/world-entry-page.js';
 import { lazyScreen } from './components/lazy-screen.js';
 
@@ -34,20 +34,12 @@ export function WorldRoute({
   });
   if (!world.data)
     return (
-      <LegacyFrame>
-        <div className="legacy-content">
-          <h1>{world.isPending ? 'Carregando mundo…' : 'Mundo indisponível'}</h1>
-          {world.error ? (
-            <p className="error" role="alert">
-              {world.error.message}
-            </p>
-          ) : null}
-          {world.error ? (
-            <button onClick={() => void world.refetch()}>Tentar novamente</button>
-          ) : null}{' '}
-          <Link to="/worlds">Voltar aos mundos</Link>
-        </div>
-      </LegacyFrame>
+      <StatusPage
+        title={world.isPending ? 'Carregando mundo…' : 'Mundo indisponível'}
+        error={world.error?.message}
+        onRetry={() => void world.refetch()}
+        retrying={world.isFetching}
+      />
     );
   return page === 'enter' ? (
     <WorldEntryPage account={account} world={world.data} />

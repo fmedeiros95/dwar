@@ -9,15 +9,18 @@ export function PregameShell({
   username,
   onLogout,
   logoutPending,
+  plain = false,
 }: {
   children: ReactNode;
   username?: string;
   onLogout?: () => void;
   logoutPending?: boolean;
+  /** Sem a imagem de fundo: a caminho do jogo, ela disputaria a rede com o cenário. */
+  plain?: boolean;
 }) {
   return (
     <div className="pregame">
-      <div className="landing-bg" aria-hidden="true" />
+      {plain ? null : <div className="landing-bg" aria-hidden="true" />}
       <header className="pregame-bar">
         <Link to="/worlds">
           <Brand size={40} />

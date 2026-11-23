@@ -211,11 +211,15 @@ export function ThreatAlert({
         className="threat-chip"
         onClick={onOpen}
         title={`${attacks.length} ${attacks.length === 1 ? 'ataque' : 'ataques'} a caminho. Abrir detalhes`}
-        aria-label={`${attacks.length > 1 ? `${attacks.length} ataques. ` : ''}Ataque em ${duration(remaining)} ${first.to.name}. Abrir detalhes`}
       >
-        <span className="threat-chip-icon" aria-hidden="true">
-          <Swords size={16} />
-          {attacks.length > 1 ? <b>{attacks.length}</b> : null}
+        <span className="threat-chip-icon">
+          <Swords size={16} aria-hidden="true" />
+          {attacks.length > 1 ? (
+            <b>
+              {attacks.length}
+              <span className="sr-only"> ataques. </span>
+            </b>
+          ) : null}
         </span>
         <span className="threat-chip-text">
           <strong>
