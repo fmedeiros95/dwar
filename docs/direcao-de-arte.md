@@ -603,11 +603,39 @@ O "antes" é o commit `bb9f0f0`. Comparativos em `direcao-de-arte/rodada-9/`, an
 - **Abas no celular.** Uma linha que desliza, com a aba ativa à vista, no lugar de até três linhas.
 - **Antes do jogo.** Títulos na tipografia de exibição e estrutura da página para leitores de tela.
 - **Auditoria com dados.** axe-core em 37 telas e estados, mais os relatórios, em dois tamanhos: eram 9 tipos de falha, agora
-  nenhum. Inclui contraste de links, mercadores e avisos, e alvos do mapa e dos relatórios.
+  nenhum. Inclui contraste de links, mercadores e avisos, e alvos do mapa e dos relatórios. Exceção achada na
+  rodada 10: o brasão de uma obra em andamento ainda falhava.
 
 Testado em Chromium, Firefox 160 e WebKitGTK 2.54 (motor do Safari), com batalhas, tribo, guerra e
 comércio feitos pela API num banco isolado. A barra foi medida em 54 combinações de largura e alertas,
 com resposta simulada. O WebKitGTK não é o Safari: falta conferir num Mac ou iPhone.
 
-Pendente: retrato de 64 px, Safari num aparelho e leitor de tela de verdade. O JavaScript sai num arquivo
-só de 634 kB (180 kB comprimido). `public/legacy/buildings` tem 9,8 MB e nenhuma referência direta no código.
+Pendente: retrato de 64 px, Safari num aparelho e leitor de tela de verdade. `public/legacy/buildings` tem 9,8 MB e nenhuma referência direta no código.
+
+## Rodada 10: carga mais leve
+
+O "antes" é o branch da rodada 9. Build de produção, celular 390×844, 4G simulado (1,6 Mbps, 150 ms, CPU
+2× mais lenta), mediana de três cargas, sem ataque a caminho.
+
+| Tela | Transferido | Pronto | Maior imagem (LCP) | Pulo de layout (CLS) |
+| --- | --- | --- | --- | --- |
+| Entrada, antes | 661 kB | 2,13 s | 2,05 s | 0,005 |
+| Entrada, depois | 296 kB | 1,75 s | 1,68 s | 0,005 |
+| Aldeia, antes | 1323 kB | 2,95 s | 8,00 s | 0,005 |
+| Aldeia, depois | 1138 kB | 2,86 s | 6,48 s | 0 |
+| Mapa, antes | 482 kB | 3,65 s | 2,00 s | 0,138 |
+| Mapa, depois | 454 kB | 3,77 s | 1,71 s | 0 |
+
+- **Código.** O pacote inicial caiu de 180 para 102 kB comprimidos. Mapa e janelas baixam ao abrir, ou
+  sozinhos 4 s depois da aldeia. Se uma tela não baixar, ela avisa e o resto do jogo continua.
+- **Imagens.** Cenário de verão e Halloween em qualidade 78 (de 545 para 388 kB) e pedido antes da resposta
+  da aldeia. O fundo da entrada virou WebP (de 319 para 78 kB).
+- **Fontes.** A marca usa um recorte de 3 kB com as letras de "DWar". Saíram três pacotes sem uso.
+- **Mapa.** Mede a tela antes de pintar, e os blocos não pulam mais.
+- **Brasão.** O cronômetro da obra saiu de dentro do botão, para o nome acessível bater com o texto.
+
+Regressão sobre o build de produção: axe-core com obra e ataque ativos, Chromium, Firefox 160, WebKitGTK
+2.54, teclado e a matriz da barra.
+
+Pendente: no celular, o aviso de ataque entra depois da barra e empurra o cenário (CLS 0,213). Retrato de
+64 px, Safari num aparelho e leitor de tela de verdade. `public/legacy/buildings` espera decisão.

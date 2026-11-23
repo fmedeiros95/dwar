@@ -9,11 +9,7 @@ import { MarketPanel } from './market/index.js';
 import { RallyPanel } from './rally/index.js';
 import { PanelHead } from './shared/panel-head.js';
 import { numbers } from './shared/index.js';
-
-const recruiters = ['barracks', 'stable', 'workshop'];
-
-/** Edifícios com tela própria; os demais usam a visão geral (indicadores + evolução). */
-export const panelBuildings = ['main', 'smith', 'noble', 'market', 'place', ...recruiters];
+import { recruiters } from './panel-buildings.js';
 
 function MainStats({ snapshot }: { snapshot: VillageSnapshot }) {
   const maxed = snapshot.buildings.filter((item) => item.level >= item.maxLevel).length;

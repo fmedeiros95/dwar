@@ -7,9 +7,6 @@
  *         lacre #7d2b22 · carvalho #34231a · ferro #1f1c1a · latão #b98b3d
  */
 :root {
-  --font-ui: 'Alegreya Variable', 'Iowan Old Style', Georgia, serif;
-  --font-display: 'IM Fell English', 'Iowan Old Style', Georgia, serif;
-  --font-caps: 'IM Fell English SC', 'IM Fell English', Georgia, serif;
 
   --parch: #e8dbb8;
   --parch-deep: #d5c293;
@@ -914,9 +911,16 @@ h2 {
 .map-stage .map-x-axis span {
   font-size: 11px;
 }
-/* A marca é o único texto em estilo histórico. */
+/* A marca é o único texto em estilo histórico. O arquivo é um recorte da IM Fell English (OFL) só com
+   as letras de "DWar": 3 kB em vez de 59. */
+@font-face {
+  font-family: 'DWar Marca';
+  src: url('./assets/dwar-marca.woff2') format('woff2');
+  font-weight: 400;
+  font-display: swap;
+}
 .brand-name {
-  font-family: 'IM Fell English', Georgia, serif;
+  font-family: 'DWar Marca', Georgia, serif;
   font-weight: 400;
 }
 .brand-sub {

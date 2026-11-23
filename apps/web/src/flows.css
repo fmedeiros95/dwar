@@ -2840,3 +2840,20 @@ th[data-state='wait'] .cmp-build:disabled {
     display: none;
   }
 }
+
+/* Rodada 10: espera e falha das telas que baixam sob demanda. */
+.screen-loading,
+.screen-failed {
+  display: grid;
+  justify-items: center;
+  align-content: center;
+  gap: 12px;
+  min-height: 180px;
+  padding: 24px;
+  text-align: center;
+}
+
+.village-labels .crest-timer {
+  pointer-events: auto;
+  cursor: pointer;
+}

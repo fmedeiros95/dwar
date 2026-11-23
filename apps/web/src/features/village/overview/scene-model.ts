@@ -1,3 +1,4 @@
+import { preload } from 'react-dom';
 import positions from './tribul-positions.json';
 import manifest from './tribul-manifest.json';
 
@@ -89,6 +90,13 @@ export function roadUrl(artId: number, theme: SceneTheme): string | null {
   const entry = art[artId];
   if (!entry?.road) return null;
   return `/game/buildings/${artId}/${artId}_road${suffix(theme, artId, 'road')}.webp`;
+}
+
+/** Começa a baixar o cenário antes da resposta da aldeia, com prioridade. */
+export function preloadBacking() {
+  const saved = localStorage.getItem('dwar:scene-theme');
+  const theme = sceneThemes.some((item) => item.code === saved) ? (saved as SceneTheme) : 'summer';
+  preload(backingUrl(theme), { as: 'image', fetchPriority: 'high' });
 }
 
 export function backingUrl(theme: SceneTheme): string {
