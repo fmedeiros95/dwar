@@ -26,7 +26,7 @@ import { IncomingsPanel } from './incomings/incomings-panel.js';
 import { ThreatAlert } from './incomings/threat.js';
 import { useVillageActions } from './use-village-actions.js';
 import { usePlannerState } from './planner/build-planner.js';
-import { duration, numbers, resources, timeFormat } from './shared/index.js';
+import { completionDate, duration, numbers, resources, timeFormat } from './shared/index.js';
 import { currentResources } from './shared/current-resources.js';
 import { useResourceDeltas } from './shared/resource-delta.js';
 
@@ -317,32 +317,22 @@ export function VillagePage({
     village.error !== null ||
     preference.isError ||
     logout.isError;
-  const activityView = (
-    <div className="legacy-content">
-      <h1>Atividade da aldeia</h1>
-      <div className="table-scroll">
-        <table className="legacy-table activity-table">
-          <thead>
-            <tr>
-              <th>Acontecimento</th>
-              <th>Data</th>
-            </tr>
-          </thead>
-          <tbody>
-            {data.activity.map((item) => (
-              <tr key={item.id}>
-                <td>{item.message}</td>
-                <td>
-                  <time dateTime={item.occurredAt}>
-                    {new Date(item.occurredAt).toLocaleString('pt-BR')}
-                  </time>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-    </div>
+  const activityView = data.activity.length ? (
+    <ol className="activity-list">
+      {data.activity.map((item) => (
+        <li key={item.id}>
+          <span>{item.message}</span>
+          <time
+            dateTime={item.occurredAt}
+            title={new Date(item.occurredAt).toLocaleString('pt-BR')}
+          >
+            {completionDate(item.occurredAt, clock)}
+          </time>
+        </li>
+      ))}
+    </ol>
+  ) : (
+    <p className="activity-empty">Nada aconteceu nesta aldeia ainda.</p>
   );
   return (
     <GameShell

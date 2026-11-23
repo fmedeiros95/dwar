@@ -1,6 +1,6 @@
 import { useEffect, useState, type CSSProperties } from 'react';
 import type { BuildingView, VillageSnapshot } from '@dwar/api-client';
-import { ChevronDown, List, MousePointerClick, X } from 'lucide-react';
+import { ChevronDown, List, Mountain, MousePointerClick, X } from 'lucide-react';
 import { ResourceIcon } from '../../../components/legacy-frame.js';
 import { VillageScene, crestLabels, crestState, type SceneTarget } from './village-scene.js';
 import { buildingArt, sceneThemes, type SceneTheme } from './scene-model.js';
@@ -133,59 +133,120 @@ function BuildingCard({
   );
 }
 
-function Production({ snapshot }: { snapshot: VillageSnapshot }) {
+/** Produção (com o quanto o armazém já encheu) e tropas: as mesmas no cenário e na lista. */
+function LedgerSections({ snapshot, clock }: { snapshot: VillageSnapshot; clock: number }) {
   const perMinute = snapshot.world.buildSpeed > 100;
+  const have = currentResources(snapshot, clock);
+  const capacity = Math.max(1, snapshot.village.capacity);
+  const troops = snapshot.units.filter((unit) => unit.present > 0);
+  const total = troops.reduce((sum, unit) => sum + unit.present, 0);
   return (
-    <table className="legacy-table">
-      <thead>
-        <tr>
-          <th colSpan={2}>Produção por {perMinute ? 'minuto' : 'hora'}</th>
-        </tr>
-      </thead>
-      <tbody>
-        {resources.map(({ code, name }) => (
-          <tr key={code}>
-            <td>{name}</td>
-            <td>
-              <strong>
-                {numbers.format(
-                  perMinute
-                    ? Math.ceil(snapshot.village.productionPerHour[code] / 60)
-                    : snapshot.village.productionPerHour[code],
-                )}
-              </strong>{' '}
-              unidades
-            </td>
-          </tr>
-        ))}
-      </tbody>
-    </table>
+    <>
+      <section>
+        <h3>
+          Produção <small>por {perMinute ? 'minuto' : 'hora'}</small>
+        </h3>
+        <ul className="ledger-res">
+          {resources.map(({ code, name }) => {
+            const rate = snapshot.village.productionPerHour[code];
+            const fill = Math.min(1, have[code] / capacity);
+            return (
+              <li
+                key={code}
+                data-state={fill >= 1 ? 'full' : fill >= 0.9 ? 'near' : undefined}
+                style={{ '--fill': fill } as CSSProperties}
+                title={`${name}: ${numbers.format(have[code])} de ${numbers.format(capacity)} no armazém`}
+              >
+                <ResourceIcon code={code} label={name} />
+                <span className="ledger-name">{name}</span>
+                <strong>+{numbers.format(perMinute ? Math.ceil(rate / 60) : rate)}</strong>
+                <span className="ledger-bar" aria-hidden="true" />
+              </li>
+            );
+          })}
+        </ul>
+      </section>
+      <section>
+        <h3>
+          Tropas <small>{troops.length ? `${numbers.format(total)} na aldeia` : ''}</small>
+        </h3>
+        {troops.length ? (
+          <ul className="ledger-troops">
+            {troops.map((unit) => (
+              <li key={unit.code} title={`${numbers.format(unit.present)} ${unit.name}`}>
+                <img src={unitIconSrc(unit.code)} srcSet={unitIconSrcSet(unit.code)} alt="" />
+                <strong>{numbers.format(unit.present)}</strong>
+                <span>{unit.name}</span>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className="hud-empty">Nenhuma tropa na aldeia. Recrute no quartel.</p>
+        )}
+      </section>
+    </>
   );
 }
-function Troops({ snapshot }: { snapshot: VillageSnapshot }) {
-  if (!snapshot.units.some((unit) => unit.present > 0)) return null;
+
+/** Visão clássica: a aldeia em lista, com o mesmo estado e as mesmas obras do cenário. */
+function ClassicOverview({
+  snapshot,
+  clock,
+  pending,
+  onGraphical,
+  onSelect,
+}: {
+  snapshot: VillageSnapshot;
+  clock: number;
+  pending: boolean;
+  onGraphical: () => void;
+  onSelect: (code: string) => void;
+}) {
   return (
-    <table className="legacy-table troops-summary">
-      <thead>
-        <tr>
-          <th>Tropas</th>
-        </tr>
-      </thead>
-      <tbody>
-        {snapshot.units
-          .filter((unit) => unit.present > 0)
-          .map((unit) => (
-            <tr key={unit.code}>
-              <td>
-                <img className="research-unit-icon" src={unitIconSrc(unit.code)} alt="" />{' '}
-                <strong>{numbers.format(unit.present)}</strong> {unit.name}
-              </td>
-            </tr>
-          ))}
-      </tbody>
-    </table>
+    <div className="classic">
+      <aside className="classic-side hud-card" aria-label="Produção e tropas da aldeia">
+        <header className="hud-ledger-head">
+          <h2>Sua aldeia</h2>
+          <button type="button" className="button" disabled={pending} onClick={onGraphical}>
+            <Mountain size={15} aria-hidden="true" /> Ver o cenário
+          </button>
+        </header>
+        <LedgerSections snapshot={snapshot} clock={clock} />
+      </aside>
+      <section className="classic-list hud-card" aria-label="Edifícios">
+        <h2>Edifícios</h2>
+        <ul>
+          {snapshot.buildings
+            .filter((building) => building.level > 0)
+            .map((building) => {
+              const state = crestState(building, snapshot.queue, clock);
+              return (
+                <li key={building.code}>
+                  <button
+                    type="button"
+                    data-state={state}
+                    title={building.unavailableReason ?? undefined}
+                    onClick={() => onSelect(building.code)}
+                  >
+                    <img
+                      src={buildingArt(building.code, building.level, building.maxLevel)}
+                      alt=""
+                      loading="lazy"
+                      decoding="async"
+                    />
+                    <strong>{building.name}</strong>
+                    <span>Nível {building.level}</span>
+                    <em>{crestLabels[state]}</em>
+                  </button>
+                </li>
+              );
+            })}
+        </ul>
+      </section>
+    </div>
   );
 }
+
 /** Painel da aldeia sobre o cenário: produção (com o quanto o armazém já encheu) e tropas. */
 function VillageLedger({
   snapshot,
@@ -202,11 +263,6 @@ function VillageLedger({
   onClassic: () => void;
   classicPending: boolean;
 }) {
-  const perMinute = snapshot.world.buildSpeed > 100;
-  const have = currentResources(snapshot, clock);
-  const capacity = Math.max(1, snapshot.village.capacity);
-  const troops = snapshot.units.filter((unit) => unit.present > 0);
-  const total = troops.reduce((sum, unit) => sum + unit.present, 0);
   return (
     <aside
       className="hud-card hud-ledger"
@@ -238,52 +294,7 @@ function VillageLedger({
           </button>
         </div>
       </header>
-      {collapsed ? null : (
-        <>
-          <section>
-            <h3>
-              Produção <small>por {perMinute ? 'minuto' : 'hora'}</small>
-            </h3>
-            <ul className="ledger-res">
-              {resources.map(({ code, name }) => {
-                const rate = snapshot.village.productionPerHour[code];
-                const fill = Math.min(1, have[code] / capacity);
-                return (
-                  <li
-                    key={code}
-                    data-state={fill >= 1 ? 'full' : fill >= 0.9 ? 'near' : undefined}
-                    style={{ '--fill': fill } as CSSProperties}
-                    title={`${name}: ${numbers.format(have[code])} de ${numbers.format(capacity)} no armazém`}
-                  >
-                    <ResourceIcon code={code} label={name} />
-                    <span className="ledger-name">{name}</span>
-                    <strong>+{numbers.format(perMinute ? Math.ceil(rate / 60) : rate)}</strong>
-                    <span className="ledger-bar" aria-hidden="true" />
-                  </li>
-                );
-              })}
-            </ul>
-          </section>
-          <section>
-            <h3>
-              Tropas <small>{troops.length ? `${numbers.format(total)} na aldeia` : ''}</small>
-            </h3>
-            {troops.length ? (
-              <ul className="ledger-troops">
-                {troops.map((unit) => (
-                  <li key={unit.code} title={`${numbers.format(unit.present)} ${unit.name}`}>
-                    <img src={unitIconSrc(unit.code)} srcSet={unitIconSrcSet(unit.code)} alt="" />
-                    <strong>{numbers.format(unit.present)}</strong>
-                    <span>{unit.name}</span>
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <p className="hud-empty">Nenhuma tropa na aldeia. Recrute no quartel.</p>
-            )}
-          </section>
-        </>
-      )}
+      {collapsed ? null : <LedgerSections snapshot={snapshot} clock={clock} />}
     </aside>
   );
 }
@@ -396,55 +407,13 @@ export function Overview({
   }
   if (!graphical)
     return (
-      <div className="legacy-classic-overview">
-        <aside>
-          <table className="legacy-table">
-            <thead>
-              <tr>
-                <th>
-                  <button
-                    className="text-button"
-                    disabled={preferencePending}
-                    onClick={() => onPreference(true)}
-                  >
-                    » Visão gráfica
-                  </button>
-                </th>
-              </tr>
-            </thead>
-          </table>
-          <Production snapshot={snapshot} />
-          <Troops snapshot={snapshot} />
-        </aside>
-        <section>
-          <table className="legacy-table">
-            <thead>
-              <tr>
-                <th>Edifícios</th>
-              </tr>
-            </thead>
-            <tbody>
-              {snapshot.buildings
-                .filter((building) => building.level > 0)
-                .map((building) => (
-                  <tr key={building.code}>
-                    <td>
-                      <button className="text-button" onClick={() => onSelect(building.code)}>
-                        {building.name}
-                      </button>{' '}
-                      (nível <strong>{building.level}</strong>)
-                    </td>
-                  </tr>
-                ))}
-            </tbody>
-            <tfoot>
-              <tr>
-                <th>&nbsp;</th>
-              </tr>
-            </tfoot>
-          </table>
-        </section>
-      </div>
+      <ClassicOverview
+        snapshot={snapshot}
+        clock={clock}
+        pending={preferencePending}
+        onGraphical={() => onPreference(true)}
+        onSelect={onSelect}
+      />
     );
   const hoveredBuilding = snapshot.buildings.find((building) => building.code === hovered?.code);
   return (

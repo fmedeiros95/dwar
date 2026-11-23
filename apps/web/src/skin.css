@@ -249,11 +249,6 @@ select {
   border-color: #1b120c;
   box-shadow: 0 -6px 14px rgb(60 35 10 / 0.25);
 }
-.legacy-production,
-.legacy-production .legacy-table td,
-.legacy-production .legacy-table th {
-  font-size: 15px;
-}
 
 /* ---- Acabamento 2 ---- */
 button,
@@ -269,18 +264,6 @@ th {
 }
 .legacy-table td {
   font-size: 15px;
-}
-.legacy-production,
-.legacy-production .legacy-table td,
-.legacy-production .legacy-table th {
-  font-size: 15px;
-}
-.legacy-production .legacy-table th {
-  font-family: var(--font-caps);
-  font-size: 16px;
-}
-.legacy-production > :first-child {
-  font-size: 13px;
 }
 
 /* ---- Marca e ícones próprios ---- */
@@ -392,8 +375,7 @@ th {
 }
 
 /* ---- Painéis sobre a aldeia: escuros, lisos, com filete dourado ---- */
-.hud-card,
-.legacy-production {
+.hud-card {
   background: var(--panel-bg);
   border: 1px solid var(--panel-edge);
   border-radius: 10px;
@@ -401,15 +383,13 @@ th {
   -webkit-backdrop-filter: blur(8px);
   backdrop-filter: blur(8px);
 }
-.hud-card h2,
-.legacy-production h2 {
+.hud-card h2 {
   font-family: var(--font-caps);
   font-size: 16px;
   color: #f1d28a;
   text-shadow: 0 1px 2px #000;
 }
-.hud-card,
-.legacy-production {
+.hud-card {
   color: #efe0bd;
   text-shadow: 0 1px 1px rgb(0 0 0 / 0.55);
 }
@@ -888,7 +868,6 @@ h3,
 .map-card h2,
 .map-title h1,
 .landing-features h3,
-.legacy-production h2,
 .village-popup > header strong,
 .village-popup h3,
 .legacy-table th {
@@ -917,11 +896,6 @@ h2 {
 }
 .legacy-table td {
   font-size: 14px;
-}
-.legacy-production,
-.legacy-production .legacy-table td,
-.legacy-production .legacy-table th {
-  font-size: 13px;
 }
 .tech-heading {
   font-size: 13px;

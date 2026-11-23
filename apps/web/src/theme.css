@@ -187,8 +187,6 @@ p {
 .legacy-footer,
 .legacy-quickbar,
 .legacy-content,
-.legacy-classic-overview > aside,
-.legacy-classic-overview > section,
 .registration-pane,
 .portal-welcome,
 .worlds-content,
@@ -370,65 +368,6 @@ p {
 }
 
 /* Painel de produção e tropas sobre o cenário */
-.legacy-production {
-  z-index: 2;
-  top: 14px;
-  right: 14px;
-  width: 224px;
-  padding: 10px;
-  background: rgb(18 12 7 / 0.7);
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
-  box-shadow: 0 12px 30px rgb(0 0 0 / 0.5);
-  -webkit-backdrop-filter: blur(12px) saturate(1.15);
-  backdrop-filter: blur(12px) saturate(1.15);
-}
-.legacy-production:has(.production-collapse:only-child) {
-  width: auto;
-  padding: 4px;
-}
-.classic-view-link {
-  margin-bottom: 8px;
-  padding: 2px 4px;
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.02em;
-  color: var(--muted);
-  background: none;
-  border: 0;
-  box-shadow: none;
-}
-.classic-view-link:hover:not(:disabled) {
-  color: var(--gold-bright);
-  background: none;
-}
-.legacy-production .legacy-table {
-  border-spacing: 0;
-}
-.legacy-production .legacy-table th,
-.legacy-production .legacy-table td {
-  padding: 6px 4px;
-}
-.legacy-production .legacy-table th {
-  padding-top: 2px;
-  background: none;
-  border-bottom: 1px solid var(--line);
-  border-radius: 0;
-}
-.legacy-production .legacy-table td {
-  background: none;
-  border-bottom: 1px solid var(--line-soft);
-}
-.legacy-production .legacy-table tr:last-child td {
-  border-bottom: 0;
-}
-.legacy-production .legacy-table td:last-child {
-  text-align: right;
-  font-variant-numeric: tabular-nums;
-}
-.troops-summary {
-  margin-top: 12px;
-}
 .production-collapse {
   width: 100%;
   margin: 6px 0 0;
@@ -453,11 +392,6 @@ p {
 .production-collapse:hover:not(:disabled) {
   color: var(--gold-bright);
   background: none;
-}
-.legacy-production:has(.production-collapse:only-child) .production-collapse {
-  margin: 0;
-  padding: 3px 14px;
-  border: 0;
 }
 
 /* Tabelas (todas as telas) */
@@ -526,7 +460,6 @@ p {
 
 /* ---- Identidade medieval: moldura dupla, cantoneiras douradas e textura ---- */
 .legacy-frame,
-.legacy-production,
 .hud-card,
 .legacy-topnav {
   position: relative;
@@ -534,12 +467,10 @@ p {
   background-blend-mode: soft-light, normal;
   border-color: var(--line-strong);
 }
-.legacy-production,
 .hud-card {
   position: absolute;
 }
 .legacy-frame::before,
-.legacy-production::before,
 .hud-card::before {
   content: '';
   position: absolute;
@@ -550,7 +481,6 @@ p {
   border-radius: calc(var(--radius) - 4px);
 }
 .legacy-frame::after,
-.legacy-production::after,
 .hud-card::after {
   --c: var(--gold);
   --t: 2px;
@@ -575,7 +505,6 @@ p {
   inset: 6px;
   border-radius: calc(var(--radius-lg) - 6px);
 }
-.legacy-production,
 .hud-card {
   border-radius: var(--radius);
   --l: 12px;
@@ -648,8 +577,7 @@ p {
   -webkit-backdrop-filter: blur(12px) saturate(1.2);
   backdrop-filter: blur(12px) saturate(1.2);
 }
-.hud-card h2,
-.legacy-production .legacy-table th {
+.hud-card h2 {
   font-family: var(--font-display);
   font-size: 12px;
   font-weight: 700;
@@ -1698,17 +1626,10 @@ p {
   will-change: transform;
 }
 .scene-viewport .hud-card,
-.scene-viewport .legacy-production,
 .scene-viewport .scene-tools {
   z-index: 2;
 }
 /* Produção e tropas no canto inferior esquerdo; controles no superior direito */
-.shell .legacy-production {
-  top: auto;
-  right: auto;
-  bottom: 18px;
-  left: 18px;
-}
 .scene-building {
   cursor: pointer;
 }
@@ -2296,8 +2217,7 @@ p {
   .map-minimap-card {
     display: none;
   }
-  .scene-viewport .hud-card,
-  .scene-viewport .legacy-production {
+  .scene-viewport .hud-card {
     display: none;
   }
 }
@@ -2338,12 +2258,6 @@ p {
   }
   .hud-building {
     display: none;
-  }
-  .legacy-production {
-    position: static;
-    width: auto;
-    margin: 8px;
-    padding: 10px;
   }
   .legacy-landscape::after {
     display: none;

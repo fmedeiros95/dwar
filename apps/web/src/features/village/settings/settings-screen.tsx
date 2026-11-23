@@ -2,12 +2,19 @@ import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useGameSearchParams as useSearchParams } from '../../../routing.js';
 import { api, ApiError, type Gender, type VillageSnapshot } from '@dwar/api-client';
-import { KeyRound, UserRound } from 'lucide-react';
+import { ImageUp, KeyRound, UserRound } from 'lucide-react';
 import { SegmentedTabs } from '../../../components/segmented-tabs.js';
+import { PanelCard } from '../shared/panel-head.js';
 
 const modes = [
   { code: 'profile', label: 'Perfil', icon: <UserRound size={15} /> },
   { code: 'password', label: 'Senha', icon: <KeyRound size={15} /> },
+];
+
+const genders: { code: Gender; label: string }[] = [
+  { code: 'm', label: 'Masculino' },
+  { code: 'f', label: 'Feminino' },
+  { code: 'x', label: 'Não informar' },
 ];
 
 export function SettingsScreen({ snapshot }: { snapshot: VillageSnapshot }) {
@@ -102,179 +109,145 @@ export function SettingsScreen({ snapshot }: { snapshot: VillageSnapshot }) {
             {error instanceof ApiError ? error.message : 'Não foi possível concluir a ação.'}
           </p>
         ) : null}
-        {notice ? <p role="status">{notice}</p> : null}
+        {notice ? (
+          <p className="settings-notice" role="status">
+            {notice}
+          </p>
+        ) : null}
         {mode === 'profile' ? (
           profile.data ? (
-            <form onSubmit={submitProfile}>
-              <table className="legacy-table">
-                <tbody>
-                  <tr>
-                    <th colSpan={2}>Perfil</th>
-                  </tr>
-                  <tr>
-                    <td>Avatar:</td>
-                    <td>
-                      {profile.data.avatarUrl ? (
-                        <div>
-                          <img
-                            src={profile.data.avatarUrl}
-                            alt="Avatar"
-                            style={{ display: 'block', marginBottom: 4, maxWidth: 160 }}
-                          />
-                          <button
-                            type="button"
-                            className="text-button"
-                            disabled={deleteAvatar.isPending}
-                            onClick={() => deleteAvatar.mutate()}
-                          >
-                            Remover avatar
-                          </button>
-                        </div>
-                      ) : null}
-                      <input
-                        ref={fileInputRef}
-                        type="file"
-                        accept="image/png,image/jpeg,image/gif"
-                        disabled={uploadAvatar.isPending}
-                        onChange={(event) => {
-                          const file = event.currentTarget.files?.[0];
-                          if (file) uploadAvatar.mutate(file);
-                        }}
-                      />
-                    </td>
-                  </tr>
-                  <tr>
-                    <td>Sexo:</td>
-                    <td>
-                      <label>
-                        <input
-                          type="radio"
-                          name="gender"
-                          checked={gender === 'm'}
-                          onChange={() => setGender('m')}
-                        />{' '}
-                        Masculino
-                      </label>{' '}
-                      <label>
-                        <input
-                          type="radio"
-                          name="gender"
-                          checked={gender === 'f'}
-                          onChange={() => setGender('f')}
-                        />{' '}
-                        Feminino
-                      </label>{' '}
-                      <label>
-                        <input
-                          type="radio"
-                          name="gender"
-                          checked={gender === 'x'}
-                          onChange={() => setGender('x')}
-                        />{' '}
-                        Não informar
-                      </label>
-                    </td>
-                  </tr>
-                  <tr>
-                    <td>Idade:</td>
-                    <td>
-                      <input
-                        value={age}
-                        onChange={(event) => setAge(event.currentTarget.value.replace(/\D/g, ''))}
-                        size={3}
-                        maxLength={2}
-                      />
-                    </td>
-                  </tr>
-                  <tr>
-                    <td>Localização:</td>
-                    <td>
-                      <input
-                        value={location}
-                        onChange={(event) => setLocation(event.currentTarget.value)}
-                        maxLength={60}
-                      />
-                    </td>
-                  </tr>
-                  <tr>
-                    <th colSpan={2}>Texto pessoal</th>
-                  </tr>
-                  <tr>
-                    <td colSpan={2}>
-                      <textarea
-                        value={personalText}
-                        onChange={(event) => setPersonalText(event.currentTarget.value)}
-                        rows={6}
-                        style={{ width: '100%' }}
-                        maxLength={4000}
-                      />
-                    </td>
-                  </tr>
-                  <tr>
-                    <td colSpan={2}>
-                      <button className="button" disabled={update.isPending}>
-                        OK
+            <form className="settings-form" onSubmit={submitProfile}>
+              <PanelCard title="Avatar" icon={<ImageUp size={16} aria-hidden="true" />}>
+                <div className="settings-avatar">
+                  {profile.data.avatarUrl ? (
+                    <img src={profile.data.avatarUrl} alt="Seu avatar" />
+                  ) : (
+                    <span aria-hidden="true">
+                      <UserRound size={30} />
+                    </span>
+                  )}
+                  <div>
+                    <input
+                      ref={fileInputRef}
+                      id="settings-avatar"
+                      className="sr-only"
+                      type="file"
+                      accept="image/png,image/jpeg,image/gif"
+                      disabled={uploadAvatar.isPending}
+                      aria-describedby="settings-avatar-hint"
+                      onChange={(event) => {
+                        const file = event.currentTarget.files?.[0];
+                        if (file) uploadAvatar.mutate(file);
+                      }}
+                    />
+                    <label htmlFor="settings-avatar" className="button">
+                      {uploadAvatar.isPending ? 'Enviando…' : 'Escolher imagem'}
+                    </label>
+                    {profile.data.avatarUrl ? (
+                      <button
+                        type="button"
+                        className="text-button"
+                        disabled={deleteAvatar.isPending}
+                        onClick={() => deleteAvatar.mutate()}
+                      >
+                        Remover avatar
                       </button>
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
+                    ) : null}
+                    <small id="settings-avatar-hint">PNG, JPEG ou GIF.</small>
+                  </div>
+                </div>
+              </PanelCard>
+              <PanelCard title="Sobre você" icon={<UserRound size={16} aria-hidden="true" />}>
+                <div className="settings-fields">
+                  <fieldset>
+                    <legend>Sexo</legend>
+                    {genders.map((item) => (
+                      <label key={item.code}>
+                        <input
+                          type="radio"
+                          name="gender"
+                          checked={gender === item.code}
+                          onChange={() => setGender(item.code)}
+                        />
+                        {item.label}
+                      </label>
+                    ))}
+                  </fieldset>
+                  <label className="settings-age">
+                    Idade
+                    <input
+                      value={age}
+                      onChange={(event) => setAge(event.currentTarget.value.replace(/\D/g, ''))}
+                      inputMode="numeric"
+                      maxLength={2}
+                    />
+                  </label>
+                  <label className="settings-place">
+                    Localização
+                    <input
+                      value={location}
+                      onChange={(event) => setLocation(event.currentTarget.value)}
+                      maxLength={60}
+                    />
+                  </label>
+                  <label className="settings-text">
+                    Texto pessoal
+                    <textarea
+                      value={personalText}
+                      onChange={(event) => setPersonalText(event.currentTarget.value)}
+                      rows={3}
+                      maxLength={4000}
+                    />
+                  </label>
+                </div>
+                <button disabled={update.isPending}>Salvar perfil</button>
+              </PanelCard>
             </form>
           ) : (
             <p>Carregando perfil…</p>
           )
         ) : null}
         {mode === 'password' ? (
-          <form onSubmit={submitPassword}>
-            <table className="legacy-table">
-              <tbody>
-                <tr>
-                  <th colSpan={2}>Trocar senha</th>
-                </tr>
-                <tr>
-                  <td>Senha atual:</td>
-                  <td>
-                    <input
-                      type="password"
-                      value={oldPassword}
-                      onChange={(event) => setOldPassword(event.currentTarget.value)}
-                      required
-                    />
-                  </td>
-                </tr>
-                <tr>
-                  <td>Nova senha:</td>
-                  <td>
-                    <input
-                      type="password"
-                      value={newPassword}
-                      onChange={(event) => setNewPassword(event.currentTarget.value)}
-                      minLength={10}
-                      required
-                    />
-                  </td>
-                </tr>
-                <tr>
-                  <td>Confirmar nova senha:</td>
-                  <td>
-                    <input
-                      type="password"
-                      value={confirmPassword}
-                      onChange={(event) => setConfirmPassword(event.currentTarget.value)}
-                      minLength={10}
-                      required
-                    />
-                  </td>
-                </tr>
-                <tr>
-                  <td colSpan={2}>
-                    <button className="button" disabled={changePassword.isPending}>
-                      OK
-                    </button>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
+          <form className="settings-form" onSubmit={submitPassword}>
+            <PanelCard title="Trocar senha" icon={<KeyRound size={16} aria-hidden="true" />}>
+              <div className="settings-password">
+                <label>
+                  Senha atual
+                  <input
+                    type="password"
+                    autoComplete="current-password"
+                    value={oldPassword}
+                    onChange={(event) => setOldPassword(event.currentTarget.value)}
+                    required
+                  />
+                </label>
+                <label>
+                  Nova senha
+                  <input
+                    type="password"
+                    autoComplete="new-password"
+                    value={newPassword}
+                    onChange={(event) => setNewPassword(event.currentTarget.value)}
+                    minLength={10}
+                    aria-describedby="settings-password-hint"
+                    required
+                  />
+                  <small id="settings-password-hint">Pelo menos 10 caracteres.</small>
+                </label>
+                <label>
+                  Confirmar nova senha
+                  <input
+                    type="password"
+                    autoComplete="new-password"
+                    value={confirmPassword}
+                    onChange={(event) => setConfirmPassword(event.currentTarget.value)}
+                    minLength={10}
+                    required
+                  />
+                </label>
+              </div>
+              <button disabled={changePassword.isPending}>Trocar senha</button>
+            </PanelCard>
           </form>
         ) : null}
       </section>
