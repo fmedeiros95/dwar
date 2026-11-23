@@ -1,6 +1,6 @@
 import type { CSSProperties } from 'react';
 import type { BuildingView, VillageSnapshot, RecruitmentOrder } from '@dwar/api-client';
-import { BuildingTable, ConstructionQueue } from './building/index.js';
+import { BuildPlanner, type PlannerState } from './planner/build-planner.js';
 import { BuildingOverview } from './building/building-overview.js';
 import { ResearchTable, researchProgress } from './research/index.js';
 import { RecruitmentPanel } from './recruitment/index.js';
@@ -81,6 +81,7 @@ export function BuildingScreen({
   snapshot,
   building,
   clock,
+  planner,
   pending,
   pendingCode,
   onCancel,
@@ -98,6 +99,7 @@ export function BuildingScreen({
   snapshot: VillageSnapshot;
   building: BuildingView;
   clock: number;
+  planner: PlannerState;
   pending: boolean;
   pendingCode?: string | undefined;
   onCancel: (id: number) => void;
@@ -116,26 +118,23 @@ export function BuildingScreen({
   if (building.code === 'market' && built)
     return <MarketPanel snapshot={snapshot} building={building} clock={clock} />;
   if (building.code === 'place' && built)
-    return <RallyPanel snapshot={snapshot} building={building} />;
+    return <RallyPanel key={snapshot.village.id} snapshot={snapshot} building={building} />;
   if (building.code === 'main')
     return (
       <div className="building-panel">
         <PanelHead building={building}>
           <MainStats snapshot={snapshot} />
         </PanelHead>
-        <ConstructionQueue
+        <BuildPlanner
+          variant="window"
           snapshot={snapshot}
           clock={clock}
-          onCancel={onCancel}
-          pending={pending}
-        />
-        <BuildingTable
-          snapshot={snapshot}
+          planner={planner}
           pending={pending}
           pendingCode={pendingCode}
-          clock={clock}
           onConstruct={onConstruct}
-          onSelect={onSelect}
+          onCancel={onCancel}
+          onOpen={onSelect}
         />
       </div>
     );

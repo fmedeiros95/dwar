@@ -522,7 +522,8 @@ export function SceneCelebrations({
           <span
             key={`hammer-${layer.building.code}`}
             className="life-hammer"
-            style={{ left: px(label.left + 30), top: px(label.top - 6) }}
+            // À esquerda do brasão: à direita fica o tempo da obra, que o martelo cobria.
+            style={{ left: px(label.left - 22), top: px(label.top - 6) }}
           >
             <Hammer size={14} strokeWidth={2.4} />
           </span>,

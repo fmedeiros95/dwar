@@ -1,5 +1,12 @@
 import { useGameSearchParams as useSearchParams } from '../../../routing.js';
-import { useEffect, useRef, useState, type FormEvent, type PointerEvent } from 'react';
+import {
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+  type FormEvent,
+  type PointerEvent,
+} from 'react';
 import {
   ArrowDown,
   ArrowDownLeft,
@@ -38,6 +45,9 @@ import {
   villageGraphic,
 } from './map-legend.js';
 import { Icon } from '../../../components/icons.js';
+import { OrderPanel, emptyDraft, type OrderDraft } from './order-panel.js';
+import { useSavedDraft } from '../orders/use-order-flow.js';
+import { ownTarget } from '../rally/order-target.js';
 import { isNight } from '../shared/night.js';
 const commandLabel = {
   attack: 'Ataque seu a caminho',
@@ -66,7 +76,7 @@ export function WorldMap({ snapshot }: { snapshot: VillageSnapshot }) {
         </p>
       </div>
     );
-  return <MapCanvas snapshot={snapshot} options={options.data} />;
+  return <MapCanvas key={snapshot.village.id} snapshot={snapshot} options={options.data} />;
 }
 function MapCanvas({ snapshot, options }: { snapshot: VillageSnapshot; options: MapSnapshot }) {
   const client = useQueryClient();
@@ -110,11 +120,30 @@ function MapCanvas({ snapshot, options }: { snapshot: VillageSnapshot; options: 
   // O servidor só devolve aldeias dentro do raio pedido; informa quantos tiles estão visíveis.
   const span = Math.max(width, height);
 
-  const [params, setParams] = useSearchParams(),
-    [selectedId, setSelectedId] = useState<number | null>(null);
+  const [params, setParams] = useSearchParams();
   const [hover, setHover] = useState<{ village: PublicVillage; x: number; y: number } | null>(null);
-  const routeX = coordinate(params.get('x'), snapshot.village.x),
-    routeY = coordinate(params.get('y'), snapshot.village.y);
+  // Ordem em montagem e alvo: sair do mapa e voltar não obriga a escolher de novo.
+  const draftKey = `map:${snapshot.world.id}:${snapshot.village.id}`;
+  const [order, setOrder] = useSavedDraft<OrderDraft>(draftKey, emptyDraft);
+  const [chosen, setChosen] = useSavedDraft<PublicVillage | null>(`${draftKey}:target`, null);
+  const selectedId = chosen?.id ?? null;
+  const panelRef = useRef<HTMLElement>(null);
+  const focusPanel = useRef(false);
+  const building = chosen !== null && (order.step === 'troops' || order.step === 'review');
+  useEffect(() => {
+    // Só uma ordem em montagem é retomada; consulta encerrada ou ordem já enviada, não.
+    if (!building) {
+      setChosen(null);
+      setOrder((draft) => ({
+        ...draft,
+        step: 'target',
+        counts: draft.step === 'sent' ? {} : draft.counts,
+      }));
+    }
+    // Só ao abrir o mapa.
+  }, []);
+  const routeX = coordinate(params.get('x'), (building ? chosen : snapshot.village).x),
+    routeY = coordinate(params.get('y'), (building ? chosen : snapshot.village).y);
   const nav = useMapNavigation(
     routeX,
     routeY,
@@ -156,14 +185,20 @@ function MapCanvas({ snapshot, options }: { snapshot: VillageSnapshot; options: 
       : [],
   );
   const night = isNight();
-  const selected = map.data?.villages.find((row) => row.id === selectedId);
+  // Mover o mapa para longe tira o alvo do recorte carregado, mas não a ordem da tela.
+  const selected = map.data?.villages.find((row) => row.id === selectedId) ?? chosen;
   const left = Math.floor(position.x),
     top = Math.floor(position.y),
     miniLeft = position.x - Math.floor((minimapSize - width) / 2),
     miniTop = position.y - Math.floor((minimapSize - height) / 2);
+  /** Fecha só o que é passageiro (popup); o painel de ordem continua aberto ao mover o mapa. */
   function closeMenus() {
-    setSelectedId(null);
     setHover(null);
+  }
+  function closePanel() {
+    setChosen(null);
+    setHover(null);
+    setOrder((draft) => ({ ...draft, step: 'target' }));
   }
   function go(screen: string, extra: Record<string, string | number>) {
     setParams({ village: snapshot.village.id, screen, ...extra });
@@ -171,11 +206,30 @@ function MapCanvas({ snapshot, options }: { snapshot: VillageSnapshot; options: 
   function info(village: PublicVillage) {
     go('info_village', { id: village.id });
   }
-  function select(village?: PublicVillage) {
+  function select(village?: PublicVillage, keyboard = false) {
     setHover(null);
-    if (!village) setSelectedId(null);
-    else if (!contextMenu || village.id === selectedId) info(village);
-    else setSelectedId(village.id);
+    focusPanel.current = keyboard;
+    if (!village) {
+      // Clique no campo vazio não descarta uma ordem em montagem.
+      if (order.step === 'target' || order.step === 'sent') closePanel();
+      return;
+    }
+    if (!contextMenu) {
+      info(village);
+      return;
+    }
+    if (village.id === selectedId) return;
+    setChosen(village);
+    // Trocar de alvo mantém tipo e tropas; uma revisão pronta vale só para o alvo anterior.
+    setOrder((draft) =>
+      ownTarget(owner(village))
+        ? { ...draft, step: 'target' }
+        : draft.step === 'review'
+          ? { ...draft, step: 'troops' }
+          : draft.step === 'sent'
+            ? { ...draft, step: 'target', counts: {} }
+            : draft,
+    );
   }
   function villageAt(event: PointerEvent<HTMLElement>) {
     const rect = event.currentTarget.getBoundingClientRect();
@@ -189,77 +243,57 @@ function MapCanvas({ snapshot, options }: { snapshot: VillageSnapshot; options: 
     closeMenus();
     nav.focus(Number(form.get('x')), Number(form.get('y')));
   }
-  const contextActions = selected
-    ? [
-        {
-          code: 'info',
-          title: 'Informações da aldeia',
-          offset: 144,
-          x: -12,
-          y: -12,
-          action: () => info(selected),
-        },
-        ...(selected.playerId
-          ? [
-              {
-                code: 'profile',
-                title: 'Perfil do jogador',
-                offset: 120,
-                x: 20,
-                y: -30,
-                action: selected.playerId
-                  ? () => go('info_player', { id: selected.playerId! })
-                  : undefined,
-              },
-            ]
-          : []),
-        ...(selected.playerId
-          ? [
-              selected.own
-                ? {
-                    code: 'overview',
-                    title: 'Visão da aldeia',
-                    offset: 144,
-                    x: 20,
-                    y: 6,
-                    action: () => setParams({ village: selected.id, screen: 'overview' }),
-                  }
-                : {
-                    code: 'message',
-                    title: 'Enviar mensagem',
-                    offset: 96,
-                    x: 20,
-                    y: 6,
-                    action: selected.playerId
-                      ? () => go('mail', { mode: 'new', id: selected.playerId! })
-                      : undefined,
-                  },
-            ]
-          : []),
-        ...(selected.id !== snapshot.village.id
-          ? [
-              {
-                code: 'resources',
-                title: 'Enviar recursos',
-                offset: 0,
-                x: -44,
-                y: 6,
-                action: () =>
-                  go('market', { mode: 'send', x: String(selected.x), y: String(selected.y) }),
-              },
-              {
-                code: 'troops',
-                title: 'Enviar tropas',
-                offset: 24,
-                x: -44,
-                y: -30,
-                action: () =>
-                  go('place', { mode: 'send', x: String(selected.x), y: String(selected.y) }),
-              },
-            ]
-          : []),
-      ]
-    : [];
+  const owner = (village: PublicVillage) =>
+    ownerKind(
+      village,
+      snapshot.village.id,
+      options.marks,
+      map.data?.ownTribeId ?? null,
+      map.data?.tribeRelations,
+    );
+  const ownerTint = (village: PublicVillage) =>
+    ownerColor(
+      village,
+      snapshot.village.id,
+      options.marks,
+      map.data?.ownTribeId ?? null,
+      map.data?.tribeRelations,
+    );
+  // O alvo precisa continuar à vista com o painel aberto (ao lado no notebook, embaixo no celular).
+  useLayoutEffect(() => {
+    const panel = panelRef.current;
+    const stage = stageRef.current;
+    if (!selected || !panel || !stage) return;
+    const stageBox = stage.getBoundingClientRect();
+    const panelBox = panel.getBoundingClientRect();
+    const side = panelBox.left > stageBox.left + stageBox.width / 2;
+    const visible = side
+      ? { w: panelBox.left - stageBox.left, h: stageBox.height }
+      : { w: stageBox.width, h: Math.min(stageBox.height, panelBox.top - stageBox.top) };
+    const left = (selected.x - position.x) * 60;
+    const top = (selected.y - position.y) * 60;
+    if (left >= 30 && left + 90 <= visible.w && top >= 30 && top + 90 <= visible.h) return;
+    nav.focus(
+      Math.round(selected.x + (stageBox.width - visible.w) / 120),
+      Math.round(selected.y + (stageBox.height - visible.h) / 120),
+    );
+    // Só ao escolher o alvo ou mudar de etapa; mover o mapa depois é escolha do jogador.
+  }, [selected?.id, order.step]);
+  // Alvo escolhido pelo teclado: o foco segue para a ordem, sem atravessar o mapa inteiro.
+  useEffect(() => {
+    if (!focusPanel.current || !panelRef.current) return;
+    focusPanel.current = false;
+    panelRef.current.querySelector<HTMLElement>('.order-panel-body')?.focus();
+  }, [selected?.id]);
+  const route =
+    selected && selected.id !== snapshot.village.id
+      ? {
+          x1: (snapshot.village.x - position.x) * 60 + 30,
+          y1: (snapshot.village.y - position.y) * 60 + 30,
+          x2: (selected.x - position.x) * 60 + 30,
+          y2: (selected.y - position.y) * 60 + 30,
+        }
+      : null;
   return (
     <div
       className={`map-stage${night ? ' night' : ''}`}
@@ -273,7 +307,7 @@ function MapCanvas({ snapshot, options }: { snapshot: VillageSnapshot; options: 
           aria-label="Mapa da região"
           tabIndex={0}
           onKeyDown={(event) => {
-            if (event.key === 'Escape') closeMenus();
+            if (event.key === 'Escape') closePanel();
             const delta: Record<string, [number, number]> = {
               ArrowLeft: [-1, 0],
               ArrowRight: [1, 0],
@@ -298,7 +332,6 @@ function MapCanvas({ snapshot, options }: { snapshot: VillageSnapshot; options: 
             }
             const village = villageAt(event);
             if (village && village.id !== selectedId) {
-              setSelectedId(null);
               setHover({ village, x: event.clientX, y: event.clientY });
             } else setHover(null);
           }}
@@ -336,16 +369,12 @@ function MapCanvas({ snapshot, options }: { snapshot: VillageSnapshot; options: 
                   {village ? (
                     <button
                       className="world-map-village"
-                      data-owner={ownerKind(
-                        village,
-                        snapshot.village.id,
-                        options.marks,
-                        map.data?.ownTribeId ?? null,
-                        map.data?.tribeRelations,
-                      )}
+                      data-target={village.id === selectedId ? 'true' : undefined}
+                      aria-pressed={village.id === selectedId}
+                      data-owner={owner(village)}
                       aria-label={`${village.name} (${x}|${y})`}
                       onClick={(event) => {
-                        if (event.detail === 0) select(village);
+                        if (event.detail === 0) select(village, true);
                       }}
                       onFocus={(event) => {
                         const r = event.currentTarget.getBoundingClientRect();
@@ -362,22 +391,7 @@ function MapCanvas({ snapshot, options }: { snapshot: VillageSnapshot; options: 
                         alt=""
                         draggable={false}
                       />
-                      <MapCrest
-                        kind={ownerKind(
-                          village,
-                          snapshot.village.id,
-                          options.marks,
-                          map.data?.ownTribeId ?? null,
-                          map.data?.tribeRelations,
-                        )}
-                        color={ownerColor(
-                          village,
-                          snapshot.village.id,
-                          options.marks,
-                          map.data?.ownTribeId ?? null,
-                          map.data?.tribeRelations,
-                        )}
-                      />
+                      <MapCrest kind={owner(village)} color={ownerTint(village)} />
                     </button>
                   ) : null}
                   {village && commandsByVillage.has(village.id) ? (
@@ -445,24 +459,16 @@ function MapCanvas({ snapshot, options }: { snapshot: VillageSnapshot; options: 
             </span>
           ))}
         </div>
-        {selected ? (
-          <div className="world-map-context" role="group" aria-label={`Ações de ${selected.name}`}>
-            {contextActions.map((item) => (
-              <button
-                key={item.code}
-                className="map-context-action"
-                title={item.title}
-                aria-label={item.title}
-                disabled={!item.action}
-                style={{
-                  left: (selected.x - position.x) * 60 + 30 + item.x,
-                  top: (selected.y - position.y) * 60 + 30 + item.y,
-                  backgroundPositionX: -item.offset,
-                }}
-                onClick={item.action}
-              />
-            ))}
-          </div>
+        {route ? (
+          <svg
+            className="map-route"
+            data-kind={order.step === 'target' ? 'plan' : order.kind}
+            data-sent={order.step === 'sent' ? 'true' : undefined}
+            aria-hidden="true"
+          >
+            <line {...route} />
+            <circle cx={route.x2} cy={route.y2} r={27} />
+          </svg>
         ) : null}
       </div>
       <div className="map-hud-top" onPointerDown={(event) => event.stopPropagation()}>
@@ -684,7 +690,25 @@ function MapCanvas({ snapshot, options }: { snapshot: VillageSnapshot; options: 
           {resizeAction.error.message}
         </p>
       ) : null}
-      {hover && popup ? (
+      {selected ? (
+        <OrderPanel
+          key={selected.id}
+          ref={panelRef}
+          snapshot={snapshot}
+          target={selected}
+          owner={owner(selected)}
+          color={ownerTint(selected)}
+          draft={order}
+          onDraft={setOrder}
+          onClose={closePanel}
+          onGo={(screen, extra) =>
+            screen === 'overview'
+              ? setParams({ village: String(extra.village), screen: 'overview' })
+              : go(screen, extra)
+          }
+        />
+      ) : null}
+      {hover && popup && hover.village.id !== selectedId ? (
         <VillagePopup
           village={hover.village}
           x={hover.x}

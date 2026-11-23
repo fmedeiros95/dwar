@@ -33,6 +33,7 @@ import type {
   SupportPreview,
   TroopCounts,
   IncomingOverview,
+  ResolvedAttack,
 } from '@dwar/api-client';
 import { lockWorld, ownedVillage, settleVillage } from './village-engine.js';
 import {
@@ -700,6 +701,50 @@ export async function readRally(accountId: number, worldId: number, villageId: n
   });
 }
 
+/** Por quanto tempo uma batalha recém-terminada continua anunciada ao defensor. */
+const resolvedWindowMs = 3 * 60 * 1000;
+
+/**
+ * Batalhas recentes em que o jogador defendeu. O relatório guarda o comando que o gerou
+ * (`movement_id`, único), então cada ataque leva ao seu próprio resultado, mesmo quando vários
+ * chegam quase juntos. Ataque cancelado não vira batalha e relatório apagado não é oferecido.
+ */
+async function resolvedAttacks(
+  tx: Transaction,
+  worldId: number,
+  playerId: number,
+  now: Date,
+): Promise<ResolvedAttack[]> {
+  const rows = await tx
+    .select({
+      movementId: battleReports.movementId,
+      reportId: battleReports.id,
+      occurredAt: battleReports.occurredAt,
+      result: battleReports.result,
+    })
+    .from(battleReports)
+    .innerJoin(battleReportRecipients, eq(battleReportRecipients.reportId, battleReports.id))
+    .where(
+      and(
+        eq(battleReports.worldId, worldId),
+        eq(battleReportRecipients.playerId, playerId),
+        eq(battleReportRecipients.role, 'defender'),
+        isNull(battleReportRecipients.deletedAt),
+        gte(battleReports.occurredAt, new Date(now.getTime() - resolvedWindowMs)),
+      ),
+    )
+    .orderBy(desc(battleReports.occurredAt), desc(battleReports.id));
+  return rows.map(({ movementId, reportId, occurredAt, result }) => ({
+    movementId,
+    reportId,
+    occurredAt: occurredAt.toISOString(),
+    target: { id: result.to.villageId, name: result.to.name, x: result.to.x, y: result.to.y },
+    attacker: result.from.username,
+    outcome:
+      result.winner === 'draw' ? 'draw' : result.winner === 'defender' ? 'won' : ('lost' as const),
+  }));
+}
+
 export async function readIncomings(accountId: number, worldId: number): Promise<IncomingOverview> {
   return db.transaction(async (tx) => {
     const world = await lockWorld(tx, worldId);
@@ -709,8 +754,11 @@ export async function readIncomings(accountId: number, worldId: number): Promise
       .from(villages)
       .where(and(eq(villages.worldId, world.id), eq(villages.playerId, current.playerId)));
     const ownIds = ownVillages.map((row) => row.id);
+    const now = new Date();
+    const resolved =
+      current.playerId === null ? [] : await resolvedAttacks(tx, world.id, current.playerId, now);
     if (!ownIds.length)
-      return { serverTime: new Date().toISOString(), attacks: 0, supports: 0, commands: [] };
+      return { serverTime: now.toISOString(), attacks: 0, supports: 0, commands: [], resolved };
     const rows = await tx
       .select()
       .from(troopMovements)
@@ -758,6 +806,7 @@ export async function readIncomings(accountId: number, worldId: number): Promise
       attacks: commands.filter((row) => row.kind === 'attack').length,
       supports: commands.filter((row) => row.kind === 'support').length,
       commands,
+      resolved,
     };
   });
 }

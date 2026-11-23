@@ -15,13 +15,15 @@ type Stat = BuildingView['details'][number];
 
 /**
  * Indicadores do edifício: o valor no nível atual, no próximo nível (null no máximo) e no nível
- * máximo. A interface só mostra; toda conta fica aqui.
+ * máximo. `plan` é o ganho da próxima obra que dá para pedir, contado depois do que já está na fila.
+ * A interface só mostra; toda conta fica aqui.
  */
 export function buildingDetails(
   code: BuildingCode,
   levels: BuildingLevels,
   productionSpeed: number,
   populationUsed: number,
+  queuedLevel: number = levels[code],
 ): BuildingView['details'] {
   const level = levels[code];
   const maxLevel = buildings[code].maxLevel;
@@ -38,6 +40,7 @@ export function buildingDetails(
     current: at(level),
     next: next === null ? null : at(next),
     max: at(maxLevel),
+    plan: queuedLevel < maxLevel ? { current: at(queuedLevel), next: at(queuedLevel + 1) } : null,
     ...(icon ? { icon } : {}),
   });
   if (code === 'wood' || code === 'stone' || code === 'iron')
@@ -63,6 +66,7 @@ export function buildingDetails(
         current: populationUsed,
         next: null,
         max: populationCapacity(levels),
+        plan: null,
         icon: 'peasants',
       },
     ];

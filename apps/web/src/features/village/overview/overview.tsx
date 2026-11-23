@@ -1,94 +1,13 @@
-import { useState, type CSSProperties } from 'react';
-import type { BuildingView, Construction, VillageSnapshot } from '@dwar/api-client';
-import { ChevronDown, Hammer, List } from 'lucide-react';
+import { useEffect, useState, type CSSProperties } from 'react';
+import type { BuildingView, VillageSnapshot } from '@dwar/api-client';
+import { ChevronDown, List, MousePointerClick, X } from 'lucide-react';
 import { ResourceIcon } from '../../../components/legacy-frame.js';
-import { VillageScene, crestLabels, crestState } from './village-scene.js';
+import { VillageScene, crestLabels, crestState, type SceneTarget } from './village-scene.js';
 import { buildingArt, sceneThemes, type SceneTheme } from './scene-model.js';
-import { completionDate, duration, numbers, resources } from '../shared/index.js';
+import { BuildPlanner, type PlannerState } from '../planner/build-planner.js';
+import { duration, numbers, resources } from '../shared/index.js';
 import { currentResources } from '../shared/current-resources.js';
 import { unitIconSrc, unitIconSrcSet } from '../../../components/unit-icon.js';
-
-function ConstructionCard({
-  queue,
-  buildings,
-  clock,
-  maxQueue,
-}: {
-  queue: Construction[];
-  buildings: BuildingView[];
-  clock: number;
-  maxQueue: number;
-}) {
-  return (
-    <section
-      className="hud-card hud-construction"
-      aria-label="Obras em andamento"
-      onPointerDown={(event) => event.stopPropagation()}
-    >
-      <h2>
-        <span>
-          <Hammer size={15} aria-hidden="true" /> Obras
-        </span>
-        {maxQueue <= 8 ? (
-          <small className="hud-slots" aria-label={`${queue.length} de ${maxQueue} vagas usadas`}>
-            {Array.from({ length: maxQueue }, (_, slot) => (
-              <i key={slot} data-used={slot < queue.length ? 'true' : undefined} />
-            ))}
-          </small>
-        ) : (
-          <small
-            className="hud-slots-count"
-            aria-label={`${queue.length} de ${maxQueue} vagas usadas`}
-          >
-            <b>{queue.length}</b>/{maxQueue} vagas
-          </small>
-        )}
-      </h2>
-      {queue.length === 0 ? (
-        <p className="hud-empty">
-          Nenhuma obra em andamento.
-          <br />
-          Clique em um edifício para construir.
-        </p>
-      ) : (
-        <ul>
-          {queue.map((item) => {
-            const start = new Date(item.startsAt).getTime();
-            const end = new Date(item.endsAt).getTime();
-            const running = start <= clock;
-            const progress = Math.min(1, Math.max(0, (clock - start) / Math.max(1, end - start)));
-            return (
-              <li
-                key={item.id}
-                data-running={running ? 'true' : undefined}
-                style={{ '--progress': progress } as CSSProperties}
-              >
-                <img
-                  className="hud-thumb"
-                  src={buildingArt(
-                    item.buildingCode,
-                    item.targetLevel,
-                    buildings.find((b) => b.code === item.buildingCode)?.maxLevel,
-                  )}
-                  alt=""
-                />
-                <span className="hud-row">
-                  <strong>{item.name}</strong>
-                  <em>
-                    Nível {item.targetLevel} ·{' '}
-                    {running ? completionDate(item.endsAt, clock) : 'na fila'}
-                  </em>
-                </span>
-                <time>{duration((end - clock) / 1000)}</time>
-                <span className="hud-bar" aria-hidden="true" />
-              </li>
-            );
-          })}
-        </ul>
-      )}
-    </section>
-  );
-}
 
 /**
  * Cartão do edifício sob o cursor: tudo o que sustenta a decisão "evoluo este agora?".
@@ -99,16 +18,31 @@ function BuildingCard({
   building,
   snapshot,
   clock,
+  part,
+  planner,
 }: {
   building: BuildingView;
   snapshot: VillageSnapshot;
   clock: number;
+  /** O que o jogador aponta: o cartão diz o que o clique faz ali. */
+  part: SceneTarget['part'];
+  planner: PlannerState;
 }) {
   const next = building.queuedLevel > building.level ? building.queuedLevel : building.level;
   const state = crestState(building, snapshot.queue, clock);
   const maxed = state === 'max';
   const have = currentResources(snapshot, clock);
-  const gain = building.details.find((detail) => detail.next !== null);
+  const gain = building.details.find((detail) => detail.plan !== null);
+  const compared = planner.compared.includes(building.code);
+  const replaced = snapshot.buildings.find((item) => item.code === planner.replaces)?.name;
+  const crestAction = compared
+    ? planner.open
+      ? 'tirar da comparação'
+      : 'abrir a comparação'
+    : replaced
+      ? `comparar no lugar de ${replaced}`
+      : 'comparar obras';
+  const openAction = building.code === 'main' ? 'abrir a mesa de obras' : `abrir ${building.name}`;
   const readyAt = building.resourcesAvailableAt
     ? new Date(building.resourcesAvailableAt).getTime()
     : null;
@@ -139,7 +73,8 @@ function BuildingCard({
             <span>Nível {next + 1}</span>
             {gain ? (
               <span className="hud-gain">
-                {gain.label}: {numbers.format(gain.current)} <b>→ {numbers.format(gain.next!)}</b>
+                {gain.label}: {numbers.format(gain.plan!.current)}{' '}
+                <b>→ {numbers.format(gain.plan!.next)}</b>
                 {gain.unit ? ` ${gain.unit}` : ''}
               </span>
             ) : (
@@ -177,13 +112,23 @@ function BuildingCard({
             </p>
           ) : state === 'blocked' && building.unavailableReason ? (
             <p className="hud-reason">{building.unavailableReason}</p>
-          ) : state === 'ready' ? (
-            <p className="hud-reason" data-tone="ready">
-              Clique para abrir e evoluir
-            </p>
           ) : null}
         </>
       )}
+      <p className="hud-hint">
+        <MousePointerClick size={14} aria-hidden="true" />
+        {part === 'crest' ? (
+          <>
+            <b>Clique no brasão: {crestAction}</b>
+            <span>no edifício: {openAction}</span>
+          </>
+        ) : (
+          <>
+            <b>Clique no edifício: {openAction}</b>
+            <span>no brasão: {crestAction}</span>
+          </>
+        )}
+      </p>
     </aside>
   );
 }
@@ -343,6 +288,67 @@ function VillageLedger({
   );
 }
 
+/** Faixa do cenário que a mesa de obras aberta cobre (largura e margens em flows.css). */
+const plannerWidth = 484;
+const guideKey = 'dwar:guia-cena';
+type GuidePart = SceneTarget['part'];
+
+/** Apresenta as duas ações do cenário até o jogador usar ambas ou dispensar o aviso. */
+function useSceneGuide() {
+  const [done, setDone] = useState<GuidePart[]>(() => {
+    try {
+      const saved = JSON.parse(localStorage.getItem(guideKey) ?? '[]') as unknown;
+      return Array.isArray(saved) ? (saved as GuidePart[]) : [];
+    } catch {
+      return [];
+    }
+  });
+  useEffect(() => {
+    try {
+      localStorage.setItem(guideKey, JSON.stringify(done));
+    } catch {
+      /* só nesta sessão */
+    }
+  }, [done]);
+  return {
+    done,
+    visible: done.length < 2,
+    learn: (part: GuidePart) => setDone((list) => (list.includes(part) ? list : [...list, part])),
+    dismiss: () => setDone(['crest', 'building']),
+  };
+}
+
+/** Guia da primeira visita: diz, com a própria forma do brasão, o que cada clique faz. */
+function SceneGuide({ guide }: { guide: ReturnType<typeof useSceneGuide> }) {
+  return (
+    <aside
+      className="scene-guide"
+      aria-label="Como usar o cenário"
+      onPointerDown={(event) => event.stopPropagation()}
+    >
+      <p data-done={guide.done.includes('crest') ? 'true' : undefined}>
+        <svg viewBox="0 0 30 34" width="20" height="23" aria-hidden="true">
+          <path d="M1.5 3.5 Q15 -0.5 28.5 3.5 L28.5 16 Q28.5 27.5 15 33.5 Q1.5 27.5 1.5 16 Z" />
+        </svg>
+        <span>
+          Clique no <b>brasão</b>
+          <small>compara custo e prazo da obra</small>
+        </span>
+      </p>
+      <p data-done={guide.done.includes('building') ? 'true' : undefined}>
+        <img src={buildingArt('barracks', 1, 25)} alt="" />
+        <span>
+          Clique no <b>edifício</b>
+          <small>abre a função dele</small>
+        </span>
+      </p>
+      <button type="button" aria-label="Dispensar dica" title="Dispensar" onClick={guide.dismiss}>
+        <X size={14} aria-hidden="true" />
+      </button>
+    </aside>
+  );
+}
+
 export function Overview({
   snapshot,
   graphical,
@@ -350,6 +356,11 @@ export function Overview({
   onPreference,
   onSelect,
   clock,
+  planner,
+  pending,
+  pendingCode,
+  onConstruct,
+  onCancel,
 }: {
   snapshot: VillageSnapshot;
   graphical: boolean;
@@ -357,8 +368,14 @@ export function Overview({
   onPreference: (value: boolean) => void;
   onSelect: (code: string) => void;
   clock: number;
+  planner: PlannerState;
+  pending: boolean;
+  pendingCode?: string | undefined;
+  onConstruct: (code: string) => void;
+  onCancel: (id: number) => void;
 }) {
-  const [hovered, setHovered] = useState<string | null>(null);
+  const [hovered, setHovered] = useState<SceneTarget | null>(null);
+  const guide = useSceneGuide();
   const [theme, setTheme] = useState<SceneTheme>(() => {
     const saved = localStorage.getItem('dwar:scene-theme');
     return sceneThemes.some((item) => item.code === saved) ? (saved as SceneTheme) : 'summer';
@@ -427,27 +444,52 @@ export function Overview({
         </section>
       </div>
     );
-  const hoveredBuilding = snapshot.buildings.find((building) => building.code === hovered);
+  const hoveredBuilding = snapshot.buildings.find((building) => building.code === hovered?.code);
   return (
     <VillageScene
       villageId={snapshot.village.id}
       buildings={snapshot.buildings}
-      onSelect={onSelect}
+      onSelect={(code) => {
+        // O Edifício principal é a própria mesa de obras: abre o painel em vez de uma janela.
+        guide.learn('building');
+        if (code === 'main') planner.show();
+        else onSelect(code);
+      }}
+      onCrest={(code) => {
+        guide.learn('crest');
+        // Com a mesa à vista, o brasão liga e desliga; recolhida, abre com a comparação que já havia.
+        planner.compare(code, !(planner.open && planner.compared.includes(code)));
+        planner.setOpen(true);
+      }}
+      coveredRight={planner.open ? plannerWidth : 0}
+      compared={planner.compared}
       onHover={setHovered}
       queue={snapshot.queue}
       clock={clock}
       theme={theme}
       onThemeChange={changeTheme}
     >
-      <ConstructionCard
-        queue={snapshot.queue}
-        buildings={snapshot.buildings}
+      <BuildPlanner
+        variant="dock"
+        snapshot={snapshot}
         clock={clock}
-        maxQueue={snapshot.world.maxBuildQueue}
+        planner={planner}
+        pending={pending}
+        pendingCode={pendingCode}
+        onConstruct={onConstruct}
+        onCancel={onCancel}
+        onOpen={onSelect}
       />
       {hoveredBuilding ? (
-        <BuildingCard building={hoveredBuilding} snapshot={snapshot} clock={clock} />
+        <BuildingCard
+          building={hoveredBuilding}
+          snapshot={snapshot}
+          clock={clock}
+          part={hovered!.part}
+          planner={planner}
+        />
       ) : null}
+      {guide.visible ? <SceneGuide guide={guide} /> : null}
       <VillageLedger
         snapshot={snapshot}
         clock={clock}

@@ -19,11 +19,14 @@ export function usePanZoom({
   height,
   focus = { x: width / 2, y: height / 2 },
   maxScale = 1.6,
+  insetRight = 0,
 }: {
   width: number;
   height: number;
   focus?: { x: number; y: number };
   maxScale?: number;
+  /** Largura coberta por um painel à direita: a vista desliza até o conteúdo sair de baixo dele. */
+  insetRight?: number;
 }) {
   const viewportRef = useRef<HTMLDivElement>(null);
   const [size, setSize] = useState({ w: 0, h: 0 });
@@ -51,11 +54,17 @@ export function usePanZoom({
       const slackY = size.h - height * scale;
       return {
         scale,
-        x: slackX >= 0 ? slackX / 2 : Math.min(0, Math.max(slackX, next.x)),
+        x:
+          slackX - insetRight >= 0
+            ? slackX / 2
+            : Math.min(
+                Math.max(0, slackX / 2),
+                Math.max(Math.min(slackX, slackX / 2) - insetRight, next.x),
+              ),
         y: slackY >= 0 ? slackY / 2 : Math.min(0, Math.max(slackY, next.y)),
       };
     },
-    [minScale, maxScale, size.w, size.h, width, height],
+    [minScale, maxScale, size.w, size.h, width, height, insetRight],
   );
 
   useEffect(() => {

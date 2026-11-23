@@ -1,5 +1,5 @@
 import type { CSSProperties, ReactNode } from 'react';
-import { completionDate, duration } from './format.js';
+import { arrivalDate, duration } from './format.js';
 
 type Place = { name: string; x: number; y: number };
 
@@ -61,7 +61,7 @@ export function TransitRow({
       </div>
       <div className="transit-time">
         <time dateTime={endsAt}>{duration((end - clock) / 1000)}</time>
-        <small>{completionDate(endsAt, clock)}</small>
+        <small>{arrivalDate(endsAt, clock)}</small>
       </div>
       {action ? <div className="transit-action">{action}</div> : null}
     </li>

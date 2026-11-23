@@ -1,7 +1,7 @@
 import type { IncomingCommand, IncomingOverview, VillageSnapshot } from '@dwar/api-client';
 import { HeartHandshake, Shield, ShieldCheck, Swords } from 'lucide-react';
 import { EmptyState } from '../../../components/empty-state.js';
-import { completionDate, duration } from '../shared/index.js';
+import { arrivalDate, duration } from '../shared/index.js';
 
 function villageLabel(village: IncomingCommand['from']) {
   return `${village.name} (${village.x}|${village.y})`;
@@ -58,7 +58,7 @@ export function IncomingsPanel({
                   </span>
                   <div className="incoming-when">
                     <strong>{duration(remaining)}</strong>
-                    <small>chega {completionDate(item.endsAt, clock)}</small>
+                    <small>chega {arrivalDate(item.endsAt, clock)}</small>
                   </div>
                   <dl>
                     <div>

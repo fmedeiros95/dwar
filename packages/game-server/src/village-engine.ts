@@ -391,6 +391,7 @@ export async function snapshot(
           village.buildings,
           world.productionSpeed,
           village.populationUsed,
+          queuedLevel,
         ),
       };
     }),

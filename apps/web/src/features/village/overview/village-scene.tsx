@@ -62,6 +62,9 @@ export const crestLabels: Record<CrestState, string> = {
   max: 'nível máximo',
 };
 
+/** Parte do edifício apontada no cenário. */
+export type SceneTarget = { code: string; part: 'crest' | 'building' };
+
 export function crestState(
   building: BuildingView,
   queue: Construction[],
@@ -86,7 +89,10 @@ export function VillageScene({
   villageId,
   buildings,
   onSelect,
+  onCrest,
+  compared = [],
   onHover,
+  coveredRight = 0,
   queue,
   clock,
   theme,
@@ -96,7 +102,14 @@ export function VillageScene({
   villageId: number;
   buildings: BuildingView[];
   onSelect: (code: string) => void;
-  onHover?: (code: string | null) => void;
+  /** Clique no brasão: leva a obra para a comparação, sem abrir janela. */
+  onCrest?: (code: string) => void;
+  /** Edifícios em comparação na mesa de obras: o brasão ganha um anel. */
+  compared?: string[];
+  /** O que está sob o cursor ou o foco: o brasão e o edifício fazem coisas diferentes. */
+  onHover?: (target: SceneTarget | null) => void;
+  /** Faixa à direita coberta pela mesa de obras: a vista pode deslizar para descobri-la. */
+  coveredRight?: number;
   queue: Construction[];
   clock: number;
   theme: SceneTheme;
@@ -104,7 +117,12 @@ export function VillageScene({
   /** Camadas de HUD desenhadas por cima do cenário, fora do zoom. */
   children?: ReactNode;
 }) {
-  const pan = usePanZoom({ width: sceneSize.width, height: sceneSize.height, focus });
+  const pan = usePanZoom({
+    width: sceneSize.width,
+    height: sceneSize.height,
+    focus,
+    insetRight: coveredRight,
+  });
   const phase = dayPhase(clock);
   const night = phase === 'night';
   const [life, setLife] = useState(() => {
@@ -204,9 +222,9 @@ export function VillageScene({
                 onClick={() => {
                   if (!pan.didDrag()) onSelect(building.code);
                 }}
-                onMouseEnter={() => onHover?.(building.code)}
+                onMouseEnter={() => onHover?.({ code: building.code, part: 'building' })}
                 onMouseLeave={() => onHover?.(null)}
-                onFocus={() => onHover?.(building.code)}
+                onFocus={() => onHover?.({ code: building.code, part: 'building' })}
                 onBlur={() => onHover?.(null)}
                 onKeyDown={(keyEvent) => {
                   if (keyEvent.key === 'Enter' || keyEvent.key === ' ') {
@@ -281,7 +299,6 @@ export function VillageScene({
           width={sceneSize.width}
           height={sceneSize.height}
           viewBox={`0 0 ${sceneSize.width} ${sceneSize.height}`}
-          aria-hidden="true"
         >
           {layers.map(({ building, placed }) => {
             if (!placed.label) return null;
@@ -295,8 +312,38 @@ export function VillageScene({
               <g
                 key={`label-${building.code}`}
                 className={`scene-label crest-${state}`}
+                data-compared={compared.includes(building.code) ? 'true' : undefined}
+                data-crest={building.code}
+                role={onCrest ? 'button' : undefined}
+                tabIndex={onCrest ? 0 : undefined}
+                aria-pressed={onCrest ? compared.includes(building.code) : undefined}
+                aria-label={`Comparar ${building.name}, ${crestLabels[state]}`}
+                onFocus={() => onHover?.({ code: building.code, part: 'crest' })}
+                onBlur={() => onHover?.(null)}
+                onKeyDown={(keyEvent) => {
+                  if (keyEvent.key === 'Enter' || keyEvent.key === ' ') {
+                    keyEvent.preventDefault();
+                    onCrest?.(building.code);
+                  }
+                }}
                 transform={`translate(${placed.label.left - 2}, ${placed.label.top - 4})`}
+                onClick={
+                  onCrest
+                    ? (clickEvent) => {
+                        clickEvent.stopPropagation();
+                        if (!pan.didDrag()) onCrest(building.code);
+                      }
+                    : undefined
+                }
+                onMouseEnter={() => onHover?.({ code: building.code, part: 'crest' })}
+                onMouseLeave={() => onHover?.(null)}
               >
+                {onCrest ? (
+                  <circle className="crest-hit" cx={crestSize.width / 2} cy={17} r={24} />
+                ) : null}
+                {compared.includes(building.code) ? (
+                  <path className="crest-compare-ring" d={crestPath} />
+                ) : null}
                 <path className="crest-shape" d={crestPath} />
                 {state === 'working' && works ? (
                   <path

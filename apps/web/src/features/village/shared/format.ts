@@ -32,6 +32,16 @@ export function completionDate(value: string, now: number): string {
     date.getDate() === other.getDate();
   return `${sameDay(today) ? 'hoje' : sameDay(tomorrow) ? 'amanhã' : shortDate.format(date)} às ${shortTime.format(date)}`;
 }
+/** Como `completionDate`, com segundos: em ordens e batalhas, segundos separam uma da outra. */
+export function arrivalDate(value: string, now: number): string {
+  return completionDate(value, now).replace(/\d{2}:\d{2}$/, timeFormat.format(new Date(value)));
+}
+/** Resultado de uma batalha nas palavras de quem defendeu a aldeia. */
+export const defenseOutcome = {
+  won: 'Sua aldeia resistiu',
+  lost: 'Defesa perdida',
+  draw: 'Empate',
+} as const;
 
 /** Velocidade guardada em milésimos (1200 = 1,2×), do jeito que o jogador lê. */
 export const speedLabel = (thousandths: number) =>

@@ -8,7 +8,7 @@ import type {
   VillageSnapshot,
 } from '@dwar/api-client';
 import { ResourceIcon } from '../../../components/legacy-frame.js';
-import { numbers, completionDate } from '../shared/index.js';
+import { numbers, arrivalDate } from '../shared/index.js';
 import { Marks, TroopTable, lossPercent, roleLabel } from './report-parts.js';
 import { MedalBadge } from '../medals/index.js';
 
@@ -148,7 +148,7 @@ export function BattleDetail({
       <div className={`report-banner ${data.outcome}`}>
         <strong>{data.title}</strong>
         <span>
-          {roleLabel(data)} · {completionDate(data.occurredAt, clock)}
+          {roleLabel(data)} · {arrivalDate(data.occurredAt, clock)}
         </span>
         <Marks report={data} />
       </div>
@@ -307,7 +307,7 @@ export function NoticeDetail({
       <div className="report-banner neutral">
         <strong>{data.title}</strong>
         <span>
-          {roleLabel(data)} · {completionDate(data.occurredAt, clock)}
+          {roleLabel(data)} · {arrivalDate(data.occurredAt, clock)}
           {data.mode === 'offer' ? ' · oferta do mercado' : ''}
         </span>
       </div>

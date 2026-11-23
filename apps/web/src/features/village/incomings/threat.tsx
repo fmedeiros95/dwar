@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState, type CSSProperties } from 'react';
 import { createPortal } from 'react-dom';
-import { Swords, X } from 'lucide-react';
+import { ScrollText, Swords, X } from 'lucide-react';
 import type { IncomingOverview } from '@dwar/api-client';
-import { completionDate, duration } from '../shared/index.js';
+import { arrivalDate, defenseOutcome, duration, timeFormat } from '../shared/index.js';
 
 /** Abaixo disso o selo pulsa: a ameaça ficou urgente. */
 const urgentSeconds = 5 * 60;
@@ -17,6 +17,97 @@ function nextAttack(data: IncomingOverview | undefined, clock: number) {
 }
 
 const noticeKey = 'dwar:attack-notice';
+/** Quantas batalhas cabem no selo; as demais ficam a um clique, na lista de relatórios. */
+const maxSeals = 2;
+
+/**
+ * Selo pós-batalha: uma entrada por ataque que já virou batalha. O servidor liga cada ataque ao
+ * seu relatório pelo id do comando, então dois ataques quase juntos viram duas entradas, cada uma
+ * com o próprio resultado. Enquanto a batalha não foi resolvida, a entrada diz que está acontecendo.
+ */
+function AftermathSeals({
+  data,
+  clock,
+  onReport,
+}: {
+  data: IncomingOverview | undefined;
+  clock: number;
+  onReport: (id: number | null) => void;
+}) {
+  const resolved = data?.resolved ?? [];
+  const fighting = (data?.commands ?? []).filter(
+    (item) => item.kind === 'attack' && new Date(item.endsAt).getTime() <= clock,
+  );
+  const seals = [
+    ...fighting.map((item) => ({
+      id: item.id,
+      reportId: null as number | null,
+      at: item.endsAt,
+      target: item.to,
+      attacker: item.sender,
+      outcome: 'pending' as const,
+    })),
+    ...resolved
+      .filter((item) => !fighting.some((other) => other.id === item.movementId))
+      .map((item) => ({
+        id: item.movementId,
+        reportId: item.reportId,
+        at: item.occurredAt,
+        target: item.target,
+        attacker: item.attacker,
+        outcome: item.outcome,
+      })),
+  ].sort((a, b) => new Date(b.at).getTime() - new Date(a.at).getTime() || b.id - a.id);
+  if (!seals.length) return null;
+  const shown = seals.slice(0, maxSeals);
+  const rest = seals.length - shown.length;
+  const several = seals.length > 1;
+  const sameVillage = seals.every((item) => item.target.id === seals[0]!.target.id);
+  return (
+    <div className="threat-seals" data-several={several ? 'true' : undefined} role="status">
+      {shown.map((seal) => {
+        const label = seal.outcome === 'pending' ? 'Batalha agora' : defenseOutcome[seal.outcome];
+        const time = timeFormat.format(new Date(seal.at));
+        const detail = several
+          ? sameVillage
+            ? time
+            : seal.target.name
+          : `${seal.target.name} · ${seal.reportId === null ? 'resolvendo…' : 'ver relatório'}`;
+        const full = `${label}. ${seal.target.name}, ataque de ${seal.attacker} às ${time}`;
+        return (
+          <button
+            key={seal.id}
+            type="button"
+            className="threat-after"
+            data-outcome={seal.outcome}
+            data-movement={seal.id}
+            data-report={seal.reportId ?? undefined}
+            title={`${full}${seal.reportId === null ? '' : '. Abrir relatório'}`}
+            aria-label={`${full}. ${seal.reportId === null ? 'Batalha em andamento' : 'Abrir relatório'}`}
+            disabled={seal.reportId === null}
+            onClick={() => onReport(seal.reportId)}
+          >
+            {several ? null : <ScrollText size={15} aria-hidden="true" />}
+            <span>
+              <strong>{label}</strong>
+              <small>{detail}</small>
+            </span>
+          </button>
+        );
+      })}
+      {rest > 0 ? (
+        <button
+          type="button"
+          className="threat-more"
+          aria-label={`Mais ${rest} ${rest === 1 ? 'batalha recente' : 'batalhas recentes'}. Abrir relatórios`}
+          onClick={() => onReport(null)}
+        >
+          +{rest}
+        </button>
+      ) : null}
+    </div>
+  );
+}
 /** Quanto tempo o cartão de chegada fica aberto (igual à animação em art.css). */
 const noticeMs = 8000;
 type Notice = { id: number; until: number };
@@ -56,10 +147,13 @@ export function ThreatAlert({
   data,
   clock,
   onOpen,
+  onReport,
 }: {
   data: IncomingOverview | undefined;
   clock: number;
   onOpen: () => void;
+  /** Leva do selo ao relatório da batalha (ou à lista, quando não há um só). */
+  onReport: (id: number | null) => void;
 }) {
   const { attacks, first } = nextAttack(data, clock);
   // O aviso de chegada vive no sessionStorage, não no componente: a barra superior pode ser
@@ -90,7 +184,8 @@ export function ThreatAlert({
     setNotice(null);
   }
 
-  if (!first) return null;
+  const seals = <AftermathSeals data={data} clock={clock} onReport={onReport} />;
+  if (!first) return <div className="threat threat-done">{seals}</div>;
   const remaining = (new Date(first.endsAt).getTime() - clock) / 1000;
   const urgent = remaining <= urgentSeconds;
   const shown =
@@ -118,6 +213,7 @@ export function ThreatAlert({
           <small>{first.to.name}</small>
         </span>
       </button>
+      {seals}
       {shown
         ? createPortal(
             <>
@@ -153,7 +249,7 @@ export function ThreatAlert({
                 </p>
                 <p className="threat-time">
                   Chega em <b>{duration((new Date(shown.endsAt).getTime() - clock) / 1000)}</b> ·{' '}
-                  {completionDate(shown.endsAt, clock)}
+                  {arrivalDate(shown.endsAt, clock)}
                 </p>
                 <p className="threat-from">
                   De {shown.sender} · {shown.from.name} ({shown.from.x}|{shown.from.y})

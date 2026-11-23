@@ -25,6 +25,7 @@ import { SettingsScreen } from './settings/index.js';
 import { IncomingsPanel } from './incomings/incomings-panel.js';
 import { ThreatAlert } from './incomings/threat.js';
 import { useVillageActions } from './use-village-actions.js';
+import { usePlannerState } from './planner/build-planner.js';
 import { duration, numbers, resources, timeFormat } from './shared/index.js';
 import { currentResources } from './shared/current-resources.js';
 import { useResourceDeltas } from './shared/resource-delta.js';
@@ -74,6 +75,7 @@ export function VillagePage({
   const isBackground = backgroundScreens.includes(rawScreen);
   const lastBackground = useRef('overview');
   const handledSearch = useRef('');
+  const mapCenter = useRef<{ x: string; y: string } | null>(null);
   const windows = useWindowManager(windowSize);
   const openWindow = windows.open;
   const selectedVillageId = params.has('village') ? Number(params.get('village')) : undefined;
@@ -114,6 +116,9 @@ export function VillagePage({
     if (isBackground) {
       lastBackground.current = rawScreen;
       handledSearch.current = '';
+      // Guarda onde o mapa estava: abrir uma janela a partir dele não pode recentralizá-lo.
+      if (rawScreen === 'map' && params.has('x') && params.has('y'))
+        mapCenter.current = { x: params.get('x')!, y: params.get('y')! };
       return;
     }
     if (handledSearch.current === params.toString()) return;
@@ -124,8 +129,13 @@ export function VillagePage({
     const next = new URLSearchParams();
     next.set('village', search.get('village')!);
     next.set('screen', lastBackground.current);
+    if (lastBackground.current === 'map' && mapCenter.current) {
+      next.set('x', mapCenter.current.x);
+      next.set('y', mapCenter.current.y);
+    }
     setParams(next, { replace: true });
   }, [canonicalVillageId, isBackground, rawScreen, params, openWindow, setParams]);
+  const planner = usePlannerState(canonicalVillageId ?? 0);
   const reports = useQuery({
     queryKey: ['reports', worldId, 1],
     queryFn: () => api.reports(worldId, 1),
@@ -207,6 +217,16 @@ export function VillagePage({
     }
   }, [village.error, client, navigate, worldId, world.slug]);
   function setScreen(value: string) {
+    // Na aldeia, o Edifício principal é a mesa de obras acoplada ao cenário.
+    if (
+      value === 'main' &&
+      lastBackground.current === 'overview' &&
+      isBackground &&
+      account.graphicalOverview !== false
+    ) {
+      planner.show();
+      return;
+    }
     if (backgroundScreens.includes(value)) {
       const next = new URLSearchParams(params);
       next.set('screen', value);
@@ -474,7 +494,20 @@ export function VillagePage({
               </button>
             </div>
           )}
-          <ThreatAlert data={incomings.data} clock={clock} onOpen={() => openIncomings('attack')} />
+          <ThreatAlert
+            data={incomings.data}
+            clock={clock}
+            onOpen={() => openIncomings('attack')}
+            onReport={(id) =>
+              openWindow(
+                new URLSearchParams({
+                  village: String(data.village.id),
+                  screen: 'reports',
+                  ...(id ? { id: String(id) } : {}),
+                }).toString(),
+              )
+            }
+          />
           <div className="legacy-resources" aria-label="Recursos da aldeia">
             {resources.map(({ code, name: resourceName }) => {
               const amount = have[code];
@@ -631,6 +664,11 @@ export function VillagePage({
           onPreference={(value) => preference.mutate(value)}
           onSelect={setScreen}
           clock={clock}
+          planner={planner}
+          pending={pending}
+          pendingCode={build.isPending ? build.variables?.buildingCode : undefined}
+          onConstruct={construct}
+          onCancel={(id) => cancel.mutate(id)}
         />
       ) : (
         <WorldMap snapshot={data} />
@@ -660,6 +698,7 @@ export function VillagePage({
                 snapshot={data}
                 building={building}
                 clock={clock}
+                planner={planner}
                 pending={pending}
                 pendingCode={build.isPending ? build.variables?.buildingCode : undefined}
                 onCancel={(id) => cancel.mutate(id)}

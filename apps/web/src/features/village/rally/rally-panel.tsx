@@ -1,24 +1,29 @@
+import { useState } from 'react';
 import { useGameSearchParams as useSearchParams } from '../../../routing.js';
-import { newRequestKey } from '@dwar/api-client';
-import { useRef, useState } from 'react';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-
-import {
-  api,
-  ApiError,
-  type BuildingView,
-  type RallyAction,
-  type SupportPreview,
-  type TroopCounts,
-  type VillageSnapshot,
-} from '@dwar/api-client';
+import type { BuildingView, SupportPreview, VillageSnapshot } from '@dwar/api-client';
 import { CornerDownLeft, Shield, Swords } from 'lucide-react';
-import { completionDate, numbers, speedLabel } from '../shared/index.js';
-import { OrderBanner } from './order-target.js';
-import { TripSummary } from '../shared/trip-summary.js';
+import { arrivalDate, numbers } from '../shared/index.js';
+import { OrderError, OrderReview, OrderReviewActions } from '../orders/order-review.js';
+import { emptyChoice, useOrderFlow, useSavedDraft } from '../orders/use-order-flow.js';
+import { useOrderTarget } from './order-target.js';
 import { PanelCard, PanelHead } from '../shared/panel-head.js';
 import { TransitRow } from '../shared/transit.js';
 import { SendForm, UnitStrip, type SendDraft } from './rally-widgets.js';
+
+/** Mesma revisão do mapa; aqui falta só descobrir de quem é a aldeia digitada. */
+function useReviewOwner(snapshot: VillageSnapshot, confirmation: SupportPreview | null) {
+  const info = useOrderTarget(
+    snapshot.world.id,
+    snapshot.village.id,
+    confirmation?.target.x ?? null,
+    confirmation?.target.y ?? null,
+  );
+  const target = confirmation?.target;
+  return {
+    owner: info.kind ?? (target?.playerId === null ? 'barbarian' : target?.own ? 'own' : 'player'),
+    color: info.color || '#9a6236',
+  } as const;
+}
 
 export function RallyPanel({
   snapshot,
@@ -29,216 +34,78 @@ export function RallyPanel({
 }) {
   const worldId = snapshot.world.id,
     villageId = snapshot.village.id;
-  const client = useQueryClient(),
-    [params] = useSearchParams();
-  const [draft, setDraft] = useState<SendDraft | null>(null),
-    [confirmation, setConfirmation] = useState<SupportPreview | null>(null),
-    [version, setVersion] = useState(0),
-    [notice, setNotice] = useState('');
-  const intent = useRef<{ action: RallyAction; requestId: string } | null>(null);
-  const key = ['rally', worldId, villageId];
-  const rally = useQuery({
-    queryKey: key,
-    queryFn: () => api.rally(worldId, villageId),
-    refetchInterval: 3000,
+  const [params] = useSearchParams();
+  const paramX = params.get('x'),
+    paramY = params.get('y');
+  const [saved, setDraft] = useSavedDraft<SendDraft>(`praca:${worldId}:${villageId}`, {
+    ...emptyChoice,
+    x: '',
+    y: '',
   });
-  const preview = useMutation({
-    mutationFn: (input: {
-      x: number;
-      y: number;
-      troops: TroopCounts;
-      kind: 'attack' | 'support';
-      targetBuilding?: string;
-    }) =>
-      api.previewSupport(
-        worldId,
-        villageId,
-        input.x,
-        input.y,
-        input.troops,
-        input.kind,
-        input.targetBuilding,
-      ),
-    onSuccess: (data) => {
-      setConfirmation(data);
-      setNotice('');
-    },
-  });
-  const action = useMutation({
-    mutationFn: (input: { action: RallyAction; requestId: string }) =>
-      api.rallyAction(worldId, villageId, input.action, input.requestId),
-    onSuccess: (data, input) => {
-      intent.current = null;
-      client.setQueryData(key, data);
-      void client.invalidateQueries({ queryKey: ['village', worldId] });
-      setConfirmation(null);
-      setDraft(null);
-      setVersion((value) => value + 1);
-      preview.reset();
-      setNotice(
-        input.action.type === 'attack'
-          ? 'Ataque enviado.'
-          : input.action.type === 'cancel'
-            ? 'Comando cancelado. As tropas estão retornando.'
-            : input.action.type === 'support'
-              ? 'Apoio enviado.'
-              : 'Retirada iniciada. As tropas estão retornando à aldeia.',
-      );
-    },
-    onError: (error) => {
-      if (error instanceof ApiError && error.status < 500) intent.current = null;
-    },
-  });
-  function perform(value: RallyAction) {
-    const input = intent.current ?? { action: value, requestId: newRequestKey() };
-    intent.current = input;
-    action.mutate(input);
+  // Coordenadas trazidas por um link valem uma vez; depois o que o jogador digitar prevalece.
+  const [linked, setLinked] = useState<string | null>(null);
+  const link = paramX && paramY ? `${paramX}|${paramY}` : null;
+  const draft = link && linked !== link ? { ...saved, x: paramX ?? '', y: paramY ?? '' } : saved;
+  function edit(next: SendDraft) {
+    flow.clearError();
+    setLinked(link);
+    setNotice('');
+    setDraft(next);
   }
-  const pending =
-    action.isPending || preview.isPending || (action.isError && intent.current !== null);
-  const error = action.error ?? preview.error ?? rally.error;
-  const alert = error ? (
-    <p className="error" role="alert">
-      {error.message}
-      {action.isError && intent.current ? (
-        <button
-          className="text-button"
-          disabled={action.isPending}
-          onClick={() => {
-            if (intent.current) action.mutate(intent.current);
-          }}
-        >
-          Conferir e tentar novamente
-        </button>
-      ) : null}
-    </p>
-  ) : null;
-  const data = rally.data;
+  const [notice, setNotice] = useState('');
+  const flow = useOrderFlow(snapshot, (action, reviewed) => {
+    if (reviewed) {
+      setLinked(link);
+      setDraft({ ...emptyChoice, x: '', y: '' });
+      const arrives = new Date(flow.clock + reviewed.durationSeconds * 1000).toISOString();
+      setNotice(
+        `${reviewed.kind === 'attack' ? 'Ataque' : 'Apoio'} a caminho de ${reviewed.target.name} (${reviewed.target.x}|${reviewed.target.y}). Chega ${arrivalDate(arrives, flow.clock)}.`,
+      );
+    } else
+      setNotice(
+        action.type === 'cancel'
+          ? 'Comando cancelado. As tropas estão retornando.'
+          : 'Retirada iniciada. As tropas estão retornando à aldeia.',
+      );
+  });
+  const { data, clock, confirmation, pending } = flow;
+  const { owner, color } = useReviewOwner(snapshot, confirmation);
+  const alert = <OrderError flow={flow} />;
   if (!data)
     return (
       <div className="legacy-content">
-        {alert ?? <p>Carregando praça de reunião…</p>}
-        <button onClick={() => void rally.refetch()}>Atualizar</button>
+        {flow.error ? alert : <p>Carregando praça de reunião…</p>}
+        <button onClick={flow.refetch}>Atualizar</button>
       </div>
     );
-  const clock = new Date(data.serverTime).getTime() + Math.max(0, Date.now() - rally.dataUpdatedAt);
   const totals = Object.fromEntries(
     data.unitTypes.map(({ code }) => [code, data.home[code]! + data.guests[code]!]),
   );
-  if (confirmation) {
-    const { target } = confirmation;
-    const attack = confirmation.kind === 'attack';
-    const note =
-      target.playerId === null
-        ? `Aldeia abandonada · ${numbers.format(target.points)} pts`
-        : target.own
-          ? `Sua aldeia · ${numbers.format(target.points)} pts`
-          : `${target.username} · ${numbers.format(target.points)} pts`;
-    const sentUnits = data.unitTypes.reduce(
-      (sum, unit) => sum + (confirmation.troops[unit.code] ?? 0),
-      0,
-    );
+  if (confirmation)
     return (
-      <div className="legacy-content confirm">
+      <div
+        className="order-review-window"
+        data-kind={confirmation.kind}
+        onKeyDown={(event) => {
+          // Escape volta ao formulário; fechar a janela aqui jogaria a revisão fora.
+          if (event.key !== 'Escape' || pending) return;
+          event.stopPropagation();
+          flow.back();
+        }}
+      >
         {alert}
-        <OrderBanner
-          worldId={worldId}
-          villageId={villageId}
-          attack={attack}
-          target={target}
-          types={data.unitTypes}
-          troops={confirmation.troops}
-          arrival={completionDate(
-            new Date(clock + confirmation.durationSeconds * 1000).toISOString(),
-            clock,
-          )}
-        />
-        <TripSummary
-          label={attack ? 'Ataque' : 'Apoio'}
-          tone={attack ? 'attack' : 'support'}
-          origin={confirmation.origin}
-          target={target}
-          targetNote={note}
-          distance={confirmation.distance}
-          durationSeconds={confirmation.durationSeconds}
-          departsAt={confirmation.departsAt}
-          arrivesAt={new Date(clock + confirmation.durationSeconds * 1000).toISOString()}
-          returnsAt={
-            confirmation.returnsAt
-              ? new Date(clock + confirmation.durationSeconds * 2000).toISOString()
-              : null
-          }
-          returnLabel="Tropas de volta"
+        <OrderReview
+          confirmation={confirmation}
+          data={data}
           clock={clock}
-          footnote={`Velocidade do mundo ${speedLabel(confirmation.speeds.world)} · tropas ${speedLabel(confirmation.speeds.units)} · a unidade mais lenta (${confirmation.slowest.name}) define o tempo.`}
+          owner={owner}
+          color={color}
         />
-        <ul className="confirm-facts">
-          <li>
-            <small>Unidades enviadas</small>
-            <strong>{numbers.format(sentUnits)}</strong>
-          </li>
-          <li>
-            <small>População</small>
-            <strong>{numbers.format(confirmation.population)}</strong>
-          </li>
-          {confirmation.carry !== null ? (
-            <li>
-              <small>Capacidade de saque</small>
-              <strong>{numbers.format(confirmation.carry)}</strong>
-            </li>
-          ) : null}
-          {confirmation.morale !== null ? (
-            <li>
-              <small>Moral</small>
-              <strong>{confirmation.morale}%</strong>
-            </li>
-          ) : null}
-          {confirmation.targetBuilding ? (
-            <li>
-              <small>Alvo das catapultas</small>
-              <strong>
-                {data.catapultTargets.find((b) => b.code === confirmation.targetBuilding)?.name}
-              </strong>
-            </li>
-          ) : null}
-        </ul>
-        <section className="confirm-block confirm-remaining">
-          <h2>Ficam na aldeia</h2>
-          <UnitStrip
-            types={data.unitTypes}
-            counts={confirmation.remaining}
-            empty="Nenhuma tropa fica na aldeia."
-          />
-        </section>
-        <div className="confirm-actions">
-          <button
-            className={`trip-confirm ${attack ? 'attack' : 'support'}`}
-            disabled={pending}
-            onClick={() =>
-              perform({
-                type: confirmation.kind,
-                ...(attack && confirmation.targetBuilding
-                  ? { targetBuilding: confirmation.targetBuilding }
-                  : {}),
-                targetId: target.id,
-                troops: confirmation.troops,
-              })
-            }
-          >
-            {attack ? (
-              <Swords size={17} aria-hidden="true" />
-            ) : (
-              <Shield size={17} aria-hidden="true" />
-            )}
-            {attack ? 'Confirmar ataque' : 'Confirmar apoio'}
-          </button>
-          <button disabled={pending} className="button" onClick={() => setConfirmation(null)}>
-            Voltar e editar
-          </button>
-        </div>
+        <footer className="order-panel-foot">
+          <OrderReviewActions flow={flow} kind={confirmation.kind} onBack={flow.back} />
+        </footer>
       </div>
     );
-  }
   const homeTotal = data.unitTypes.reduce((sum, { code }) => sum + (data.home[code] ?? 0), 0);
   const guestTotal = data.unitTypes.reduce((sum, { code }) => sum + (data.guests[code] ?? 0), 0);
   const kindInfo = {
@@ -266,25 +133,21 @@ export function RallyPanel({
           ) : null}
         </div>
       </PanelHead>
-      {alert}
+      {flow.error && !flow.formError ? alert : null}
       {notice ? (
         <p className="panel-notice" role="status">
           {notice}
         </p>
       ) : null}
       <SendForm
-        key={`${version}:${params.get('x')}:${params.get('y')}`}
         worldId={worldId}
         villageId={villageId}
         data={data}
         pending={pending}
-        x={params.get('x') ?? ''}
-        y={params.get('y') ?? ''}
-        initial={draft}
-        onDraft={setDraft}
-        onPreview={(x, y, troops, kind, targetBuilding) =>
-          preview.mutate({ x, y, troops, kind, targetBuilding })
-        }
+        draft={draft}
+        onDraft={edit}
+        error={flow.formError ? alert : null}
+        onReview={(x, y) => flow.review(x, y, draft)}
       />
       {data.movements.length ? (
         <PanelCard
@@ -312,7 +175,7 @@ export function RallyPanel({
                       <button
                         className="button danger"
                         disabled={pending}
-                        onClick={() => perform({ type: 'cancel', movementId: row.id })}
+                        onClick={() => flow.cancel(row.id)}
                       >
                         Cancelar
                       </button>
@@ -358,7 +221,7 @@ export function RallyPanel({
                       <button
                         className="button"
                         disabled={pending}
-                        onClick={() => perform({ type: 'recall', locationId: row.location.id })}
+                        onClick={() => flow.recall(row.location.id)}
                       >
                         <CornerDownLeft size={14} aria-hidden="true" /> Retirar
                       </button>
