@@ -505,3 +505,26 @@ Só desktop, 1366×768, com mouse e teclado.
 - **Segundos.** Chegadas de tropas e batalhas mostram segundos.
 
 Pendente: retrato de 64 px.
+
+## Rodada 5: celular e três obras lado a lado
+
+O "antes" é o commit `486062d`. Comparativos em `direcao-de-arte/rodada-5/`, antes à esquerda.
+
+- **Três obras.** Com três colunas, o custo e o que sobra ou falta ficam na mesma linha, e o estado
+  fica na cor da coluna e no botão. No notebook, com uma obra na fila, a comparação cabe sem rolar.
+  No celular, cabe com a mesa ampliada e a fila vazia.
+- **Toque no mapa.** O painel de ordem abria no `pointerup` e o `click` do mesmo toque caía em
+  "Atacar". A seleção passou para o `click`, e o dedo tolera 8 px antes de virar arrasto.
+- **Ataque e batalha juntos.** A regra de recursos numa linha alargava a página no celular e tirava o
+  aviso de ataque da tela. Agora ela vale só no desktop.
+- **Duas batalhas.** No celular, cada selo mostra o horário e tem altura de toque. No notebook, os
+  recursos continuam numa linha.
+- **Relatório.** Não passa mais da largura. No celular, só aparecem as unidades que participaram.
+- **Revisão.** No celular, a chegada aparece sem rolar.
+- **Praça e folhas.** Uma linha por tropa com alvos de 44 px, e folhas opacas.
+
+Testado em Chromium headless, 390×844 com toque e 1366×768, num banco isolado e com ataques reais.
+
+Pendente: retrato de 64 px, Firefox, Safari e leitor de tela. Com vários itens na fila, a comparação
+de três obras ainda rola. O "×" das três colunas tem 30 px de largura no celular. Com ataque e duas
+batalhas ao mesmo tempo, a barra superior do celular ocupa 247 px por até três minutos.

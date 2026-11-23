@@ -318,6 +318,8 @@ function useSceneGuide() {
   };
 }
 
+const tapVerb = matchMedia('(pointer: coarse)').matches ? 'Toque' : 'Clique';
+
 /** Guia da primeira visita: diz, com a própria forma do brasão, o que cada clique faz. */
 function SceneGuide({ guide }: { guide: ReturnType<typeof useSceneGuide> }) {
   return (
@@ -331,14 +333,14 @@ function SceneGuide({ guide }: { guide: ReturnType<typeof useSceneGuide> }) {
           <path d="M1.5 3.5 Q15 -0.5 28.5 3.5 L28.5 16 Q28.5 27.5 15 33.5 Q1.5 27.5 1.5 16 Z" />
         </svg>
         <span>
-          Clique no <b>brasão</b>
+          {tapVerb} no <b>brasão</b>
           <small>compara custo e prazo da obra</small>
         </span>
       </p>
       <p data-done={guide.done.includes('building') ? 'true' : undefined}>
         <img src={buildingArt('barracks', 1, 25)} alt="" />
         <span>
-          Clique no <b>edifício</b>
+          {tapVerb} no <b>edifício</b>
           <small>abre a função dele</small>
         </span>
       </p>

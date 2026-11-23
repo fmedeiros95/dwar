@@ -86,7 +86,9 @@ export function useMapNavigation(
     if (!active || active.id !== event.pointerId) return false;
     const dx = event.clientX - active.client.x,
       dy = event.clientY - active.client.y;
-    if (Math.abs(dx) > 2 || Math.abs(dy) > 2) active.moved = true;
+    // O dedo treme mais que o mouse: com 2 px quase todo toque viraria arrasto.
+    const slack = event.pointerType === 'mouse' ? 2 : 8;
+    if (Math.abs(dx) > slack || Math.abs(dy) > slack) active.moved = true;
     if (active.moved)
       move({ x: active.start.x - dx * active.scale, y: active.start.y - dy * active.scale });
     return true;

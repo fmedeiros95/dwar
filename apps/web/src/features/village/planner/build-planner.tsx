@@ -311,7 +311,8 @@ function QueueTimeline({
   );
 }
 
-function CostCell({ plan }: { plan: ObraPlan }) {
+/** Com três colunas o custo já mostra o que sobra ou falta de cada recurso, na mesma linha. */
+function CostCell({ plan, dense }: { plan: ObraPlan; dense: boolean }) {
   return (
     <ul className="cmp-cost">
       {resources.map(({ code, name }) => {
@@ -325,6 +326,12 @@ function CostCell({ plan }: { plan: ObraPlan }) {
             <ResourceIcon code={code} label={name} size={16} />
             {numbers.format(plan.cost[code])}
             {short ? <small>−{numbers.format(short)}</small> : null}
+            {dense && !short && plan.leftover ? (
+              <small className="cmp-rest">
+                <span className="sr-only">sobram </span>
+                {numbers.format(plan.leftover[code])}
+              </small>
+            ) : null}
           </li>
         );
       })}
@@ -350,8 +357,10 @@ function BuildAction({
   pending,
   pendingCode,
   onConstruct,
+  dense,
 }: {
   plan: ObraPlan;
+  dense: boolean;
   clock: number;
   pending: boolean;
   pendingCode?: string | undefined;
@@ -364,6 +373,7 @@ function BuildAction({
         type="button"
         className="cmp-build"
         disabled={pending}
+        aria-label={`${plan.building.queuedLevel === 0 ? 'Construir' : 'Evoluir'} ${plan.building.name} ao nível ${plan.nextLevel}`}
         onClick={() => onConstruct(plan.building.code)}
       >
         {pendingCode === plan.building.code ? (
@@ -371,7 +381,11 @@ function BuildAction({
         ) : (
           <ArrowUp size={15} aria-hidden="true" />
         )}
-        {plan.building.queuedLevel === 0 ? 'Construir' : `Evoluir ao ${plan.nextLevel}`}
+        {plan.building.queuedLevel === 0
+          ? 'Construir'
+          : dense
+            ? `Nível ${plan.nextLevel}`
+            : `Evoluir ao ${plan.nextLevel}`}
       </button>
     );
   return (
@@ -382,7 +396,9 @@ function BuildAction({
         <Lock size={14} aria-hidden="true" />
       )}
       {plan.state === 'wait' && plan.resourcesAt
-        ? `Recursos em ${duration((plan.resourcesAt - clock) / 1000)}`
+        ? dense
+          ? duration((plan.resourcesAt - clock) / 1000)
+          : `Recursos em ${duration((plan.resourcesAt - clock) / 1000)}`
         : plan.queueFull
           ? 'Fila cheia'
           : 'Indisponível'}
@@ -429,6 +445,7 @@ function Comparison({
   const open = plans.filter((plan) => !plan.maxed);
   const cheapest = open.length > 1 ? Math.min(...open.map((plan) => plan.costTotal)) : null;
   const hasEffect = plans.some((plan) => plan.effect);
+  const dense = plans.length >= maxCompared;
   const row = (label: string, cell: (plan: ObraPlan) => ReactNode, className?: string) => (
     <tr className={className}>
       <th scope="row">{label}</th>
@@ -440,7 +457,11 @@ function Comparison({
     </tr>
   );
   return (
-    <section className="planner-compare" style={{ '--cols': plans.length } as CSSProperties}>
+    <section
+      className="planner-compare"
+      data-dense={dense ? 'true' : undefined}
+      style={{ '--cols': plans.length } as CSSProperties}
+    >
       <h3>
         <Scale size={14} aria-hidden="true" /> Comparar
         <small>
@@ -520,6 +541,7 @@ function Comparison({
                       </p>
                     ) : null}
                     <BuildAction
+                      dense={dense}
                       plan={plan}
                       clock={clock}
                       pending={pending}
@@ -561,11 +583,17 @@ function Comparison({
                         plan.resourcesAt !== null && plan.resourcesAt > clock ? 'wait' : undefined
                       }
                     >
-                      Começa: {startText(plan, clock).toLowerCase()}
+                      {dense && plan.resourcesAt !== null && plan.resourcesAt > clock
+                        ? 'espera recursos'
+                        : dense && plan.afterQueue
+                          ? 'depois da fila'
+                          : `Começa: ${startText(plan, clock).toLowerCase()}`}
                     </span>
                     <span className="cmp-time">{duration(plan.durationSeconds)} de obra</span>
                     {earliest !== null && plan.endsAt === earliest ? (
-                      <span className="cmp-tag ok">primeira a ficar pronta</span>
+                      <span className="cmp-tag ok">
+                        {dense ? '1ª a terminar' : 'primeira a ficar pronta'}
+                      </span>
                     ) : null}
                   </>
                 ) : (
@@ -575,43 +603,45 @@ function Comparison({
                 ),
               'cmp-row-strong',
             )}
-            {row('Custo', (plan) =>
+            {row(dense ? 'Custo e sobra' : 'Custo', (plan) =>
               plan.maxed ? (
                 <span className="cmp-muted">—</span>
               ) : (
                 <>
-                  <CostCell plan={plan} />
+                  <CostCell plan={plan} dense={dense} />
                   {cheapest !== null && plan.costTotal === cheapest ? (
                     <span className="cmp-tag">mais barata</span>
                   ) : null}
                 </>
               ),
             )}
-            {row('Depois de pagar', (plan) =>
-              plan.maxed ? (
-                '—'
-              ) : plan.leftover ? (
-                <ul className="cmp-left" aria-label="Sobra no armazém">
-                  {resources.map(({ code, name }) => (
-                    <li key={code}>
-                      <ResourceIcon code={code} label={name} size={16} />
-                      {numbers.format(plan.leftover![code])}
-                    </li>
-                  ))}
-                </ul>
-              ) : (
-                <span className="cmp-short">
-                  Falta{' '}
-                  {resources
-                    .filter(({ code }) => plan.missing[code])
-                    .map(
-                      ({ code, name }) =>
-                        `${numbers.format(plan.missing[code]!)} de ${name.toLowerCase()}`,
-                    )
-                    .join(', ')}
-                </span>
-              ),
-            )}
+            {dense
+              ? null
+              : row('Depois de pagar', (plan) =>
+                  plan.maxed ? (
+                    '—'
+                  ) : plan.leftover ? (
+                    <ul className="cmp-left" aria-label="Sobra no armazém">
+                      {resources.map(({ code, name }) => (
+                        <li key={code}>
+                          <ResourceIcon code={code} label={name} size={16} />
+                          {numbers.format(plan.leftover![code])}
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <span className="cmp-short">
+                      Falta{' '}
+                      {resources
+                        .filter(({ code }) => plan.missing[code])
+                        .map(
+                          ({ code, name }) =>
+                            `${numbers.format(plan.missing[code]!)} de ${name.toLowerCase()}`,
+                        )
+                        .join(', ')}
+                    </span>
+                  ),
+                )}
             {hasEffect
               ? row('Efeito', (plan) =>
                   plan.effect ? (

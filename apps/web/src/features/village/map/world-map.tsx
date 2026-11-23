@@ -5,7 +5,7 @@ import {
   useRef,
   useState,
   type FormEvent,
-  type PointerEvent,
+  type MouseEvent,
 } from 'react';
 import {
   ArrowDown,
@@ -231,7 +231,7 @@ function MapCanvas({ snapshot, options }: { snapshot: VillageSnapshot; options: 
             : draft,
     );
   }
-  function villageAt(event: PointerEvent<HTMLElement>) {
+  function villageAt(event: MouseEvent<HTMLElement>) {
     const rect = event.currentTarget.getBoundingClientRect();
     return known.get(
       `${Math.floor(position.x + (event.clientX - rect.left) / 60)}|${Math.floor(position.y + (event.clientY - rect.top) / 60)}`,
@@ -279,6 +279,8 @@ function MapCanvas({ snapshot, options }: { snapshot: VillageSnapshot; options: 
     );
     // Só ao escolher o alvo ou mudar de etapa; mover o mapa depois é escolha do jogador.
   }, [selected?.id, order.step]);
+  /** O gesto que terminou agora foi um toque, não um arrasto. */
+  const tapped = useRef(false);
   // Alvo escolhido pelo teclado: o foco segue para a ordem, sem atravessar o mapa inteiro.
   useEffect(() => {
     if (!focusPanel.current || !panelRef.current) return;
@@ -322,6 +324,7 @@ function MapCanvas({ snapshot, options }: { snapshot: VillageSnapshot; options: 
             }
           }}
           onPointerDown={(event) => {
+            tapped.current = false;
             setHover(null);
             nav.pointerDown(event);
           }}
@@ -336,8 +339,13 @@ function MapCanvas({ snapshot, options }: { snapshot: VillageSnapshot; options: 
             } else setHover(null);
           }}
           onPointerUp={(event) => {
-            const moved = nav.pointerUp(event);
-            if (moved === false) select(villageAt(event));
+            tapped.current = nav.pointerUp(event) === false;
+          }}
+          onClick={(event) => {
+            // Abrir o painel já no pointerup deixaria o click do mesmo toque cair num botão dele.
+            if (!tapped.current || event.detail === 0) return;
+            tapped.current = false;
+            select(villageAt(event));
           }}
           onPointerCancel={nav.pointerCancel}
           onPointerLeave={() => setHover(null)}
