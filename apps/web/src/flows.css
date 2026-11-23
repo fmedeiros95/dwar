@@ -1986,3 +1986,244 @@ th[data-state='wait'] .cmp-build:disabled {
     display: none;
   }
 }
+
+/* ======================================================================
+ * Rodada 5: três obras sem rolar e retoques de celular
+ * ====================================================================== */
+
+/* Três colunas: o estado fica na cor da coluna e no botão; custo e sobra, na mesma linha. */
+.planner-compare[data-dense] .cmp-art,
+.planner-compare[data-dense] th[data-state='ready'] .cmp-state,
+.planner-compare[data-dense] th[data-state='wait'] .cmp-state {
+  display: none;
+}
+.planner-compare[data-dense] .cmp-table {
+  border-spacing: 4px 0;
+  margin: 0 -4px;
+  width: calc(100% + 8px);
+}
+.planner-compare[data-dense] .cmp-table th[scope='row'],
+.planner-compare[data-dense] .cmp-table thead td {
+  width: 54px;
+  overflow-wrap: anywhere;
+}
+.planner-compare[data-dense] .cmp-table td,
+.planner-compare[data-dense] .cmp-table thead th {
+  min-width: 0;
+  padding: 6px 7px;
+}
+.planner-compare[data-dense] .cmp-build {
+  gap: 4px;
+  padding-inline: 4px;
+}
+.planner-compare[data-dense] .cmp-cost {
+  display: grid;
+  gap: 2px;
+}
+.planner-compare[data-dense] .cmp-cost li {
+  flex-wrap: wrap;
+  gap: 0 4px;
+}
+.planner-compare[data-dense] .cmp-cost small {
+  margin-left: auto;
+}
+.cmp-cost small.cmp-rest {
+  color: var(--pl-ok);
+}
+.planner[data-variant='window'] .cmp-cost small.cmp-rest {
+  color: var(--pl-ok);
+}
+.cmp-build svg,
+.cmp-state i {
+  flex: none;
+}
+
+/* O "0" do campo vazio precisa aparecer sobre o papel. */
+.order-stepper input::placeholder {
+  color: #7d6a4f;
+  opacity: 1;
+}
+
+@media (min-width: 901px) {
+  /* Duas batalhas no selo: os recursos continuam numa linha só. */
+  .shell-topbar:has(.threat-seals[data-several]) .resource-amount {
+    padding-inline: 7px;
+    font-size: 14px;
+  }
+  .shell-topbar:has(.threat-seals[data-several]) .shell-player-info {
+    display: none;
+  }
+  .shell-topbar:has(.threat-seals[data-several]) .legacy-resources {
+    flex-shrink: 0;
+    flex-wrap: nowrap;
+  }
+}
+
+@media (max-width: 900px) {
+  /* A barra pode ter até quatro linhas; o cenário cede altura para não passar do fim da tela. */
+  .scene-viewport,
+  .map-stage {
+    min-height: 44dvh;
+  }
+  /* Em 390 px a linha única de recursos alargaria a página e tiraria o aviso de ataque da tela. */
+  .shell-topbar:has(.threat-after) .legacy-resources,
+  .shell-topbar:has(.threat-chip):has(.threat-after) .legacy-resources {
+    flex-shrink: 1;
+    flex-wrap: wrap;
+  }
+  .shell-topbar:has(.threat-chip):has(.threat-after) .resource-amount {
+    padding-inline: 5px;
+    font-size: 13px;
+  }
+  /* "0/5 vagas" no cabeçalho já diz que a fila está vazia. */
+  .planner[data-expanded] .planner-empty {
+    display: none;
+  }
+  /* Folhas opacas: nada do mapa ou da barra aparece por trás do texto. */
+  .scene-viewport .planner[data-expanded],
+  .order-panel {
+    background: #1c130c;
+  }
+  .planner-main {
+    display: none;
+  }
+  .planner-slots {
+    white-space: nowrap;
+  }
+  .planner-grow,
+  .planner-toggle {
+    flex: none;
+  }
+  .scene-guide {
+    right: 72px;
+    align-items: flex-start;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding-right: 50px;
+  }
+  .scene-guide p {
+    flex-basis: 100%;
+  }
+  .scene-guide button {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    width: 44px;
+    height: 44px;
+  }
+  .scene-viewport:has(.planner[data-expanded]) .scene-guide {
+    display: none;
+  }
+  /* Revisão: origem e destino lado a lado, para a chegada aparecer sem rolar. */
+  .order-panel .order-route {
+    grid-template-columns: 1fr 1fr;
+    gap: 4px 6px;
+  }
+  .order-panel .order-route .order-route-line {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    margin: 0;
+    padding: 0;
+    text-align: center;
+    border-left: 0;
+    border-top: 2px dashed var(--op-tone);
+  }
+  .order-panel .order-review {
+    gap: 8px;
+  }
+  .order-panel .order-review .order-times {
+    order: 1;
+  }
+  .order-panel .order-review .order-times dd {
+    font-size: 13px;
+  }
+  .order-panel .order-times div:first-child {
+    flex: 0 0 60px;
+  }
+  .order-panel .order-review > .order-review-troops,
+  .order-panel .order-review > .order-review-facts {
+    order: 2;
+  }
+  /* Duas batalhas: faixa própria, com o horário que distingue uma da outra. */
+  .threat:has(.threat-seals[data-several]) {
+    flex: 1 0 100%;
+    flex-wrap: wrap;
+    margin: 0;
+  }
+  .threat-seals[data-several] {
+    flex: 1;
+    grid-auto-flow: column;
+    grid-template-columns: none;
+    grid-auto-columns: auto;
+  }
+  .threat-seals[data-several] .threat-after {
+    grid-column: auto;
+    min-height: 44px;
+    padding: 3px 9px;
+  }
+  .threat-seals[data-several] .threat-after span {
+    display: grid;
+    gap: 0;
+  }
+  .threat-seals[data-several] .threat-after small,
+  .threat-chip ~ .threat-seals[data-several] .threat-after small {
+    display: block;
+  }
+  .threat-seals[data-several] .threat-more {
+    grid-column: auto;
+    grid-row: auto;
+    min-width: 44px;
+  }
+  /* Praça: uma linha por tropa, com alvos de toque inteiros. */
+  .rally-panel .troop-grid li {
+    grid-template-columns: 36px minmax(0, 1fr) 72px auto;
+    grid-template-rows: auto;
+    padding: 5px 8px;
+  }
+  .rally-panel .troop-grid img {
+    grid-row: 1;
+    width: 36px;
+    height: 36px;
+  }
+  .rally-panel .troop-grid input {
+    grid-column: 3;
+    grid-row: 1;
+    min-height: 44px;
+  }
+  .rally-panel .troop-grid .troop-all {
+    grid-column: 4;
+    grid-row: 1;
+    min-width: 52px;
+    min-height: 44px;
+  }
+  .rally-panel .panel-card button,
+  .rally-panel .panel-card select {
+    min-height: 44px;
+  }
+  .order-field select {
+    min-height: 44px;
+  }
+}
+@media (pointer: coarse) {
+  .cmp-table thead .cmp-name {
+    padding-right: 0;
+    min-height: 34px;
+    display: flex;
+    align-items: center;
+    margin-right: 34px;
+  }
+  .planner-compare[data-dense] .cmp-name {
+    margin-right: 22px;
+    font-size: 12.5px;
+    overflow-wrap: anywhere;
+  }
+  .planner-compare[data-dense] .cmp-remove {
+    width: 30px;
+  }
+  .cmp-remove {
+    top: 0;
+    right: 0;
+    border: 0;
+    box-shadow: none;
+  }
+}

@@ -202,3 +202,36 @@
   border: 1px solid var(--line-soft);
   border-radius: 5px;
 }
+
+/* Celular: a tabela de tropas não alarga o relatório; some quem não participou. */
+.report-detail > *,
+.report-side {
+  min-width: 0;
+}
+@media (max-width: 640px) {
+  .report-detail {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .report-detail-tools {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    align-items: stretch;
+  }
+  .report-detail-tools .button {
+    justify-content: center;
+    min-height: 44px;
+  }
+  .report-parties {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .report-banner,
+  .report-parties dd {
+    overflow-wrap: anywhere;
+  }
+  .report-side .rally-units {
+    min-width: 0;
+  }
+  .report-side .rally-units [data-absent] {
+    display: none;
+  }
+}

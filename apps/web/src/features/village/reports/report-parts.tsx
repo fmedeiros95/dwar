@@ -99,6 +99,9 @@ export function TroopTable({
   counts: Record<string, number>;
   losses?: Record<string, number> | null;
 }) {
+  // No celular só aparecem as unidades que participaram (reports.css).
+  const any = total(counts) > 0;
+  const absent = (code: string) => (any && !counts[code] ? 'true' : undefined);
   return (
     <div className="table-scroll">
       <table className="legacy-table rally-units">
@@ -106,7 +109,7 @@ export function TroopTable({
           <tr>
             <th></th>
             {unitTypes.map((u) => (
-              <th key={u.code}>
+              <th key={u.code} data-absent={absent(u.code)}>
                 <img
                   src={unitIconSrc(u.code)}
                   alt={u.name}
@@ -122,7 +125,7 @@ export function TroopTable({
           <tr>
             <td>Quantidade</td>
             {unitTypes.map((u) => (
-              <td key={u.code} className="num">
+              <td key={u.code} className="num" data-absent={absent(u.code)}>
                 {numbers.format(counts[u.code] ?? 0)}
               </td>
             ))}
@@ -131,7 +134,7 @@ export function TroopTable({
             <tr className="loss-row">
               <td>Perdas</td>
               {unitTypes.map((u) => (
-                <td key={u.code} className="num">
+                <td key={u.code} className="num" data-absent={absent(u.code)}>
                   {numbers.format(losses[u.code] ?? 0)}
                 </td>
               ))}
