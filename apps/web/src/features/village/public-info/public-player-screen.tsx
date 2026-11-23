@@ -1,3 +1,4 @@
+import { LoadState } from '../../../components/load-state.js';
 import { useGameSearchParams as useSearchParams } from '../../../routing.js';
 import { useQuery } from '@tanstack/react-query';
 
@@ -27,9 +28,11 @@ export function PublicPlayerScreen({ snapshot }: { snapshot: VillageSnapshot }) 
   if (!data)
     return (
       <div className="legacy-content">
-        <p role={target.error ? 'alert' : 'status'}>
-          {target.error?.message ?? (playerId ? 'Carregando jogador…' : 'Jogador não encontrado.')}
-        </p>
+        {playerId ? (
+          <LoadState query={target} loading="Carregando jogador…" message />
+        ) : (
+          <p role="status">Jogador não encontrado.</p>
+        )}
       </div>
     );
   function go(screen: string, extra: Record<string, string | number> = {}) {

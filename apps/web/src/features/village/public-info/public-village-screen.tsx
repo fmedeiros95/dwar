@@ -1,3 +1,4 @@
+import { LoadState } from '../../../components/load-state.js';
 import { useGameSearchParams as useSearchParams } from '../../../routing.js';
 import { useQuery } from '@tanstack/react-query';
 
@@ -25,9 +26,11 @@ export function PublicVillageScreen({ snapshot }: { snapshot: VillageSnapshot })
   if (!data)
     return (
       <div className="legacy-content">
-        <p role={target.error ? 'alert' : 'status'}>
-          {target.error?.message ?? (targetId ? 'Carregando aldeia…' : 'Aldeia não encontrada.')}
-        </p>
+        {targetId ? (
+          <LoadState query={target} loading="Carregando aldeia…" message />
+        ) : (
+          <p role="status">Aldeia não encontrada.</p>
+        )}
       </div>
     );
   function go(screen: string, extra: Record<string, string | number>) {

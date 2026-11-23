@@ -1,3 +1,4 @@
+import { LoadState } from '../../../components/load-state.js';
 import { useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { api, type MessageNode, type MessageTarget } from '@dwar/api-client';
@@ -43,12 +44,7 @@ export function NoteBox({
     onSuccess: (result) => setPreview(result.content),
   });
   const data = note.data;
-  if (!data)
-    return (
-      <p className="muted" role={note.error ? 'alert' : 'status'}>
-        {note.error?.message ?? 'Carregando nota…'}
-      </p>
-    );
+  if (!data) return <LoadState query={note} loading="Carregando nota…" message />;
   const editing = draft !== null;
   const error = save.error ?? previewing.error;
   return (

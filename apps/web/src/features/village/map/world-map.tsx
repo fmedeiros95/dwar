@@ -1,3 +1,4 @@
+import { LoadState } from '../../../components/load-state.js';
 import { useGameSearchParams as useSearchParams } from '../../../routing.js';
 import {
   useEffect,
@@ -71,9 +72,8 @@ export function WorldMap({ snapshot }: { snapshot: VillageSnapshot }) {
   if (!options.data)
     return (
       <div className="legacy-content">
-        <p role={options.error ? 'alert' : 'status'}>
-          {options.error?.message ?? 'Carregando mapa…'}
-        </p>
+        <h1 className="sr-only">Mapa</h1>
+        <LoadState query={options} loading="Carregando mapa…" message />
       </div>
     );
   return <MapCanvas key={snapshot.village.id} snapshot={snapshot} options={options.data} />;

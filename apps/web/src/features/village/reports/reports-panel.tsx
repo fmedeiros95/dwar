@@ -1,3 +1,4 @@
+import { LoadState } from '../../../components/load-state.js';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { ChevronLeft, Swords } from 'lucide-react';
 import {
@@ -185,14 +186,14 @@ export function ReportsPanel({ snapshot, clock }: { snapshot: VillageSnapshot; c
                     />
                   )
                 ) : (
-                  <p className="muted">Carregando relatório…</p>
+                  <LoadState query={detail} loading="Carregando relatório…" />
                 )}
               </div>
             ) : null}
           </div>
         </div>
       ) : (
-        <p className="muted">Carregando relatórios…</p>
+        <LoadState query={list} loading="Carregando relatórios…" />
       )}
     </div>
   );

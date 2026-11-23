@@ -4,15 +4,17 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { api, ApiError, type Account, type World } from '@dwar/api-client';
 import { Clock, HeartHandshake, Pencil, Swords } from 'lucide-react';
-import { LegacyFrame, ResourceIcon } from '../../components/legacy-frame.js';
+import { ResourceIcon } from '../../components/legacy-frame.js';
 import { Icon } from '../../components/icons.js';
+import { StatusPage } from '../../components/status-page.js';
 import { GameShell } from '../../components/game-shell.js';
 import { WindowLayer } from '../../components/game-window.js';
 import { screenOf, useWindowManager } from '../../components/use-window-manager.js';
 import { useToast } from '../../components/toast.js';
 import { panelBuildings } from './panel-buildings.js';
 import { lazyScreen, preloadScreens } from '../../components/lazy-screen.js';
-import { buildingArtId, preloadBacking } from './overview/scene-model.js';
+import { buildingArtId } from './overview/scene-model.js';
+import { preloadBacking } from './overview/scene-theme.js';
 import { Overview } from './overview/index.js';
 import { ThreatAlert } from './incomings/threat.js';
 import { useVillageActions } from './use-village-actions.js';
@@ -303,19 +305,15 @@ export function VillagePage({
     data?.village.productionPerHour ?? idleResources,
     data?.village.capacity ?? 0,
   );
-  if (!data)
+  // Espera também os comandos a caminho: o aviso de ataque entra junto com a barra, sem empurrá-la.
+  if (!data || incomings.isPending)
     return (
-      <LegacyFrame>
-        <div className="legacy-content">
-          <h1>{village.isPending ? 'Carregando aldeia…' : 'Aldeia indisponível'}</h1>
-          {village.error ? (
-            <p className="error" role="alert">
-              {village.error.message}
-            </p>
-          ) : null}
-          <Link to="/worlds">Voltar aos mundos</Link>
-        </div>
-      </LegacyFrame>
+      <StatusPage
+        title={village.error && !data ? 'Aldeia indisponível' : 'Carregando aldeia…'}
+        error={data ? undefined : village.error?.message}
+        onRetry={() => void village.refetch()}
+        retrying={village.isFetching}
+      />
     );
   const clock = new Date(data.serverTime).getTime() + Math.max(0, now - village.dataUpdatedAt);
   const have = currentResources(data, clock);

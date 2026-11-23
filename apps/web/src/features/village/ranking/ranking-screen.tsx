@@ -1,3 +1,4 @@
+import { LoadState } from '../../../components/load-state.js';
 import { revealTab } from '../../../components/reveal-tab.js';
 import { useEffect, useState, type FormEvent } from 'react';
 import { useQuery } from '@tanstack/react-query';
@@ -307,12 +308,8 @@ export function RankingScreen({ snapshot }: { snapshot: VillageSnapshot }) {
               : 'Nenhum jogador encontrado.'}
           </p>
         ) : null}
-        {!data ? (
-          <p className="empty-cell">
-            {ranking.isPending ? 'Carregando…' : 'Nenhum jogador encontrado.'}
-          </p>
-        ) : null}
       </div>
+      {!data ? <LoadState query={ranking} loading="Carregando ranking…" /> : null}
       {data && data.mode === 'list' ? (
         <nav className="pager" aria-label="Páginas do ranking">
           <button

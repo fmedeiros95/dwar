@@ -1,13 +1,6 @@
-import { preload } from 'react-dom';
+import { backingUrl, sceneThemes, type SceneTheme } from './scene-theme.js';
 import positions from './tribul-positions.json';
 import manifest from './tribul-manifest.json';
-
-export type SceneTheme = 'summer' | 'winter' | 'halloween';
-export const sceneThemes: { code: SceneTheme; label: string }[] = [
-  { code: 'summer', label: 'Verão' },
-  { code: 'winter', label: 'Inverno' },
-  { code: 'halloween', label: 'Halloween' },
-];
 
 export const sceneSize = positions.scene;
 
@@ -92,17 +85,6 @@ export function roadUrl(artId: number, theme: SceneTheme): string | null {
   return `/game/buildings/${artId}/${artId}_road${suffix(theme, artId, 'road')}.webp`;
 }
 
-/** Começa a baixar o cenário antes da resposta da aldeia, com prioridade. */
-export function preloadBacking() {
-  const saved = localStorage.getItem('dwar:scene-theme');
-  const theme = sceneThemes.some((item) => item.code === saved) ? (saved as SceneTheme) : 'summer';
-  preload(backingUrl(theme), { as: 'image', fetchPriority: 'high' });
-}
-
-export function backingUrl(theme: SceneTheme): string {
-  return `/game/town/backing${theme === 'summer' ? '' : `-${theme}`}.webp`;
-}
-
 export type PlacedBuilding = {
   code: string;
   artId: number;
@@ -151,3 +133,5 @@ export function buildingArt(code: string, level?: number, maxLevel?: number): st
       : artTier(artId, Math.max(1, level), maxLevel);
   return `/game/buildings/${artId}/${artId}_${tier}.webp`;
 }
+
+export { backingUrl, sceneThemes, type SceneTheme };

@@ -1,3 +1,4 @@
+import { LoadState } from '../../../components/load-state.js';
 import { revealTab } from '../../../components/reveal-tab.js';
 import { useState, type FormEvent, type ReactNode } from 'react';
 import { useQuery } from '@tanstack/react-query';
@@ -145,12 +146,8 @@ export function TribeRanking({ snapshot, tabs }: { snapshot: VillageSnapshot; ta
               : 'Nenhuma tribo neste mundo ainda.'}
           </p>
         ) : null}
-        {!data ? (
-          <p className="empty-cell">
-            {ranking.isPending ? 'Carregando…' : 'Nenhuma tribo encontrada.'}
-          </p>
-        ) : null}
       </div>
+      {!data ? <LoadState query={ranking} loading="Carregando ranking…" /> : null}
       {data && data.mode === 'list' && data.pageCount > 1 ? (
         <nav className="pager" aria-label="Páginas do ranking de tribos">
           <button

@@ -639,3 +639,32 @@ Regressão sobre o build de produção: axe-core com obra e ataque ativos, Chrom
 
 Pendente: no celular, o aviso de ataque entra depois da barra e empurra o cenário (CLS 0,213). Retrato de
 64 px, Safari num aparelho e leitor de tela de verdade. `public/legacy/buildings` espera decisão.
+
+## Rodada 11: celular e estados de espera e falha
+
+O "antes" é o commit `3427a80`. Comparativos em `direcao-de-arte/rodada-11/`, antes à esquerda.
+
+- **Espera e falha.** Conta, mundo e aldeia usam a página de entrada, no lugar da moldura antiga, que foi
+  removida com seu CSS. Cinco telas mostravam a falha e "Carregando…" juntas. Agora as telas que falham
+  trazem "Tentar novamente", conferido em 11 casos.
+- **Caixa de erro.** Texto escuro em fundo claro sobre o papel.
+- **Toque.** Botões, campos e abas das janelas têm 44 px em telas de toque. Links no texto e caixas de
+  marcar ganham área de toque maior sem mudar de tamanho. Barra e mapa ficam com 40 px.
+- **Aviso de ataque.** Entra junto com a barra e não empurra mais o cenário. Com dois ataques, o nome
+  acessível voltou a bater com o texto.
+- **Pedidos em paralelo.** Quem abre o jogo pelo endereço pede conta, mundo, aldeia e comandos juntos.
+
+Celular, 4G simulado, com ataque a caminho, mediana de três cargas:
+
+| Tela | Pronto antes | Pronto depois | CLS antes | CLS depois |
+| --- | --- | --- | --- | --- |
+| Aldeia | 3,10 s | 2,72 s | 0,213 | 0,002 |
+| Mapa | 3,81 s | 3,34 s | 0,213 | 0 |
+
+O LCP da aldeia ficou igual, em 6,5 s. No mapa o LCP subiu de 1,7 para 2,2 s. Um ataque que
+surge com o jogo aberto ainda empurra o cenário no celular.
+
+Regressão sobre o build: axe-core, Chromium, Firefox 160, WebKitGTK 2.54, teclado e matriz da barra.
+
+Pendente: no celular, um ponto de relatório do mapa pode ficar meio coberto por um painel flutuante; basta
+arrastar o mapa. Retrato de 64 px, Safari num aparelho, leitor de tela e `public/legacy/buildings`.

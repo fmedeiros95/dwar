@@ -1,3 +1,4 @@
+import { StatusPage } from './components/status-page.js';
 import { Navigate, Route, Routes, useNavigate, useLocation } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { api, ApiError, type Account } from '@dwar/api-client';
@@ -24,25 +25,20 @@ export function App() {
     client.setQueryData(['account'], null);
     navigate('/');
   }
-  if (account.isPending)
-    return (
-      <main className="center-screen">
-        <p className="loading-message">Abrindo os portões…</p>
-      </main>
-    );
+  if (account.isPending) return <StatusPage title="Abrindo os portões…" home={false} />;
   if (
     !account.data &&
     account.error &&
     (!(account.error instanceof ApiError) || account.error.status !== 401)
   ) {
     return (
-      <main className="center-screen">
-        <div className="notice">
-          <h1>O mundo está indisponível</h1>
-          <p>Não foi possível conectar ao servidor.</p>
-          <button onClick={() => void account.refetch()}>Tentar novamente</button>
-        </div>
-      </main>
+      <StatusPage
+        title="O mundo está indisponível"
+        error="Não foi possível conectar ao servidor."
+        onRetry={() => void account.refetch()}
+        retrying={account.isFetching}
+        home={false}
+      />
     );
   }
   if (!account.data || (account.error instanceof ApiError && account.error.status === 401))

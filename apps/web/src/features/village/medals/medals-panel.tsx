@@ -1,3 +1,4 @@
+import { LoadState } from '../../../components/load-state.js';
 import { useQuery } from '@tanstack/react-query';
 import { api, type MedalView, type VillageSnapshot } from '@dwar/api-client';
 import { Icon } from '../../../components/icons.js';
@@ -93,7 +94,7 @@ export function MedalsPanel({ snapshot }: { snapshot: VillageSnapshot }) {
             ))}
         </ul>
       ) : (
-        <p className="muted">Carregando medalhas…</p>
+        <LoadState query={medals} loading="Carregando medalhas…" />
       )}
     </div>
   );

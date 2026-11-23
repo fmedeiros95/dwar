@@ -1,3 +1,4 @@
+import { LoadState } from '../../../components/load-state.js';
 import { revealTab } from '../../../components/reveal-tab.js';
 import { useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
@@ -89,7 +90,7 @@ export function TribePanel({ snapshot }: { snapshot: VillageSnapshot }) {
         </p>
       ) : null}
       {!data ? (
-        <p className="muted">Carregando tribo…</p>
+        <LoadState query={home} loading="Carregando tribo…" />
       ) : !data.tribe ? (
         <NoTribe
           invites={data.invites}
