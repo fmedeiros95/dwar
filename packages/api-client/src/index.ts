@@ -368,70 +368,7 @@ export type MapSnapshot = {
   tribeRelations: Record<number, RelationKind>;
   settings: MapSettings;
   marks: MapMark[];
-  /** Caravanas paradas: todos veem onde e entre quem; a carga é só dos dois. */
-  caravans: MapCaravan[];
 };
-export type CaravanLot = 'sun' | 'moon';
-export type CaravanResource = 'wood' | 'stone' | 'iron';
-export type MapCaravan = {
-  id: number;
-  x: number;
-  y: number;
-  mine: boolean;
-  yourTurn: boolean;
-  between: { villageId: number; name: string; x: number; y: number }[];
-};
-export type CaravanSide = {
-  villageId: number;
-  name: string;
-  x: number;
-  y: number;
-  points: number;
-  playerId: number | null;
-  username: string;
-  tribe: string | null;
-};
-/** Uma partilha passada entre os mesmos dois jogadores: o que ambos viram acontecer. */
-export type CaravanMemory = {
-  at: string;
-  youDivided: boolean;
-  banner: CaravanResource | null;
-  /** Carroça levada por quem escolheu e a que sobrou para quem dividiu. */
-  taken: Resources;
-  left: Resources;
-  absent: 'divider' | 'chooser' | 'both' | null;
-};
-export type CaravanView = {
-  id: number;
-  x: number;
-  y: number;
-  phase: 'dividing' | 'choosing' | 'delivered';
-  role: 'divider' | 'chooser';
-  yourTurn: boolean;
-  me: CaravanSide;
-  rival: CaravanSide;
-  cargo: Resources;
-  /** O que quem escolhe diz querer, antes da divisão. Pode ser blefe. */
-  banner: CaravanResource | null;
-  /** Parte da carroça do Sol antes do pedágio. */
-  sun: Resources | null;
-  /** As duas carroças já com o pedágio pago. */
-  lots: Record<CaravanLot, Resources> | null;
-  chosen: CaravanLot | null;
-  mine: CaravanLot | null;
-  /** Quem perdeu o prazo, se alguém perdeu. */
-  absent: 'divider' | 'chooser' | 'both' | null;
-  /** Fim do prazo da etapa atual (ou o momento da entrega). */
-  deadline: string;
-  cart: { load: Resources; left: Resources; empty: boolean } | null;
-  memories: CaravanMemory[];
-};
-export type CaravanOverview = { serverTime: string; caravans: CaravanView[] };
-export type CaravanAction =
-  | { type: 'banner'; resource: CaravanResource | null }
-  | { type: 'divide'; sun: Resources }
-  | { type: 'choose'; lot: CaravanLot }
-  | { type: 'unload' };
 export type SupportPreview = {
   kind: 'support' | 'attack';
   morale: number | null;
@@ -900,12 +837,6 @@ export const api = {
     request<TribeProfile>(`/worlds/${worldId}/tribes/${tribeId}`),
   tribeAction: (worldId: number, action: TribeAction) =>
     request<TribeHome>(`/worlds/${worldId}/tribes/actions`, {
-      method: 'POST',
-      body: JSON.stringify(action),
-    }),
-  caravans: (worldId: number) => request<CaravanOverview>(`/worlds/${worldId}/caravans`),
-  caravanAction: (worldId: number, caravanId: number, action: CaravanAction) =>
-    request<CaravanOverview>(`/worlds/${worldId}/caravans/${caravanId}`, {
       method: 'POST',
       body: JSON.stringify(action),
     }),

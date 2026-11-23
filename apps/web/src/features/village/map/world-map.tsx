@@ -27,7 +27,6 @@ import { keepPreviousData, useQuery, useMutation, useQueryClient } from '@tansta
 
 import {
   api,
-  type CaravanView,
   type MapCommand,
   type MapSnapshot,
   type MapSettings,
@@ -46,7 +45,6 @@ import {
   villageGraphic,
 } from './map-legend.js';
 import { Icon } from '../../../components/icons.js';
-import { CaravanGlyph } from '../caravan/caravan-art.js';
 import { OrderPanel, emptyDraft, type OrderDraft } from './order-panel.js';
 import { useSavedDraft } from '../orders/use-order-flow.js';
 import { ownTarget } from '../rally/order-target.js';
@@ -64,14 +62,7 @@ const reportDotLabel = {
 
 const coordinate = (value: string | null, fallback: number) =>
   value !== null && /^\d{1,3}$/.test(value) ? Number(value) : fallback;
-type CaravanProps = {
-  caravans: CaravanView[];
-  onCaravan: (id: number, villageId: number) => void;
-};
-export function WorldMap({
-  snapshot,
-  ...caravanProps
-}: { snapshot: VillageSnapshot } & CaravanProps) {
+export function WorldMap({ snapshot }: { snapshot: VillageSnapshot }) {
   const options = useQuery({
     queryKey: ['map-options', snapshot.world.id, snapshot.village.id],
     queryFn: () =>
@@ -85,22 +76,9 @@ export function WorldMap({
         </p>
       </div>
     );
-  return (
-    <MapCanvas
-      key={snapshot.village.id}
-      snapshot={snapshot}
-      options={options.data}
-      {...caravanProps}
-    />
-  );
+  return <MapCanvas key={snapshot.village.id} snapshot={snapshot} options={options.data} />;
 }
-function MapCanvas({
-  snapshot,
-  options,
-  caravans,
-  onCaravan,
-}: { snapshot: VillageSnapshot; options: MapSnapshot } & CaravanProps) {
-  const [toldCaravan, setToldCaravan] = useState<number | null>(null);
+function MapCanvas({ snapshot, options }: { snapshot: VillageSnapshot; options: MapSnapshot }) {
   const client = useQueryClient();
   const [resizeDraft, setResizeDraft] = useState<MapSettings | null>(null);
   const settings = resizeDraft ?? options.settings;
@@ -481,53 +459,6 @@ function MapCanvas({
             </span>
           ))}
         </div>
-        <svg className="map-caravan-trail" aria-hidden="true">
-          {(map.data?.caravans ?? [])
-            .filter((item) => item.mine)
-            .flatMap((item) =>
-              item.between.map((end) => (
-                <path
-                  key={`${item.id}-${end.villageId}`}
-                  d={`M${(item.x - position.x) * 60 + 30} ${(item.y - position.y) * 60 + 34} L${(end.x - position.x) * 60 + 30} ${(end.y - position.y) * 60 + 34}`}
-                />
-              )),
-            )}
-        </svg>
-        {(map.data?.caravans ?? []).map((item) => {
-          const live = caravans.find((row) => row.id === item.id);
-          const names = item.between.map((end) => end.name).join(' e ');
-          const label = live
-            ? live.yourTurn
-              ? live.phase === 'dividing'
-                ? 'Caravana: divida a carga'
-                : 'Caravana: escolha uma carroça'
-              : `Caravana: vez de ${live.rival.username}`
-            : toldCaravan === item.id
-              ? `Entre ${names}`
-              : null;
-          return (
-            <button
-              key={item.id}
-              type="button"
-              className="map-caravan"
-              data-mine={item.mine ? 'true' : undefined}
-              style={{ left: (item.x - position.x) * 60 - 6, top: (item.y - position.y) * 60 - 6 }}
-              aria-label={`Caravana parada entre ${names}${live ? `. ${label}. Abrir a partilha` : ''}`}
-              title={`Caravana parada entre ${names}`}
-              onPointerDown={(event) => event.stopPropagation()}
-              onClick={() =>
-                live
-                  ? onCaravan(item.id, live.me.villageId)
-                  : setToldCaravan(toldCaravan === item.id ? null : item.id)
-              }
-            >
-              <svg viewBox="-2 -3 64 60" aria-hidden="true">
-                <CaravanGlyph />
-              </svg>
-              {label ? <span>{label}</span> : null}
-            </button>
-          );
-        })}
         {route ? (
           <svg
             className="map-route"

@@ -24,7 +24,6 @@ import { RankingScreen } from './ranking/index.js';
 import { SettingsScreen } from './settings/index.js';
 import { IncomingsPanel } from './incomings/incomings-panel.js';
 import { ThreatAlert } from './incomings/threat.js';
-import { CaravanChip, CaravanScreen } from './caravan/caravan-screen.js';
 import { useVillageActions } from './use-village-actions.js';
 import { usePlannerState } from './planner/build-planner.js';
 import { duration, numbers, resources, timeFormat } from './shared/index.js';
@@ -33,7 +32,7 @@ import { useResourceDeltas } from './shared/resource-delta.js';
 
 const idleResources = { wood: 0, stone: 0, iron: 0 };
 
-const backgroundScreens = ['overview', 'map', 'caravan'];
+const backgroundScreens = ['overview', 'map'];
 const windowTitles: Record<string, string> = {
   reports: 'Relatórios',
   mail: 'Mensagens',
@@ -76,7 +75,6 @@ export function VillagePage({
   const isBackground = backgroundScreens.includes(rawScreen);
   const lastBackground = useRef('overview');
   const handledSearch = useRef('');
-  const caravanId = useRef<string | null>(null);
   const mapCenter = useRef<{ x: string; y: string } | null>(null);
   const windows = useWindowManager(windowSize);
   const openWindow = windows.open;
@@ -118,7 +116,6 @@ export function VillagePage({
     if (isBackground) {
       lastBackground.current = rawScreen;
       handledSearch.current = '';
-      if (rawScreen === 'caravan') caravanId.current = params.get('id');
       // Guarda onde o mapa estava: abrir uma janela a partir dele não pode recentralizá-lo.
       if (rawScreen === 'map' && params.has('x') && params.has('y'))
         mapCenter.current = { x: params.get('x')!, y: params.get('y')! };
@@ -132,8 +129,6 @@ export function VillagePage({
     const next = new URLSearchParams();
     next.set('village', search.get('village')!);
     next.set('screen', lastBackground.current);
-    if (lastBackground.current === 'caravan' && caravanId.current)
-      next.set('id', caravanId.current);
     if (lastBackground.current === 'map' && mapCenter.current) {
       next.set('x', mapCenter.current.x);
       next.set('y', mapCenter.current.y);
@@ -164,12 +159,6 @@ export function VillagePage({
     queryFn: () => api.incomings(worldId),
     enabled: !!data,
     refetchInterval: 3000,
-  });
-  const caravans = useQuery({
-    queryKey: ['caravans', worldId],
-    queryFn: () => api.caravans(worldId),
-    enabled: !!data,
-    refetchInterval: 4000,
   });
   const {
     build,
@@ -257,10 +246,6 @@ export function VillagePage({
     const villageId = params.get('village') ?? String(canonicalVillageId ?? '');
     openWindow(new URLSearchParams({ village: villageId, screen: 'incomings', mode }).toString());
   }
-  /** A caravana é da aldeia que participa: abrir a tela também leva a essa aldeia. */
-  function openCaravan(id: number, villageId: number) {
-    setParams({ village: villageId, screen: 'caravan', id });
-  }
   /** Navegação feita de dentro de uma janela: outra tela na própria janela, ou o fundo. */
   function navigateWindow(id: number, search: string) {
     if (backgroundScreens.includes(new URLSearchParams(search).get('screen') ?? '')) {
@@ -305,7 +290,6 @@ export function VillagePage({
   const focusedScreen = focusedWindow
     ? screenOf(focusedWindow.search)
     : lastBackgroundScreen(rawScreen, isBackground, lastBackground.current);
-  const background = lastBackgroundScreen(rawScreen, isBackground, lastBackground.current);
   const active = buildingFor(focusedScreen);
   const section = active
     ? 'buildings'
@@ -607,11 +591,6 @@ export function VillagePage({
           <Link to="/worlds" className="subbar-world">
             {data.world.name}
           </Link>
-          <CaravanChip
-            overview={caravans.data}
-            clock={clock}
-            onOpen={(caravan) => openCaravan(caravan.id, caravan.me.villageId)}
-          />
           <div className="subbar-links">
             {['main', 'noble', 'barracks', 'stable', 'workshop', 'market', 'place'].flatMap(
               (code) => {
@@ -677,7 +656,7 @@ export function VillagePage({
           ) : null}
         </p>
       ) : null}
-      {background === 'overview' ? (
+      {lastBackgroundScreen(rawScreen, isBackground, lastBackground.current) === 'overview' ? (
         <Overview
           snapshot={data}
           graphical={account.graphicalOverview !== false}
@@ -690,31 +669,9 @@ export function VillagePage({
           pendingCode={build.isPending ? build.variables?.buildingCode : undefined}
           onConstruct={construct}
           onCancel={(id) => cancel.mutate(id)}
-          cart={
-            caravans.data?.caravans.find(
-              (item) => item.me.villageId === data.village.id && item.cart && !item.cart.empty,
-            ) ?? null
-          }
-          onCart={(caravan) => openCaravan(caravan.id, caravan.me.villageId)}
-        />
-      ) : background === 'caravan' ? (
-        <CaravanScreen
-          snapshot={data}
-          overview={caravans.data}
-          clock={clock}
-          id={Number(params.get('id'))}
-          onMap={(x, y) => setParams({ village: data.village.id, screen: 'map', x, y })}
-          onVillage={() => {
-            planner.setOpen(true);
-            setScreen('overview');
-          }}
         />
       ) : (
-        <WorldMap
-          snapshot={data}
-          caravans={caravans.data?.caravans ?? []}
-          onCaravan={openCaravan}
-        />
+        <WorldMap snapshot={data} />
       )}
       <WindowLayer
         manager={windows}
