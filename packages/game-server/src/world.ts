@@ -10,6 +10,7 @@ import {
 } from '@dwar/database';
 import type { WorldEntry } from '@dwar/api-client';
 import { GameError } from './errors.js';
+import { processCaravans } from './caravan.js';
 import { processBarbarianGrowth, scheduleGrowth } from './barbarian-growth.js';
 import { lockWorld, settleVillage, settleWorldEvents, type WorldRow } from './village-engine.js';
 
@@ -177,7 +178,10 @@ export async function processWorldEvents(): Promise<number> {
         if (village) await settleVillage(tx, village, world, now);
       }
       const grown = await processBarbarianGrowth(tx, world, now);
-      return resolvedEvents + due.length + dueResearch.length + dueRecruitment.length + grown;
+      const partilhas = await processCaravans(tx, world, now);
+      return (
+        resolvedEvents + due.length + dueResearch.length + dueRecruitment.length + grown + partilhas
+      );
     });
   }
   return processed;
