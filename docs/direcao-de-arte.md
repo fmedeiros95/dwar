@@ -570,4 +570,4 @@ Testado em Chromium headless, 390×844 e 1366×768, num banco isolado, com perfi
 de verdade. Os selos foram vistos com resposta simulada, e também a 920, 1024 e 1920 px.
 
 Pendente: retrato de 64 px, Firefox, Safari e leitor de tela. Entre 901 e 1199 px, os selos seguem sem
-horário, e a 920 px dois selos com "+N" deixam a barra apertada.
+horário. Até 1340 px os recursos quebram em duas linhas: antes a página vazava 107 px a 920.

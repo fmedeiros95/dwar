@@ -2610,6 +2610,28 @@ th[data-state='wait'] .cmp-build:disabled {
   outline-offset: -2px;
 }
 
+@media (min-width: 901px) and (max-width: 1340px) {
+  /* Faixa estreita: a marca some e os recursos quebram em duas linhas dentro da barra. */
+  .shell-topbar:has(.threat-chip):has(.threat-after) .brand-text {
+    display: none;
+  }
+  .shell-topbar:has(.threat-chip):has(.threat-after) .legacy-resources {
+    flex-shrink: 1;
+    flex-wrap: wrap;
+    gap: 3px 4px;
+    min-width: 0;
+  }
+  .shell-topbar:has(.threat-chip):has(.threat-after) .resource-amount {
+    min-height: 0;
+    height: 29px;
+    padding: 1px 6px;
+    font-size: 13px;
+  }
+  .shell-topbar:has(.threat-chip):has(.threat-after) .shell-village {
+    flex-shrink: 0;
+    max-width: 130px;
+  }
+}
 @media (min-width: 1200px) {
   /* Dois selos ao lado de um ataque: o horário distingue as batalhas e o nome da marca cede lugar. */
   .threat-chip ~ .threat-seals[data-several] .threat-after small {

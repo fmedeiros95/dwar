@@ -29,7 +29,9 @@ function GameWindow({
   // nela. As janelas não são modais: o Tab sai delas normalmente.
   useEffect(() => {
     if (!focused || root.current?.contains(document.activeElement)) return;
-    opener.current = document.activeElement;
+    // O body (janela de cima fechada) e a barra de janelas não servem de origem: a anterior vale.
+    const from = document.activeElement;
+    if (from !== document.body && !from?.closest('.window-dock')) opener.current = from;
     root.current?.focus({ preventScroll: true });
   }, [focused, win.z]);
 
