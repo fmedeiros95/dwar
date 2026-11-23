@@ -2610,28 +2610,6 @@ th[data-state='wait'] .cmp-build:disabled {
   outline-offset: -2px;
 }
 
-@media (min-width: 901px) and (max-width: 1340px) {
-  /* Faixa estreita: a marca some e os recursos quebram em duas linhas dentro da barra. */
-  .shell-topbar:has(.threat-chip):has(.threat-after) .brand-text {
-    display: none;
-  }
-  .shell-topbar:has(.threat-chip):has(.threat-after) .legacy-resources {
-    flex-shrink: 1;
-    flex-wrap: wrap;
-    gap: 3px 4px;
-    min-width: 0;
-  }
-  .shell-topbar:has(.threat-chip):has(.threat-after) .resource-amount {
-    min-height: 0;
-    height: 29px;
-    padding: 1px 6px;
-    font-size: 13px;
-  }
-  .shell-topbar:has(.threat-chip):has(.threat-after) .shell-village {
-    flex-shrink: 0;
-    max-width: 130px;
-  }
-}
 @media (min-width: 901px) and (max-width: 1199px) {
   /* A espada e o tempo bastam no aviso; o espaço vai para o horário das batalhas. */
   .threat:has(.threat-seals[data-several]) .threat-chip-label {
@@ -2692,5 +2670,173 @@ th[data-state='wait'] .cmp-build:disabled {
   .classic-side .hud-ledger-tools button:hover:not(:disabled) {
     width: 44px;
     height: 44px;
+  }
+}
+
+/* ======================================================================
+ * Rodada 9: telas com dados, telas antes do jogo e barra com números reais
+ * ====================================================================== */
+/* Tribo, mensagens e relatórios usam o mesmo cartão claro das outras telas. */
+.gw-body .tribe-card,
+.gw-body .mail-post,
+.gw-body .report-banner,
+.gw-body .report-parties > div {
+  background: rgb(255 252 242 / 0.62);
+  border-block-color: rgb(70 45 18 / 0.16);
+  border-right-color: rgb(70 45 18 / 0.16);
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgb(70 45 18 / 0.08);
+}
+.gw-body .report-parties {
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+}
+.report-parties .text-button {
+  min-height: 24px;
+}
+.gw-body :is(.tribe-card, .mail-post, .report-parties > div) {
+  border-left-color: rgb(70 45 18 / 0.16);
+}
+.tribe-heading {
+  margin-bottom: 12px;
+}
+.page-card > * + .tribe-card {
+  margin-top: 12px;
+}
+.pregame-main h1 {
+  text-wrap: balance;
+  font-family: var(--font-display);
+  letter-spacing: 0.03em;
+}
+.transit-row strong {
+  color: color-mix(in srgb, var(--tone) 45%, #2a1a06);
+}
+@media (max-width: 900px) {
+  /* Abas numa linha que desliza, em vez de três linhas. */
+  .gw-body .report-tabs:not(:has(> label)),
+  .gw-body .mail-tabs,
+  .gw-body .rank-subtabs {
+    flex-wrap: nowrap;
+    max-width: 100%;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .gw-body .report-tabs:not(:has(> label)) button,
+  .gw-body .mail-tabs button,
+  .gw-body .rank-subtabs button {
+    flex: none;
+    min-height: 44px;
+  }
+  /* Com a ordem aberta, o título do mapa segue disponível para leitores de tela. */
+  .map-stage:has(.order-panel) .map-title {
+    display: block;
+    width: 0;
+    height: 0;
+    padding: 0;
+    overflow: hidden;
+    border: 0;
+  }
+  .map-stage:has(.order-panel) .map-title > :not(h1) {
+    display: none;
+  }
+  .gw-body .text-button {
+    min-height: 28px;
+  }
+}
+
+@media (max-width: 900px) {
+  /* Ranking: pontos sempre à vista; aldeias e data descem para a segunda linha. */
+  .rank-list .rank-row {
+    grid-template-columns: 36px auto minmax(0, 1fr) auto;
+    gap: 2px 10px;
+    min-width: 0;
+    padding: 8px;
+  }
+  .rank-list .rank-row > :nth-child(2) {
+    grid-column: 2 / 4;
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+  .rank-list .rank-row > :nth-child(3) {
+    grid-column: 4;
+  }
+  .rank-list .rank-row > [data-label] {
+    grid-row: 2;
+    font-size: 12px;
+    color: var(--muted);
+    text-align: left;
+  }
+  .rank-list .rank-row > [data-label]:nth-child(4) {
+    grid-column: 2;
+  }
+  .rank-list .rank-row > [data-label]:nth-child(5) {
+    grid-column: 3 / 5;
+  }
+  .rank-list .rank-row > [data-label]::before {
+    content: attr(data-label) ': ';
+  }
+  .rank-list:not(.rank-members) .rank-head > :nth-child(n + 4) {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+  }
+  .rank-list.rank-members .rank-row {
+    grid-template-columns: 28px minmax(0, 1fr) minmax(0, 90px) auto;
+  }
+  .rank-list.rank-members .rank-row > :nth-child(2) {
+    grid-column: 2;
+  }
+  .rank-list.rank-members .rank-row > :nth-child(3) {
+    grid-column: 3;
+  }
+}
+
+/* Barra superior com números de jogo adiantado: a marca some e os recursos podem ocupar duas
+   linhas dentro da barra. Até 1240 px isso vale sempre; até 1500 px, só com aviso de ataque ou
+   batalha. Os seletores repetem .shell-topbar para vencer as regras de aviso acima. */
+@media (min-width: 901px) and (max-width: 1500px) {
+  .shell-topbar.shell-topbar.shell-topbar:has(.threat-chip, .threat-after) .brand-text {
+    display: none;
+  }
+  .shell-topbar.shell-topbar.shell-topbar:has(.threat-chip, .threat-after) .legacy-resources {
+    flex-shrink: 1;
+    flex-wrap: wrap;
+    gap: 3px 4px;
+    min-width: 0;
+  }
+  .shell-topbar.shell-topbar.shell-topbar:has(.threat-chip, .threat-after) .resource-amount {
+    min-height: 0;
+    height: 29px;
+    padding: 1px 6px;
+    font-size: 13px;
+  }
+  .shell-topbar.shell-topbar.shell-topbar:has(.threat-chip, .threat-after) .shell-village {
+    flex-shrink: 0;
+    max-width: 130px;
+  }
+}
+@media (min-width: 901px) and (max-width: 1240px) {
+  .shell-topbar.shell-topbar.shell-topbar.shell-topbar .brand-text {
+    display: none;
+  }
+  .shell-topbar.shell-topbar.shell-topbar.shell-topbar .legacy-resources {
+    flex-shrink: 1;
+    flex-wrap: wrap;
+    gap: 3px 4px;
+    min-width: 0;
+  }
+  .shell-topbar.shell-topbar.shell-topbar.shell-topbar .resource-amount {
+    min-height: 0;
+    height: 29px;
+    padding: 1px 6px;
+    font-size: 13px;
+  }
+  .shell-topbar.shell-topbar.shell-topbar.shell-topbar .shell-village {
+    flex-shrink: 0;
+    max-width: 130px;
+  }
+  .threat:has(.threat-chip) .threat-seals:not([data-several]) .threat-after small {
+    display: none;
   }
 }

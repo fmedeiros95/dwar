@@ -1,3 +1,4 @@
+import { revealTab } from '../../../components/reveal-tab.js';
 import { useState, type FormEvent, type ReactNode } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { ChevronLeft, ChevronRight, Search, Trophy } from 'lucide-react';
@@ -73,6 +74,7 @@ export function TribeRanking({ snapshot, tabs }: { snapshot: VillageSnapshot; ta
         {metrics.map((item) => (
           <button
             key={item.code}
+            ref={item.code === metric ? revealTab : undefined}
             className={item.code === metric ? 'active' : undefined}
             aria-current={item.code === metric ? 'page' : undefined}
             onClick={() =>
@@ -128,10 +130,10 @@ export function TribeRanking({ snapshot, tabs }: { snapshot: VillageSnapshot; ta
             <span role="cell" className="num">
               {numbers.format(entry.value)}
             </span>
-            <span role="cell" className="num">
+            <span role="cell" className="num" data-label="Membros">
               {numbers.format(entry.members)}
             </span>
-            <span role="cell" className="num">
+            <span role="cell" className="num" data-label="Aldeias">
               {numbers.format(entry.villages)}
             </span>
           </div>

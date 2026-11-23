@@ -70,7 +70,6 @@ export function AcademyPanel({
               className="wide"
               disabled={pending}
               onClick={() => onAction('mint')}
-              aria-label="Cunhar uma moeda"
             >
               <Coins size={17} aria-hidden="true" /> Cunhar moeda
             </button>

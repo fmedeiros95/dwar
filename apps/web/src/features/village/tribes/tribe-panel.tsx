@@ -1,3 +1,4 @@
+import { revealTab } from '../../../components/reveal-tab.js';
 import { useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { api, type MessageTarget, type TribeAction, type VillageSnapshot } from '@dwar/api-client';
@@ -104,6 +105,7 @@ export function TribePanel({ snapshot }: { snapshot: VillageSnapshot }) {
               .map((item) => (
                 <button
                   key={item.code}
+                  ref={item.code === tab ? revealTab : undefined}
                   className={item.code === tab ? 'active' : undefined}
                   aria-current={item.code === tab ? 'page' : undefined}
                   onClick={() => go(item.code)}

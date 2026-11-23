@@ -83,7 +83,7 @@ function AftermathSeals({
             ? time
             : seal.target.name
           : `${seal.target.name} · ${seal.reportId === null ? 'resolvendo…' : 'ver relatório'}`;
-        const full = `${label}. ${seal.target.name}, ataque de ${seal.attacker} às ${time}`;
+        const full = `${label} ${detail}. ${seal.target.name}, ataque de ${seal.attacker} às ${time}`;
         return (
           <button
             key={seal.id}
@@ -99,8 +99,7 @@ function AftermathSeals({
           >
             {several ? null : <ScrollText size={15} aria-hidden="true" />}
             <span>
-              <strong>{label}</strong>
-              <small>{detail}</small>
+              <strong>{label}</strong> <small>{detail}</small>
             </span>
           </button>
         );
@@ -212,7 +211,7 @@ export function ThreatAlert({
         className="threat-chip"
         onClick={onOpen}
         title={`${attacks.length} ${attacks.length === 1 ? 'ataque' : 'ataques'} a caminho. Abrir detalhes`}
-        aria-label={`Ataque a caminho de ${first.to.name}, chega em ${duration(remaining)}. Abrir detalhes`}
+        aria-label={`${attacks.length > 1 ? `${attacks.length} ataques. ` : ''}Ataque em ${duration(remaining)} ${first.to.name}. Abrir detalhes`}
       >
         <span className="threat-chip-icon" aria-hidden="true">
           <Swords size={16} />
@@ -222,7 +221,7 @@ export function ThreatAlert({
           <strong>
             <span className="threat-chip-label">Ataque em </span>
             <time>{duration(remaining)}</time>
-          </strong>
+          </strong>{' '}
           <small>{first.to.name}</small>
         </span>
       </button>
@@ -242,7 +241,7 @@ export function ThreatAlert({
                   } as CSSProperties
                 }
               >
-                <header>
+                <header role="none">
                   <Swords size={18} aria-hidden="true" />
                   <strong>Ataque a caminho</strong>
                   <button

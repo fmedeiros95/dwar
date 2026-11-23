@@ -940,7 +940,7 @@ p {
   font-size: 10px;
   font-weight: 700;
   color: #fff;
-  background: var(--danger);
+  background: #b8342b;
   border: 1px solid rgb(13 9 6 / 0.8);
   border-radius: 999px;
 }

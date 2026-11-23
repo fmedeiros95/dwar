@@ -1,3 +1,4 @@
+import { revealTab } from '../../../components/reveal-tab.js';
 import { useEffect, useState, type FormEvent } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useGameSearchParams as useSearchParams } from '../../../routing.js';
@@ -150,6 +151,7 @@ export function RankingScreen({ snapshot }: { snapshot: VillageSnapshot }) {
       {boards.map((tab) => (
         <button
           key={tab.code}
+          ref={tab.code === board ? revealTab : undefined}
           className={tab.code === board ? 'active' : undefined}
           aria-current={tab.code === board ? 'page' : undefined}
           onClick={() => chooseBoard(tab.code)}
@@ -183,6 +185,7 @@ export function RankingScreen({ snapshot }: { snapshot: VillageSnapshot }) {
           {killTypes.map((tab) => (
             <button
               key={tab.code}
+              ref={tab.code === type ? revealTab : undefined}
               className={tab.code === type ? 'active' : undefined}
               aria-current={tab.code === type ? 'page' : undefined}
               onClick={() =>
@@ -289,10 +292,10 @@ export function RankingScreen({ snapshot }: { snapshot: VillageSnapshot }) {
             <span role="cell" className="num">
               {numbers.format(entry.points)}
             </span>
-            <span role="cell" className="num">
+            <span role="cell" className="num" data-label="Aldeias">
               {numbers.format(entry.villageCount)}
             </span>
-            <span role="cell" className="rank-joined">
+            <span role="cell" className="rank-joined" data-label="Desde">
               {new Date(entry.joinedAt).toLocaleDateString('pt-BR')}
             </span>
           </div>
