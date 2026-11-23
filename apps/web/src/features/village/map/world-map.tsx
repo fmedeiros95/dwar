@@ -86,9 +86,11 @@ function MapCanvas({ snapshot, options }: { snapshot: VillageSnapshot; options: 
   const stageRef = useRef<HTMLDivElement>(null);
   const [stage, setStage] = useState({ w: 960, h: 640 });
   const [panel, setPanel] = useState<'legend' | 'options' | null>(null);
-  useEffect(() => {
+  // Mede antes de pintar: sem isso os blocos apareciam num lugar e pulavam para outro.
+  useLayoutEffect(() => {
     const node = stageRef.current;
     if (!node) return;
+    setStage({ w: node.clientWidth, h: node.clientHeight });
     const observer = new ResizeObserver(([entry]) => {
       if (entry) setStage({ w: entry.contentRect.width, h: entry.contentRect.height });
     });

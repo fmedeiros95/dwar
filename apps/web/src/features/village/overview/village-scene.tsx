@@ -1,4 +1,4 @@
-import { useMemo, useState, type ReactNode } from 'react';
+import { Fragment, useMemo, useState, type MouseEvent, type ReactNode } from 'react';
 import {
   Ghost,
   LocateFixed,
@@ -307,81 +307,84 @@ export function VillageScene({
               (item) =>
                 item.buildingCode === building.code && new Date(item.startsAt).getTime() <= clock,
             );
-            const timedEvent = works;
-            return (
-              <g
-                key={`label-${building.code}`}
-                className={`scene-label crest-${state}`}
-                data-compared={compared.includes(building.code) ? 'true' : undefined}
-                data-crest={building.code}
-                role={onCrest ? 'button' : undefined}
-                tabIndex={onCrest ? 0 : undefined}
-                aria-pressed={onCrest ? compared.includes(building.code) : undefined}
-                aria-label={`Comparar ${building.name}, nível ${building.level}, ${crestLabels[state]}`}
-                onFocus={() => onHover?.({ code: building.code, part: 'crest' })}
-                onBlur={() => onHover?.(null)}
-                onKeyDown={(keyEvent) => {
-                  if (keyEvent.key === 'Enter' || keyEvent.key === ' ') {
-                    keyEvent.preventDefault();
-                    onCrest?.(building.code);
-                  }
-                }}
-                transform={`translate(${placed.label.left - 2}, ${placed.label.top - 4})`}
-                onClick={
-                  onCrest
-                    ? (clickEvent) => {
-                        clickEvent.stopPropagation();
-                        if (!pan.didDrag()) onCrest(building.code);
-                      }
-                    : undefined
+            const choose = onCrest
+              ? (clickEvent: MouseEvent) => {
+                  clickEvent.stopPropagation();
+                  if (!pan.didDrag()) onCrest(building.code);
                 }
-                onMouseEnter={() => onHover?.({ code: building.code, part: 'crest' })}
-                onMouseLeave={() => onHover?.(null)}
-              >
-                {onCrest ? (
-                  <circle className="crest-hit" cx={crestSize.width / 2} cy={17} r={24} />
-                ) : null}
-                {compared.includes(building.code) ? (
-                  <path className="crest-compare-ring" d={crestPath} />
-                ) : null}
-                <path className="crest-shape" d={crestPath} />
-                {state === 'working' && works ? (
-                  <path
-                    className="crest-progress"
-                    d={crestPath}
-                    pathLength={100}
-                    strokeDasharray={`${progressOf(works, clock) * 100} 100`}
-                  />
-                ) : null}
-                <text className="crest-level" x={crestSize.width / 2} y={21} textAnchor="middle">
-                  {building.level > 0 ? building.level : '+'}
-                </text>
-                {state === 'ready' ? (
-                  <g className="crest-tab" transform={`translate(${crestSize.width - 5}, -3)`}>
-                    <circle r={7} cx={0} cy={4} />
-                    <path d="M-3.2 5.6 L0 2 L3.2 5.6" />
-                  </g>
-                ) : null}
-                {state === 'max' ? (
-                  <path
-                    className="crest-crown"
-                    transform={`translate(${crestSize.width / 2 - 7}, -7)`}
-                    d="M0 8 L2 1 L5 5 L7 0 L9 5 L12 1 L14 8 Z"
-                  />
-                ) : null}
-                {timedEvent ? (
+              : undefined;
+            const left = placed.label.left - 2;
+            const top = placed.label.top - 4;
+            return (
+              <Fragment key={`label-${building.code}`}>
+                <g
+                  className={`scene-label crest-${state}`}
+                  data-compared={compared.includes(building.code) ? 'true' : undefined}
+                  data-crest={building.code}
+                  role={onCrest ? 'button' : undefined}
+                  tabIndex={onCrest ? 0 : undefined}
+                  aria-pressed={onCrest ? compared.includes(building.code) : undefined}
+                  aria-label={`Comparar ${building.name}, nível ${building.level}, ${crestLabels[state]}`}
+                  onFocus={() => onHover?.({ code: building.code, part: 'crest' })}
+                  onBlur={() => onHover?.(null)}
+                  onKeyDown={(keyEvent) => {
+                    if (keyEvent.key === 'Enter' || keyEvent.key === ' ') {
+                      keyEvent.preventDefault();
+                      onCrest?.(building.code);
+                    }
+                  }}
+                  transform={`translate(${left}, ${top})`}
+                  onClick={choose}
+                  onMouseEnter={() => onHover?.({ code: building.code, part: 'crest' })}
+                  onMouseLeave={() => onHover?.(null)}
+                >
+                  {onCrest ? (
+                    <circle className="crest-hit" cx={crestSize.width / 2} cy={17} r={24} />
+                  ) : null}
+                  {compared.includes(building.code) ? (
+                    <path className="crest-compare-ring" d={crestPath} />
+                  ) : null}
+                  <path className="crest-shape" d={crestPath} />
+                  {state === 'working' && works ? (
+                    <path
+                      className="crest-progress"
+                      d={crestPath}
+                      pathLength={100}
+                      strokeDasharray={`${progressOf(works, clock) * 100} 100`}
+                    />
+                  ) : null}
+                  <text className="crest-level" x={crestSize.width / 2} y={21} textAnchor="middle">
+                    {building.level > 0 ? building.level : '+'}
+                  </text>
+                  {state === 'ready' ? (
+                    <g className="crest-tab" transform={`translate(${crestSize.width - 5}, -3)`}>
+                      <circle r={7} cx={0} cy={4} />
+                      <path d="M-3.2 5.6 L0 2 L3.2 5.6" />
+                    </g>
+                  ) : null}
+                  {state === 'max' ? (
+                    <path
+                      className="crest-crown"
+                      transform={`translate(${crestSize.width / 2 - 7}, -7)`}
+                      d="M0 8 L2 1 L5 5 L7 0 L9 5 L12 1 L14 8 Z"
+                    />
+                  ) : null}
+                </g>
+                {/* Fora do botão: o tempo muda a cada segundo e não faz parte do nome dele. */}
+                {works ? (
                   <g
-                    className="crest-timer"
+                    className="crest-timer scene-label"
                     aria-hidden="true"
-                    transform={`translate(${crestSize.width + 3}, ${crestSize.height / 2 - 9})`}
+                    transform={`translate(${left + crestSize.width + 3}, ${top + crestSize.height / 2 - 9})`}
+                    onClick={choose}
                   >
                     <rect width={58} height={18} rx={9} />
                     <text x={29} y={12.5} textAnchor="middle">
-                      {duration((new Date(timedEvent.endsAt).getTime() - clock) / 1000)}
+                      {duration((new Date(works.endsAt).getTime() - clock) / 1000)}
                     </text>
                   </g>
                 ) : null}
-              </g>
+              </Fragment>
             );
           })}
         </svg>

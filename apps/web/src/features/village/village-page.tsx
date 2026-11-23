@@ -10,25 +10,51 @@ import { GameShell } from '../../components/game-shell.js';
 import { WindowLayer } from '../../components/game-window.js';
 import { screenOf, useWindowManager } from '../../components/use-window-manager.js';
 import { useToast } from '../../components/toast.js';
-import { BuildingScreen, panelBuildings } from './building-screen.js';
-import { buildingArtId } from './overview/scene-model.js';
+import { panelBuildings } from './panel-buildings.js';
+import { lazyScreen, preloadScreens } from '../../components/lazy-screen.js';
+import { buildingArtId, preloadBacking } from './overview/scene-model.js';
 import { Overview } from './overview/index.js';
-import { WorldMap } from './map/index.js';
-import { PublicVillageScreen, PublicPlayerScreen } from './public-info/index.js';
-import { ReportsPanel } from './reports/index.js';
-import { MailPanel } from './mail/index.js';
-import { NotesPanel } from './notes/index.js';
-import { MedalsPanel } from './medals/index.js';
-import { TribePanel, TribeProfileScreen } from './tribes/index.js';
-import { RankingScreen } from './ranking/index.js';
-import { SettingsScreen } from './settings/index.js';
-import { IncomingsPanel } from './incomings/incomings-panel.js';
 import { ThreatAlert } from './incomings/threat.js';
 import { useVillageActions } from './use-village-actions.js';
 import { usePlannerState } from './planner/build-planner.js';
 import { completionDate, duration, numbers, resources, timeFormat } from './shared/index.js';
 import { currentResources } from './shared/current-resources.js';
 import { useResourceDeltas } from './shared/resource-delta.js';
+
+// O mapa e as janelas saem do pacote inicial; baixam ao abrir ou logo depois da aldeia.
+const BuildingScreen = lazyScreen(() =>
+  import('./building-screen.js').then((module) => module.BuildingScreen),
+);
+const WorldMap = lazyScreen(() => import('./map/index.js').then((module) => module.WorldMap));
+const PublicVillageScreen = lazyScreen(() =>
+  import('./public-info/index.js').then((module) => module.PublicVillageScreen),
+);
+const PublicPlayerScreen = lazyScreen(() =>
+  import('./public-info/index.js').then((module) => module.PublicPlayerScreen),
+);
+const ReportsPanel = lazyScreen(() =>
+  import('./reports/index.js').then((module) => module.ReportsPanel),
+);
+const MailPanel = lazyScreen(() => import('./mail/index.js').then((module) => module.MailPanel));
+const NotesPanel = lazyScreen(() => import('./notes/index.js').then((module) => module.NotesPanel));
+const MedalsPanel = lazyScreen(() =>
+  import('./medals/index.js').then((module) => module.MedalsPanel),
+);
+const TribePanel = lazyScreen(() =>
+  import('./tribes/index.js').then((module) => module.TribePanel),
+);
+const TribeProfileScreen = lazyScreen(() =>
+  import('./tribes/index.js').then((module) => module.TribeProfileScreen),
+);
+const RankingScreen = lazyScreen(() =>
+  import('./ranking/index.js').then((module) => module.RankingScreen),
+);
+const SettingsScreen = lazyScreen(() =>
+  import('./settings/index.js').then((module) => module.SettingsScreen),
+);
+const IncomingsPanel = lazyScreen(() =>
+  import('./incomings/incomings-panel.js').then((module) => module.IncomingsPanel),
+);
 
 const idleResources = { wood: 0, stone: 0, iron: 0 };
 
@@ -76,6 +102,7 @@ export function VillagePage({
   const lastBackground = useRef('overview');
   const handledSearch = useRef('');
   const mapCenter = useRef<{ x: string; y: string } | null>(null);
+  if (rawScreen !== 'map') preloadBacking();
   const windows = useWindowManager(windowSize);
   const openWindow = windows.open;
   const selectedVillageId = params.has('village') ? Number(params.get('village')) : undefined;
@@ -100,6 +127,13 @@ export function VillagePage({
     }
   }, [village.error, client, navigate, worldId, world.slug]);
   const data = village.data;
+  const ready = data !== undefined;
+  useEffect(() => {
+    if (!ready) return;
+    // Depois da aldeia e de sua arte, para não disputar a rede com elas.
+    const timer = setTimeout(() => void preloadScreens(), 4000);
+    return () => clearTimeout(timer);
+  }, [ready]);
   const canonicalVillageId = data?.village.id;
   useEffect(() => {
     if (canonicalVillageId === undefined) return;
