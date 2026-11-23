@@ -668,3 +668,5 @@ Regressão sobre o build: axe-core, Chromium, Firefox 160, WebKitGTK 2.54, tecla
 
 Pendente: no celular, um ponto de relatório do mapa pode ficar meio coberto por um painel flutuante; basta
 arrastar o mapa. Retrato de 64 px, Safari num aparelho, leitor de tela e `public/legacy/buildings`.
+
+**Depois da rodada 11:** `public/legacy/buildings` (317 arquivos, 9,8 MB, sem uso) foi removida.
