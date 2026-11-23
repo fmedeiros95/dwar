@@ -99,7 +99,7 @@ export function BBEditor({
             type="button"
             className={`bb-tool bb-tool-${action.title === 'Negrito' ? 'bold' : action.title === 'Itálico' ? 'italic' : action.title === 'Sublinhado' ? 'underline' : action.title === 'Tachado' ? 'strike' : 'text'}`}
             title={action.title}
-            aria-label={action.title}
+            aria-label={action.label.length > 1 ? `${action.label}: ${action.title}` : action.title}
             disabled={disabled}
             onClick={() => wrap(action.open, action.close, action.sample)}
           >

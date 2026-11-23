@@ -220,7 +220,8 @@ export function ThreatAlert({
         </span>
         <span className="threat-chip-text">
           <strong>
-            Ataque em <time>{duration(remaining)}</time>
+            <span className="threat-chip-label">Ataque em </span>
+            <time>{duration(remaining)}</time>
           </strong>
           <small>{first.to.name}</small>
         </span>

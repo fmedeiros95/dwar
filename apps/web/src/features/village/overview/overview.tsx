@@ -1,6 +1,6 @@
 import { useEffect, useState, type CSSProperties } from 'react';
 import type { BuildingView, VillageSnapshot } from '@dwar/api-client';
-import { ChevronDown, List, Mountain, MousePointerClick, X } from 'lucide-react';
+import { ChevronDown, History, List, Mountain, MousePointerClick, X } from 'lucide-react';
 import { ResourceIcon } from '../../../components/legacy-frame.js';
 import { VillageScene, crestLabels, crestState, type SceneTarget } from './village-scene.js';
 import { buildingArt, sceneThemes, type SceneTheme } from './scene-model.js';
@@ -204,9 +204,20 @@ function ClassicOverview({
 }) {
   return (
     <div className="classic">
+      <h1 className="sr-only">{snapshot.village.name}</h1>
       <aside className="classic-side hud-card" aria-label="Produção e tropas da aldeia">
         <header className="hud-ledger-head">
           <h2>Sua aldeia</h2>
+          <div className="hud-ledger-tools">
+            <button
+              type="button"
+              title="Atividade da aldeia"
+              aria-label="Atividade da aldeia"
+              onClick={() => onSelect('activity')}
+            >
+              <History size={15} aria-hidden="true" />
+            </button>
+          </div>
           <button type="button" className="button" disabled={pending} onClick={onGraphical}>
             <Mountain size={15} aria-hidden="true" /> Ver o cenário
           </button>
@@ -253,6 +264,7 @@ function VillageLedger({
   clock,
   collapsed,
   onToggle,
+  onActivity,
   onClassic,
   classicPending,
 }: {
@@ -260,6 +272,7 @@ function VillageLedger({
   clock: number;
   collapsed: boolean;
   onToggle: () => void;
+  onActivity: () => void;
   onClassic: () => void;
   classicPending: boolean;
 }) {
@@ -273,6 +286,14 @@ function VillageLedger({
       <header className="hud-ledger-head">
         <h2>Sua aldeia</h2>
         <div className="hud-ledger-tools">
+          <button
+            type="button"
+            title="Atividade da aldeia"
+            aria-label="Atividade da aldeia"
+            onClick={onActivity}
+          >
+            <History size={15} aria-hidden="true" />
+          </button>
           <button
             type="button"
             title="Visão clássica (lista de edifícios)"
@@ -417,58 +438,62 @@ export function Overview({
     );
   const hoveredBuilding = snapshot.buildings.find((building) => building.code === hovered?.code);
   return (
-    <VillageScene
-      villageId={snapshot.village.id}
-      buildings={snapshot.buildings}
-      onSelect={(code) => {
-        // O Edifício principal é a própria mesa de obras: abre o painel em vez de uma janela.
-        guide.learn('building');
-        if (code === 'main') planner.show();
-        else onSelect(code);
-      }}
-      onCrest={(code) => {
-        guide.learn('crest');
-        // Com a mesa à vista, o brasão liga e desliga; recolhida, abre com a comparação que já havia.
-        planner.compare(code, !(planner.open && planner.compared.includes(code)));
-        planner.setOpen(true);
-      }}
-      coveredRight={planner.open ? plannerWidth : 0}
-      compared={planner.compared}
-      onHover={setHovered}
-      queue={snapshot.queue}
-      clock={clock}
-      theme={theme}
-      onThemeChange={changeTheme}
-    >
-      <BuildPlanner
-        variant="dock"
-        snapshot={snapshot}
+    <>
+      <h1 className="sr-only">{snapshot.village.name}</h1>
+      <VillageScene
+        villageId={snapshot.village.id}
+        buildings={snapshot.buildings}
+        onSelect={(code) => {
+          // O Edifício principal é a própria mesa de obras: abre o painel em vez de uma janela.
+          guide.learn('building');
+          if (code === 'main') planner.show();
+          else onSelect(code);
+        }}
+        onCrest={(code) => {
+          guide.learn('crest');
+          // Com a mesa à vista, o brasão liga e desliga; recolhida, abre com a comparação que já havia.
+          planner.compare(code, !(planner.open && planner.compared.includes(code)));
+          planner.setOpen(true);
+        }}
+        coveredRight={planner.open ? plannerWidth : 0}
+        compared={planner.compared}
+        onHover={setHovered}
+        queue={snapshot.queue}
         clock={clock}
-        planner={planner}
-        pending={pending}
-        pendingCode={pendingCode}
-        onConstruct={onConstruct}
-        onCancel={onCancel}
-        onOpen={onSelect}
-      />
-      {hoveredBuilding ? (
-        <BuildingCard
-          building={hoveredBuilding}
+        theme={theme}
+        onThemeChange={changeTheme}
+      >
+        <BuildPlanner
+          variant="dock"
           snapshot={snapshot}
           clock={clock}
-          part={hovered!.part}
           planner={planner}
+          pending={pending}
+          pendingCode={pendingCode}
+          onConstruct={onConstruct}
+          onCancel={onCancel}
+          onOpen={onSelect}
         />
-      ) : null}
-      {guide.visible ? <SceneGuide guide={guide} /> : null}
-      <VillageLedger
-        snapshot={snapshot}
-        clock={clock}
-        collapsed={collapsed}
-        onToggle={toggle}
-        onClassic={() => onPreference(false)}
-        classicPending={preferencePending}
-      />
-    </VillageScene>
+        {hoveredBuilding ? (
+          <BuildingCard
+            building={hoveredBuilding}
+            snapshot={snapshot}
+            clock={clock}
+            part={hovered!.part}
+            planner={planner}
+          />
+        ) : null}
+        {guide.visible ? <SceneGuide guide={guide} /> : null}
+        <VillageLedger
+          snapshot={snapshot}
+          clock={clock}
+          collapsed={collapsed}
+          onToggle={toggle}
+          onActivity={() => onSelect('activity')}
+          onClassic={() => onPreference(false)}
+          classicPending={preferencePending}
+        />
+      </VillageScene>
+    </>
   );
 }

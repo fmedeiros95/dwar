@@ -1113,7 +1113,12 @@ img.resource-icon.painted {
     padding: 6px 8px;
   }
   .map-title h1 {
-    display: none;
+    /* Fora da vista, mas ainda o título da tela para leitores de tela. */
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
   }
   .map-title .world-map-coordinates input {
     width: 52px;

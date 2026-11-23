@@ -317,7 +317,7 @@ export function VillageScene({
                 role={onCrest ? 'button' : undefined}
                 tabIndex={onCrest ? 0 : undefined}
                 aria-pressed={onCrest ? compared.includes(building.code) : undefined}
-                aria-label={`Comparar ${building.name}, ${crestLabels[state]}`}
+                aria-label={`Comparar ${building.name}, nível ${building.level}, ${crestLabels[state]}`}
                 onFocus={() => onHover?.({ code: building.code, part: 'crest' })}
                 onBlur={() => onHover?.(null)}
                 onKeyDown={(keyEvent) => {

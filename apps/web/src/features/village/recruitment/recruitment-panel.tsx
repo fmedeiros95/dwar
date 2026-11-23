@@ -78,7 +78,7 @@ export function RecruitmentPanel({
                   decoding="async"
                 />
                 <div className="unit-info">
-                  <h3>{unit.name}</h3>
+                  <h2>{unit.name}</h2>
                   <span className="unit-stock">
                     Na aldeia <strong>{numbers.format(unit.indoors)}</strong> · total{' '}
                     <strong>{numbers.format(unit.total)}</strong>
@@ -116,7 +116,7 @@ export function RecruitmentPanel({
                         <button
                           type="button"
                           className="button"
-                          aria-label={`Recrutar o máximo de ${unit.name}`}
+                          aria-label={`Máx: recrutar o máximo de ${unit.name}`}
                           disabled={pending || max <= 0}
                           onClick={() => setQuantity(unit, max)}
                         >

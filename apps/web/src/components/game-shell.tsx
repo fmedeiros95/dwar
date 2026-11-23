@@ -57,8 +57,9 @@ export function GameShell({
   return (
     <div className="shell">
       <header className="shell-topbar">
-        <Link className="shell-logo" to="/worlds" aria-label="DWar — mundos">
+        <Link className="shell-logo" to="/worlds">
           <Brand size={42} />
+          <span className="sr-only">Voltar aos mundos</span>
         </Link>
         {topbar}
       </header>

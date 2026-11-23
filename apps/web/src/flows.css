@@ -2632,7 +2632,13 @@ th[data-state='wait'] .cmp-build:disabled {
     max-width: 130px;
   }
 }
-@media (min-width: 1200px) {
+@media (min-width: 901px) and (max-width: 1199px) {
+  /* A espada e o tempo bastam no aviso; o espaço vai para o horário das batalhas. */
+  .threat:has(.threat-seals[data-several]) .threat-chip-label {
+    display: none;
+  }
+}
+@media (min-width: 901px) {
   /* Dois selos ao lado de um ataque: o horário distingue as batalhas e o nome da marca cede lugar. */
   .threat-chip ~ .threat-seals[data-several] .threat-after small {
     display: block;
@@ -2668,5 +2674,23 @@ th[data-state='wait'] .cmp-build:disabled {
     width: 44px;
     justify-items: end;
     padding-right: 8px;
+  }
+}
+
+/* ======================================================================
+ * Rodada 8: acessibilidade e Firefox
+ * ====================================================================== */
+.gw-body:focus-visible {
+  outline: 2px solid var(--seal);
+  outline-offset: -3px;
+}
+.threat-chip-label {
+  white-space: pre;
+}
+@media (max-width: 900px) {
+  .classic-side .hud-ledger-tools button,
+  .classic-side .hud-ledger-tools button:hover:not(:disabled) {
+    width: 44px;
+    height: 44px;
   }
 }
