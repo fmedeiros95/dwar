@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { ChevronLeft, ChevronRight, Swords, Trash2 } from 'lucide-react';
 import { EmptyState } from '../../../components/empty-state.js';
 import type { ReportAction, ReportGroup, ReportRef, ReportsSnapshot } from '@dwar/api-client';
-import { completionDate } from '../shared/index.js';
+import { arrivalDate } from '../shared/index.js';
 import { Marks, kindIcon, refKey, roleLabel } from './report-parts.js';
 
 export function ReportList({
@@ -130,7 +130,7 @@ export function ReportList({
                       <small>{roleLabel(r)}</small>
                     </span>
                     <Marks report={r} />
-                    <time dateTime={r.occurredAt}>{completionDate(r.occurredAt, clock)}</time>
+                    <time dateTime={r.occurredAt}>{arrivalDate(r.occurredAt, clock)}</time>
                   </button>
                 </li>
               );

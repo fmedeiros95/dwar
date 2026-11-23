@@ -53,6 +53,8 @@ export type BuildingView = {
     current: number;
     next: number | null;
     max: number;
+    /** Ganho da próxima obra, a partir do nível já reservado na fila (null se não há próxima). */
+    plan: { current: number; next: number } | null;
     icon?: string;
   }[];
 };
@@ -424,11 +426,23 @@ export type IncomingCommand = {
   startsAt: string;
   endsAt: string;
 };
+/** Ataque recebido que já virou batalha, ligado ao relatório pelo comando que o originou. */
+export type ResolvedAttack = {
+  /** O mesmo id do comando em `commands` enquanto o ataque estava a caminho. */
+  movementId: number;
+  reportId: number;
+  occurredAt: string;
+  target: { id: number; name: string; x: number; y: number };
+  attacker: string;
+  outcome: 'won' | 'lost' | 'draw';
+};
 export type IncomingOverview = {
   serverTime: string;
   attacks: number;
   supports: number;
   commands: IncomingCommand[];
+  /** Batalhas de defesa dos últimos minutos, da mais recente para a mais antiga. */
+  resolved: ResolvedAttack[];
 };
 
 export type MailStatus = 'answered' | 'new' | 'read';

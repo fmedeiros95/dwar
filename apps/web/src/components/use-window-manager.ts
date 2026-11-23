@@ -16,6 +16,8 @@ export type WindowState = {
 /** Margens fixas do jogo: trilho à esquerda e barra superior. */
 export const frameInset = { left: 92, top: 68 };
 export const maxWindows = 3;
+/** Altura da barra de janelas abertas, no rodapé. */
+const dockSpace = 56;
 
 function viewport() {
   return { vw: window.innerWidth, vh: window.innerHeight };
@@ -63,9 +65,10 @@ export function useWindowManager(defaultSize: (screen: string) => { w: number; h
         }
         const { vw, vh } = viewport();
         const size = defaultSize(screen);
-        const w = Math.min(size.w, vw - frameInset.left - 24);
-        const h = Math.min(size.h, vh - frameInset.top - 24);
         const step = list.length * 30;
+        const w = Math.min(size.w, vw - frameInset.left - 24);
+        // Termina acima da barra de janelas abertas, que senão cobre o rodapé (e seus botões).
+        const h = Math.min(size.h, vh - frameInset.top - 28 - step - dockSpace);
         const position = clampPosition(
           frameInset.left + Math.max(24, (vw - frameInset.left - w) / 2) - 40 + step,
           frameInset.top + 28 + step,

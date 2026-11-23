@@ -55,7 +55,7 @@ export function useVillageActions({
       applySnapshot(result);
       const queued = result.queue.at(-1);
       toast.success(
-        'Obra iniciada',
+        result.queue.length > 1 ? 'Obra na fila' : 'Obra iniciada',
         queued ? `${queued.name}, nível ${queued.targetLevel}` : undefined,
       );
     },

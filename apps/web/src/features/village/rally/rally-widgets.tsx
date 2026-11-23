@@ -1,10 +1,11 @@
-import { useState, type FormEvent } from 'react';
+import type { FormEvent, ReactNode } from 'react';
 import { Crosshair, Shield, Swords, Users } from 'lucide-react';
 import type { RallySnapshot, TroopCounts } from '@dwar/api-client';
 import { numbers } from '../shared/index.js';
 import { PanelCard } from '../shared/panel-head.js';
 import { unitIconSrc } from '../../../components/unit-icon.js';
-import { OrderTarget, useOrderTarget } from './order-target.js';
+import { OrderTarget, ownTarget, useOrderTarget } from './order-target.js';
+import { clampCounts, type OrderChoice } from '../orders/use-order-flow.js';
 
 type UnitTypes = RallySnapshot['unitTypes'];
 
@@ -32,62 +33,45 @@ export function UnitStrip({
   );
 }
 
-/** O que foi digitado no envio de tropas, guardado para voltar da confirmação sem perder nada. */
-export type SendDraft = {
-  x: string;
-  y: string;
-  counts: Record<string, string>;
-  kind: 'support' | 'attack';
-};
+/** O que foi digitado no envio de tropas: sobrevive à revisão e a fechar a janela. */
+export type SendDraft = OrderChoice & { x: string; y: string };
 
 export function SendForm({
   worldId,
   villageId,
   data,
   pending,
-  x,
-  y,
-  initial,
+  draft,
   onDraft,
-  onPreview,
+  error,
+  onReview,
 }: {
   worldId: number;
   villageId: number;
   data: RallySnapshot;
   pending: boolean;
-  x: string;
-  y: string;
-  initial?: SendDraft | null;
-  onDraft?: (draft: SendDraft) => void;
-  onPreview: (
-    x: number,
-    y: number,
-    troops: TroopCounts,
-    kind: 'support' | 'attack',
-    targetBuilding?: string,
-  ) => void;
+  draft: SendDraft;
+  onDraft: (draft: SendDraft) => void;
+  error: ReactNode;
+  onReview: (x: number, y: number) => void;
 }) {
-  const [counts, setCounts] = useState<Record<string, string>>(initial?.counts ?? {});
-  const [kind, setKind] = useState<'support' | 'attack'>(initial?.kind ?? 'attack');
-  const [coords, setCoords] = useState({ x: initial?.x ?? x, y: initial?.y ?? y });
+  const { kind } = draft;
+  const counts = clampCounts(draft.counts, data.home);
   const toCoord = (value: string) => (/^\d{1,3}$/.test(value) ? Number(value) : null);
-  const target = useOrderTarget(worldId, villageId, toCoord(coords.x), toCoord(coords.y));
-  const chosen = data.unitTypes.reduce((sum, { code }) => sum + (Number(counts[code]) || 0), 0);
+  const x = toCoord(draft.x),
+    y = toCoord(draft.y);
+  const target = useOrderTarget(worldId, villageId, x, y);
+  const chosen = data.unitTypes.reduce((sum, { code }) => sum + (counts[code] ?? 0), 0);
   // Só as unidades que existem na aldeia (ou que já vieram preenchidas de um rascunho).
   const available = data.unitTypes.filter(
-    ({ code }) => (data.home[code] ?? 0) > 0 || Number(counts[code]) > 0,
+    ({ code }) => (data.home[code] ?? 0) > 0 || (counts[code] ?? 0) > 0,
   );
+  const setCounts = (next: Record<string, number>) => onDraft({ ...draft, counts: next });
+  const blocked = !target.village || !target.kind || ownTarget(target.kind);
   function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    const form = new FormData(event.currentTarget);
-    onDraft?.({ x: String(form.get('x')), y: String(form.get('y')), counts, kind });
-    onPreview(
-      Number(form.get('x')),
-      Number(form.get('y')),
-      Object.fromEntries(data.unitTypes.map(({ code }) => [code, Number(counts[code] ?? 0)])),
-      kind,
-      String(form.get('targetBuilding') ?? ''),
-    );
+    if (x === null || y === null || chosen === 0 || blocked || pending) return;
+    onReview(x, y);
   }
   return (
     <form className="rally-send" onSubmit={submit} aria-label="Enviar tropas">
@@ -101,13 +85,7 @@ export function SendForm({
               type="button"
               className="button"
               disabled={pending}
-              onClick={() =>
-                setCounts(
-                  Object.fromEntries(
-                    Object.entries(data.home).map(([code, count]) => [code, String(count)]),
-                  ),
-                )
-              }
+              onClick={() => setCounts({ ...data.home })}
             >
               Todas
             </button>
@@ -128,7 +106,7 @@ export function SendForm({
         <ul className="troop-grid">
           {available.map(({ code, name }) => {
             const home = data.home[code] ?? 0;
-            const picked = Number(counts[code]) || 0;
+            const picked = counts[code] ?? 0;
             return (
               <li
                 key={code}
@@ -145,9 +123,12 @@ export function SendForm({
                   inputMode="numeric"
                   placeholder="0"
                   maxLength={10}
-                  value={counts[code] ?? ''}
+                  value={picked || ''}
                   onChange={(event) =>
-                    setCounts({ ...counts, [code]: event.target.value.replace(/\D/g, '') })
+                    setCounts({
+                      ...counts,
+                      [code]: Math.min(home, Number(event.target.value.replace(/\D/g, '')) || 0),
+                    })
                   }
                   disabled={pending || home === 0}
                 />
@@ -157,7 +138,7 @@ export function SendForm({
                   disabled={pending || home === 0}
                   aria-label={`Selecionar todos: ${name}`}
                   title="Enviar todas desta unidade"
-                  onClick={() => setCounts({ ...counts, [code]: String(home) })}
+                  onClick={() => setCounts({ ...counts, [code]: home })}
                 >
                   {numbers.format(home)}
                 </button>
@@ -184,7 +165,7 @@ export function SendForm({
                 name="kind"
                 value={option.code}
                 checked={kind === option.code}
-                onChange={() => setKind(option.code)}
+                onChange={() => onDraft({ ...draft, kind: option.code })}
                 disabled={pending}
               />
               {option.icon}
@@ -202,10 +183,8 @@ export function SendForm({
               inputMode="numeric"
               pattern="[0-9]+"
               required
-              value={coords.x}
-              onChange={(event) =>
-                setCoords({ ...coords, x: event.target.value.replace(/\D/g, '') })
-              }
+              value={draft.x}
+              onChange={(event) => onDraft({ ...draft, x: event.target.value.replace(/\D/g, '') })}
               disabled={pending}
             />
           </label>
@@ -221,19 +200,23 @@ export function SendForm({
               inputMode="numeric"
               pattern="[0-9]+"
               required
-              value={coords.y}
-              onChange={(event) =>
-                setCoords({ ...coords, y: event.target.value.replace(/\D/g, '') })
-              }
+              value={draft.y}
+              onChange={(event) => onDraft({ ...draft, y: event.target.value.replace(/\D/g, '') })}
               disabled={pending}
             />
           </label>
         </div>
-        <OrderTarget info={target} x={coords.x} y={coords.y} attack={kind === 'attack'} />
-        {kind === 'attack' && Number(counts.catapult ?? 0) > 0 ? (
+        <OrderTarget info={target} x={draft.x} y={draft.y} attack={kind === 'attack'} />
+        {kind === 'attack' && (counts.catapult ?? 0) > 0 ? (
           <label className="order-field">
             <span>Alvo das catapultas</span>
-            <select name="targetBuilding" required disabled={pending} defaultValue="main">
+            <select
+              name="targetBuilding"
+              required
+              disabled={pending}
+              value={draft.targetBuilding}
+              onChange={(event) => onDraft({ ...draft, targetBuilding: event.target.value })}
+            >
               {data.catapultTargets.map((building) => (
                 <option key={building.code} value={building.code}>
                   {building.name}
@@ -242,17 +225,22 @@ export function SendForm({
             </select>
           </label>
         ) : null}
+        {error}
         <button
           className={`wide order-go ${kind}`}
-          disabled={pending || chosen === 0}
-          aria-label="Conferir comando"
+          disabled={pending || chosen === 0 || blocked}
+          aria-label={`Revisar ${kind === 'attack' ? 'ataque' : 'apoio'}`}
         >
           {kind === 'attack' ? <Swords size={17} /> : <Shield size={17} />}
           {chosen === 0
             ? 'Escolha as tropas'
-            : `${kind === 'attack' ? 'Atacar' : 'Apoiar'} com ${numbers.format(chosen)}`}
+            : blocked
+              ? 'Escolha o destino'
+              : `Revisar ${kind === 'attack' ? 'ataque' : 'apoio'} com ${numbers.format(chosen)}`}
         </button>
-        <p className="panel-hint">Você vê o tempo de viagem e a moral antes de confirmar.</p>
+        <p className="panel-hint">
+          Na revisão você vê chegada, volta e moral. Nada sai antes de confirmar.
+        </p>
       </PanelCard>
     </form>
   );

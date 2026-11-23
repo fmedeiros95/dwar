@@ -48,6 +48,7 @@ export function usePlannerState(villageId: number) {
   }));
   const codes = state.key === key ? state.codes : read();
   const [open, setOpen] = useState(() => localStorage.getItem('dwar:obras-aberta') === '1');
+  const [ping, setPing] = useState(0);
   function save(next: string[]) {
     setState({ key, codes: next });
     try {
@@ -63,10 +64,21 @@ export function usePlannerState(villageId: number) {
       setOpen(value);
       localStorage.setItem('dwar:obras-aberta', value ? '1' : '0');
     },
-    /** Põe na comparação (a mais antiga sai se já houver três) ou tira dela. */
+    /** Põe na comparação (a mais antiga sai se já houver três) ou tira dela; quem já está não muda de coluna. */
     compare(code: string, on = true) {
+      if (on && codes.includes(code)) return;
       const rest = codes.filter((item) => item !== code);
       save(on ? [...rest, code].slice(-maxCompared) : rest);
+    },
+    /** Quem sai da comparação se entrar mais uma obra (null enquanto houver lugar). */
+    replaces: codes.length >= maxCompared ? (codes[0] ?? null) : null,
+    /** Muda a cada pedido para mostrar a mesa já aberta (ver `show`). */
+    ping,
+    /** Abre a mesa; se já estava aberta, chama o olhar e o foco para ela. */
+    show() {
+      setOpen(true);
+      localStorage.setItem('dwar:obras-aberta', '1');
+      setPing((value) => value + 1);
     },
   };
 }
@@ -129,6 +141,23 @@ export function BuildPlanner(props: BuildPlannerProps) {
     () => snapshot.buildings.map((building) => planObra(snapshot, building, clock)),
     [snapshot, clock],
   );
+  const root = useRef<HTMLElement>(null);
+  const body = useRef<HTMLDivElement>(null);
+  const seenPing = useRef(planner.ping);
+  useEffect(() => {
+    if (variant !== 'dock' || seenPing.current === planner.ping) return;
+    seenPing.current = planner.ping;
+    body.current?.scrollTo({ top: 0 });
+    root.current?.focus({ preventScroll: true });
+    root.current?.animate?.(
+      [
+        { boxShadow: '0 0 0 0 rgb(255 226 150 / 0.95)' },
+        { boxShadow: '0 0 0 10px rgb(255 226 150 / 0)' },
+      ],
+      { duration: 700, iterations: 2, easing: 'ease-out' },
+    );
+  }, [planner.ping, variant]);
+  const main = snapshot.buildings.find((building) => building.code === 'main');
   const compared = planner.compared
     .map((code) => plans.find((plan) => plan.building.code === code))
     .filter((plan): plan is ObraPlan => !!plan);
@@ -136,6 +165,8 @@ export function BuildPlanner(props: BuildPlannerProps) {
   const max = snapshot.world.maxBuildQueue;
   return (
     <section
+      ref={root}
+      tabIndex={-1}
       className="planner"
       data-variant={variant}
       data-expanded={expanded ? 'true' : undefined}
@@ -148,6 +179,9 @@ export function BuildPlanner(props: BuildPlannerProps) {
         <h2>
           <Hammer size={15} aria-hidden="true" /> Obras
         </h2>
+        {variant === 'dock' && expanded && main ? (
+          <small className="planner-main">Edifício principal {main.level}</small>
+        ) : null}
         <small className="planner-slots" aria-label={`${used} de ${max} vagas da fila usadas`}>
           <b>{used}</b>/{max} vagas
         </small>
@@ -185,7 +219,7 @@ export function BuildPlanner(props: BuildPlannerProps) {
           </button>
         ) : null}
       </header>
-      <div className="planner-body">
+      <div className="planner-body" ref={body}>
         <QueueTimeline {...props} fresh={fresh} expanded={expanded} />
         {expanded ? (
           <>
@@ -199,6 +233,7 @@ export function BuildPlanner(props: BuildPlannerProps) {
 }
 
 function QueueTimeline({
+  variant,
   snapshot,
   clock,
   pending,
@@ -209,7 +244,11 @@ function QueueTimeline({
   if (!snapshot.queue.length)
     return (
       <p className="planner-empty">
-        Nenhuma obra na fila. Clique num brasão do cenário para comparar as próximas.
+        {variant === 'window'
+          ? 'Nenhuma obra na fila.'
+          : expanded
+            ? 'Nenhuma obra na fila.'
+            : 'Nenhuma obra na fila. O brasão de um edifício compara obras; o edifício abre sua função.'}
       </p>
     );
   return (
@@ -344,7 +383,9 @@ function BuildAction({
       )}
       {plan.state === 'wait' && plan.resourcesAt
         ? `Recursos em ${duration((plan.resourcesAt - clock) / 1000)}`
-        : 'Indisponível'}
+        : plan.queueFull
+          ? 'Fila cheia'
+          : 'Indisponível'}
     </button>
   );
 }
@@ -371,8 +412,14 @@ function Comparison({
           <Scale size={14} aria-hidden="true" /> Comparar
         </h3>
         <p>
-          {variant === 'dock' ? 'Clique nos brasões do cenário ou use' : 'Use'} <b>Comparar</b> na
-          lista abaixo para pôr até três obras lado a lado.
+          {variant === 'dock' ? (
+            <>
+              Clique no <b>brasão</b> de um edifício no cenário ou use
+            </>
+          ) : (
+            'Use'
+          )}{' '}
+          <b>Comparar</b> na lista abaixo: até três obras lado a lado.
         </p>
         {suggestions}
       </section>
@@ -396,9 +443,15 @@ function Comparison({
     <section className="planner-compare" style={{ '--cols': plans.length } as CSSProperties}>
       <h3>
         <Scale size={14} aria-hidden="true" /> Comparar
-        <small>{plans.length > 1 ? 'mesmas linhas, lado a lado' : 'adicione outra obra'}</small>
+        <small>
+          {plans.length < 2
+            ? 'adicione outra obra'
+            : plans.length >= maxCompared
+              ? `cheia: a próxima entra no lugar de ${plans[0]!.building.name}`
+              : 'mesmas linhas, lado a lado'}
+        </small>
       </h3>
-      {plans.length < maxCompared ? suggestions : null}
+      {plans.length < 2 ? suggestions : null}
       <div className="cmp-scroll">
         <table className="cmp-table">
           <thead>
@@ -439,7 +492,7 @@ function Comparison({
                         alt=""
                       />
                     </button>
-                    <strong>{plan.building.name}</strong>
+                    <strong className="cmp-name">{plan.building.name}</strong>
                     <span className="cmp-level">
                       {plan.maxed ? (
                         <>
@@ -522,21 +575,6 @@ function Comparison({
                 ),
               'cmp-row-strong',
             )}
-            {hasEffect
-              ? row('Efeito', (plan) =>
-                  plan.effect ? (
-                    <span className="cmp-effect">
-                      {plan.effect.label}
-                      <b>
-                        {plan.effect.before ? `${plan.effect.before} → ` : ''}
-                        {plan.effect.after}
-                      </b>
-                    </span>
-                  ) : (
-                    <span className="cmp-muted">—</span>
-                  ),
-                )
-              : null}
             {row('Custo', (plan) =>
               plan.maxed ? (
                 <span className="cmp-muted">—</span>
@@ -570,13 +608,29 @@ function Comparison({
                       ({ code, name }) =>
                         `${numbers.format(plan.missing[code]!)} de ${name.toLowerCase()}`,
                     )
-                    .join(', ') || 'liberar o requisito'}
+                    .join(', ')}
                 </span>
               ),
             )}
+            {hasEffect
+              ? row('Efeito', (plan) =>
+                  plan.effect ? (
+                    <span className="cmp-effect">
+                      {plan.effect.label}
+                      <b>
+                        {plan.effect.before ? `${plan.effect.before} → ` : ''}
+                        {plan.effect.after}
+                      </b>
+                    </span>
+                  ) : (
+                    <span className="cmp-muted">—</span>
+                  ),
+                )
+              : null}
           </tbody>
         </table>
       </div>
+      {plans.length >= 2 && plans.length < maxCompared ? suggestions : null}
     </section>
   );
 }
@@ -650,6 +704,7 @@ function Candidates({
   onConstruct,
 }: BuildPlannerProps & { plans: ObraPlan[] }) {
   const maxed = plans.filter((plan) => plan.state === 'max');
+  const replaced = plans.find((plan) => plan.building.code === planner.replaces)?.building.name;
   return (
     <section className="planner-all" aria-label="Todas as obras">
       {groups.map((group) => {
@@ -681,7 +736,7 @@ function Candidates({
                       </strong>
                       <small>
                         {plan.gain
-                          ? `+${numbers.format(plan.gain.diff)} ${plan.gain.label.toLowerCase()}`
+                          ? `+${numbers.format(plan.gain.diff)}${plan.gain.unit === '%' ? '%' : ''} ${plan.gain.label.toLowerCase()}`
                           : plan.building.description}
                       </small>
                       <small className="planner-when">
@@ -696,7 +751,13 @@ function Candidates({
                       type="button"
                       className="planner-compare-toggle"
                       aria-pressed={on}
-                      title={on ? 'Tirar da comparação' : 'Pôr na comparação'}
+                      title={
+                        on
+                          ? 'Tirar da comparação'
+                          : replaced
+                            ? `Pôr na comparação no lugar de ${replaced}`
+                            : 'Pôr na comparação'
+                      }
                       onClick={() => planner.compare(plan.building.code, !on)}
                     >
                       <Scale size={14} aria-hidden="true" />

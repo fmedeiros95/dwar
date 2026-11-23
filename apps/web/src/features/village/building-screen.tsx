@@ -118,7 +118,7 @@ export function BuildingScreen({
   if (building.code === 'market' && built)
     return <MarketPanel snapshot={snapshot} building={building} clock={clock} />;
   if (building.code === 'place' && built)
-    return <RallyPanel snapshot={snapshot} building={building} />;
+    return <RallyPanel key={snapshot.village.id} snapshot={snapshot} building={building} />;
   if (building.code === 'main')
     return (
       <div className="building-panel">

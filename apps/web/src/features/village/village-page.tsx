@@ -224,7 +224,7 @@ export function VillagePage({
       isBackground &&
       account.graphicalOverview !== false
     ) {
-      planner.setOpen(true);
+      planner.show();
       return;
     }
     if (backgroundScreens.includes(value)) {
@@ -498,7 +498,6 @@ export function VillagePage({
             data={incomings.data}
             clock={clock}
             onOpen={() => openIncomings('attack')}
-            reports={reports.data?.reports}
             onReport={(id) =>
               openWindow(
                 new URLSearchParams({

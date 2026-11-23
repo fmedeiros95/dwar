@@ -86,6 +86,14 @@
 .planner-slots b {
   color: var(--pl-gold);
 }
+.planner-main {
+  font: 600 12px var(--font-ui);
+  color: var(--pl-muted);
+  white-space: nowrap;
+}
+.planner:focus {
+  outline: none;
+}
 .planner-toggle {
   display: inline-flex;
   align-items: center;
@@ -357,12 +365,20 @@
   border-radius: 0 0 10px 10px;
 }
 .cmp-art {
+  float: left;
   display: block;
-  width: 56px;
-  height: 46px;
+  width: 48px;
+  height: 42px;
+  margin: 0 8px 2px 0;
   padding: 0;
   background: none;
   border: 0;
+}
+.cmp-state {
+  clear: left;
+}
+.cmp-name {
+  padding-right: 22px;
 }
 .cmp-art img {
   width: 100%;
@@ -455,14 +471,46 @@
   font-size: 13px;
   color: var(--pl-text);
 }
+/* Janela larga: uma linha por resposta, para custo e prazo caberem sem rolar. */
+.planner[data-variant='window'] {
+  margin-top: 0;
+}
+.planner[data-variant='window'] .cmp-gain,
+.planner[data-variant='window'] .cmp-effect {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 2px 8px;
+}
+.planner[data-variant='window'] .cmp-table thead th {
+  display: table-cell;
+}
+.planner[data-variant='window'] .cmp-level {
+  margin-right: 10px;
+}
+.planner[data-variant='window'] .cmp-state,
+.planner[data-variant='window'] .cmp-queued {
+  display: inline-flex;
+  margin-right: 8px;
+}
+.planner[data-variant='window'] .cmp-row-strong .cmp-time {
+  display: inline;
+  margin-right: 8px;
+}
+.planner[data-variant='window'] .cmp-cost,
+.planner[data-variant='window'] .cmp-cost + .cmp-tag {
+  display: inline-flex;
+  margin: 0 10px 0 0;
+}
 .cmp-muted {
   font-size: 12px;
   color: var(--pl-muted);
 }
 .cmp-cost,
 .cmp-left {
-  display: grid;
-  gap: 3px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px 10px;
   margin: 0;
   padding: 0;
   list-style: none;
@@ -613,7 +661,8 @@ th[data-state='wait'] .cmp-build:disabled {
   background: var(--state);
   clip-path: polygon(0 0, 100% 0, 100% 55%, 50% 100%, 0 55%);
 }
-.planner-compare.empty .cmp-suggest {
+.planner-compare.empty .cmp-suggest,
+.cmp-scroll + .cmp-suggest {
   margin: 10px 0 0;
 }
 
@@ -719,14 +768,6 @@ th[data-state='wait'] .cmp-build:disabled {
   min-width: 340px;
   transform: none;
 }
-.hud-building .hud-hint {
-  margin: 8px 0 0;
-  font-size: 11.5px;
-  color: #bfae8c;
-}
-.hud-building .hud-hint b {
-  color: var(--a-own-bright);
-}
 
 @media (min-width: 901px) {
   body:has(.scene-viewport .planner[data-expanded]) .toasts {
@@ -747,12 +788,106 @@ th[data-state='wait'] .cmp-build:disabled {
   fill: none;
   stroke: #fff3cf;
   stroke-width: 3;
-  transform: translate(-5px, -5px) scale(1.33);
-  transform-origin: 20px 22px;
+  transform: scale(1.33);
+  transform-origin: 15px 17px;
   filter: drop-shadow(0 0 4px rgb(255 217 138 / 0.9));
 }
-.village-labels .scene-label[data-crest]:hover .crest-shape {
-  filter: brightness(1.15);
+.village-labels .scene-label[data-crest]:hover .crest-shape,
+.village-labels .scene-label[data-crest]:focus-visible .crest-shape {
+  stroke: #fff3cf;
+  stroke-width: 2.5;
+  filter: brightness(1.15) drop-shadow(0 0 5px rgb(255 226 150 / 0.95));
+}
+.village-labels .scene-label[data-crest]:focus {
+  outline: none;
+}
+
+/* O cartão diz primeiro o que o clique faz no ponto apontado; depois, a outra ação. */
+.hud-building .hud-hint {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 10px 0 0;
+  padding: 6px 10px;
+  font-size: 12.5px;
+  color: #cdb98f;
+  background: rgb(232 190 106 / 0.1);
+  border-radius: 8px;
+}
+.hud-building .hud-hint svg {
+  flex: none;
+  color: var(--a-own-bright);
+}
+.hud-building .hud-hint b {
+  color: var(--a-own-bright);
+}
+.hud-building .hud-hint span {
+  margin-left: auto;
+  text-align: right;
+}
+
+/* Guia da primeira visita */
+.scene-guide {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  padding: 9px 10px 9px 14px;
+  font: 600 13px/1.25 var(--font-ui);
+  color: #f6ead0;
+  background: var(--panel-bg);
+  border: 1px solid var(--panel-edge);
+  border-radius: 12px;
+  box-shadow: var(--panel-shadow);
+  cursor: default;
+}
+.scene-guide p {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin: 0;
+}
+.scene-guide p[data-done] {
+  opacity: 0.5;
+}
+.scene-guide span,
+.scene-guide small {
+  display: block;
+}
+.scene-guide small {
+  font-size: 12px;
+  color: #cdb98f;
+}
+.scene-guide b {
+  color: var(--a-own-bright);
+}
+.scene-guide path {
+  fill: #e8be6a;
+  stroke: #fff1c7;
+  stroke-width: 1.5;
+}
+.scene-guide img {
+  width: 34px;
+  height: 28px;
+  object-fit: contain;
+}
+.scene-guide button {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  color: #cdb98f;
+  background: transparent;
+  border: 0;
+  border-radius: 8px;
+}
+/* O cartão do edifício ocupa o mesmo canto com a mesa aberta: o guia dá lugar a ele. */
+.scene-viewport:has(.planner[data-expanded]):has(.hud-building) .scene-guide {
+  visibility: hidden;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -1451,12 +1586,140 @@ th[data-state='wait'] .cmp-build:disabled {
 .order-review-facts {
   display: flex;
   flex-wrap: wrap;
-  gap: 4px 12px;
+  gap: 4px 14px;
   margin: 0;
-  padding: 0;
   font-size: 12px;
+}
+.order-review-facts div {
+  display: flex;
+  gap: 5px;
+}
+.order-review-facts dt {
   color: var(--op-muted);
-  list-style: none;
+}
+.order-review-facts dd {
+  margin: 0;
+  font-weight: 700;
+}
+/* Escolha do jogador, não consulta: o alvo das catapultas se destaca do resto. */
+.order-review-facts [data-strong] {
+  flex-basis: 100%;
+  font-size: 13px;
+}
+.order-review-kind:focus,
+.order-panel-body:focus {
+  outline: none;
+}
+/* "Ficam na aldeia" é consulta, não decisão: menor que "Vão". */
+.order-review-troops[data-left] {
+  padding-top: 8px;
+  border-top: 1px solid var(--op-line);
+}
+.order-review-troops[data-left] li {
+  grid-template-columns: 20px auto;
+  padding: 2px 8px 2px 3px;
+  background: none;
+}
+.order-review-troops[data-left] li span {
+  display: none;
+}
+.order-review-troops[data-left] img {
+  grid-row: auto;
+  width: 20px;
+  height: 20px;
+}
+.order-review-troops[data-left] strong {
+  font-size: 12px;
+}
+
+/* Painel do mapa: origem e destino lado a lado, para "Ficam na aldeia" caber sem rolar. */
+@media (min-width: 901px) {
+  .order-panel .order-route {
+    grid-template-columns: 1fr 1fr;
+    gap: 4px 6px;
+  }
+  .order-panel .order-route .order-route-line {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    margin: 0;
+    padding: 0;
+    text-align: center;
+    border-left: 0;
+    border-top: 2px dashed var(--op-tone);
+  }
+  .order-panel .order-review {
+    gap: 8px;
+  }
+  .order-panel .order-times div:first-child {
+    flex: 0 0 64px;
+  }
+  .order-panel .order-times dd {
+    font-size: 13.5px;
+    white-space: nowrap;
+  }
+  .order-panel .order-review-facts [data-strong] {
+    flex-basis: auto;
+    font-size: 12px;
+  }
+  .order-panel[data-step='review'] .order-panel-body {
+    padding-block: 8px;
+  }
+  .order-panel .order-review-troops[data-left] ul {
+    gap: 4px;
+    margin-top: 4px;
+  }
+}
+
+/* A mesma revisão na janela da Praça: mesmas partes e ordem, em pergaminho e com mais largura. */
+.order-review-window {
+  --op-text: #2a2017;
+  --op-muted: #6b5a43;
+  --op-line: rgb(90 62 28 / 0.22);
+  --op-tone: var(--a-hostile-deep);
+  display: grid;
+  gap: 14px;
+  font: 500 13px/1.35 var(--font-ui);
+  color: var(--op-text);
+}
+.order-review-window[data-kind='support'] {
+  --op-tone: var(--a-ally-deep);
+}
+.order-review-window .order-route {
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: center;
+}
+.order-review-window .order-route .order-route-line {
+  margin: 0;
+  padding: 6px 14px;
+  border-left: 0;
+  border-bottom: 2px dashed var(--op-tone);
+}
+.order-review-window .order-route li:not(.order-route-line),
+.order-review-window .order-times div,
+.order-review-window .order-review-troops:not([data-left]) li {
+  background: rgb(255 250 238 / 0.75);
+}
+.order-review-window .order-arrival dd {
+  color: var(--op-tone);
+}
+.order-review-window .order-warn {
+  color: var(--a-warn-ink);
+}
+.order-review-window .order-review-kind {
+  color: #fff;
+}
+.order-review-window .order-panel-foot {
+  position: sticky;
+  bottom: 0;
+  grid-template-columns: auto minmax(220px, 320px);
+  justify-content: end;
+  padding: 10px 0 12px;
+  background: linear-gradient(180deg, transparent, #f3e9d2 28%);
+}
+.order-review-window .map-crest {
+  position: static;
+  display: inline-grid;
+  transform: none;
 }
 .order-sent {
   display: grid;
@@ -1633,6 +1896,78 @@ th[data-state='wait'] .cmp-build:disabled {
 }
 .threat-after small {
   color: #cdb98f;
+}
+.threat-after:disabled {
+  opacity: 1;
+  cursor: default;
+}
+.threat:empty {
+  display: none;
+}
+/* Ataque a caminho e batalha recente juntos: os dois encolhem e os recursos ficam numa linha só. */
+.shell-topbar:has(.threat-chip):has(.threat-after) .resource-amount {
+  padding-inline: 7px;
+  font-size: 14px;
+}
+.shell-topbar:has(.threat-chip):has(.threat-after) .shell-player-info {
+  display: none;
+}
+.shell-topbar:has(.threat-chip):has(.threat-after) .legacy-resources {
+  flex-shrink: 0;
+  flex-wrap: nowrap;
+}
+.threat:has(.threat-after) .threat-chip-text small,
+.threat-chip ~ .threat-seals .threat-after svg {
+  display: none;
+}
+.threat-chip ~ .threat-seals[data-several] .threat-after small {
+  display: none;
+}
+.threat-seals {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+/* Duas batalhas: duas linhas no mesmo selo, cada uma abre o próprio relatório. */
+.threat-seals[data-several] {
+  display: grid;
+  grid-template-columns: auto auto;
+  gap: 3px 4px;
+}
+.threat-seals[data-several] .threat-after {
+  grid-column: 1;
+  min-height: 26px;
+  padding: 2px 9px;
+}
+.threat-seals[data-several] .threat-after span {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  width: 100%;
+}
+.threat-seals[data-several] .threat-after strong {
+  font-size: 12.5px;
+  white-space: nowrap;
+}
+.threat-seals[data-several] .threat-after small {
+  overflow: hidden;
+  max-width: 92px;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.threat-more {
+  grid-column: 2;
+  grid-row: 1 / span 2;
+  min-width: 30px;
+  height: 100%;
+  padding: 0 6px;
+  font: 800 12px var(--font-ui);
+  color: #f6ead0;
+  background: rgb(20 13 7 / 0.9);
+  border: 1px solid rgb(241 210 138 / 0.4);
+  border-radius: 9px;
 }
 .threat-after[data-outcome='won'] {
   border-left-color: var(--a-ok);

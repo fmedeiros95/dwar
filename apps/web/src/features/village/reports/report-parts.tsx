@@ -11,7 +11,7 @@ import {
   type LucideIcon,
 } from 'lucide-react';
 import type { ReportGroup, ReportRef, ReportSummary } from '@dwar/api-client';
-import { numbers } from '../shared/index.js';
+import { defenseOutcome, numbers } from '../shared/index.js';
 import { unitIconSrc } from '../../../components/unit-icon.js';
 
 export const outcome = { won: 'Vitória', lost: 'Derrota', draw: 'Empate' };
@@ -38,7 +38,8 @@ export function roleLabel(report: ReportSummary): string {
     const role = { attacker: 'Você atacou', defender: 'Você defendeu', support: 'Você apoiou' }[
       report.role
     ];
-    return `${role} · ${outcome[report.outcome]}`;
+    const result = report.role === 'defender' ? defenseOutcome : outcome;
+    return `${role} · ${result[report.outcome]}`;
   }
   if (report.kind === 'medal') return 'Nova medalha';
   if (report.kind === 'support')

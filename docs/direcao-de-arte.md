@@ -466,7 +466,7 @@ notebook, celular e notebook com movimento reduzido.
 jogador precisava notar o número em "Relatórios" e achar a batalha na lista. Agora o alerta guarda
 os ataques vistos. Por três minutos depois da chegada, um selo mostra "Batalha agora", enquanto o
 servidor resolve, e depois o resultado: "Defesa vencida" em musgo ou "Defesa perdida" em carmesim.
-O clique abre o relatório exato, achado pelo horário da batalha. O selo pós-batalha não pulsa.
+O clique abre o relatório exato (na rodada 3, achado pelo horário; ver a rodada 4). O selo pós-batalha não pulsa.
 
 Ver `alerta-ate-relatorio.jpg` e `alerta-celular-reduzido.jpg`.
 
@@ -482,5 +482,26 @@ Ver `alerta-ate-relatorio.jpg` e `alerta-celular-reduzido.jpg`.
   no banco local.
 - **Arrasto no celular.** O cenário foi arrastado com eventos de ponteiro de toque, porque o
   simulador de toque do navegador headless não move o cenário.
-- **Pendente.** Retrato pintado de 64 px, ver a seção 7. A revisão da Praça, usada ao digitar
-  coordenadas, ainda tem o layout da rodada 2. Firefox, Safari e leitor de tela não foram testados.
+- **Pendente.** Retrato pintado de 64 px, ver a seção 7. Firefox, Safari e leitor de tela não foram testados.
+
+## Rodada 4: fechamento de obras, ordens e pós-batalha (desktop)
+
+Só desktop, 1366×768, com mouse e teclado.
+
+- **Brasão e edifício.** Na primeira visita, um guia no cenário mostra as duas ações e some quando o
+  jogador usa ambas. Depois, o cartão do edifício diz primeiro o que o clique faz no ponto apontado.
+  Brasões recebem foco e respondem a Enter. Com a mesa aberta, clicar de novo tira da comparação, e
+  quem já está nela não muda de coluna.
+- **Ganho da próxima obra.** `details[].plan` conta a partir do nível já na fila. Antes a coluna
+  "15 → 16" mostrava o ganho do 15.
+- **Edifício principal.** Com a mesa já aberta, chama o foco e o olhar para ela. O cenário desliza
+  para descobrir o que a mesa cobre, e custo e sobra aparecem sem rolar na comparação de duas obras.
+- **Uma revisão só.** `orders/order-review.tsx` e `orders/use-order-flow.ts` servem o mapa e a Praça.
+  A confirmação envia a resposta revisada, nunca o rascunho. O rascunho sobrevive a fechar a Praça ou
+  sair do mapa. Sem resposta do servidor, só dá para conferir e repetir o mesmo pedido.
+- **Selo pós-batalha.** `IncomingOverview.resolved` liga o comando ao relatório por `movement_id`.
+  Duas batalhas viram duas linhas; as demais ficam em "+N". Ataque cancelado e relatório apagado não
+  aparecem. A vitória do defensor é "Sua aldeia resistiu", no selo e no relatório.
+- **Segundos.** Chegadas de tropas e batalhas mostram segundos.
+
+Pendente: retrato de 64 px.

@@ -21,7 +21,7 @@ export type ObraPlan = {
   cost: Have;
   costTotal: number;
   missing: Partial<Record<ResourceCode, number>>;
-  /** O que sobra de cada recurso depois de pagar, se der para pagar agora. */
+  /** O que sobra de cada recurso depois de pagar, se houver recursos agora. */
   leftover: Have | null;
   durationSeconds: number;
   /** Quando os recursos estarão disponíveis (agora, mais tarde ou nunca sem outra ação). */
@@ -32,6 +32,7 @@ export type ObraPlan = {
   /** Começa depois do fim da fila atual. */
   afterQueue: boolean;
   blockedReason: string | null;
+  queueFull: boolean;
 };
 
 const hoursLabel = (hours: number) =>
@@ -73,14 +74,14 @@ export function planObra(
         ? 'wait'
         : 'blocked';
   const nextLevel = building.queuedLevel + 1;
-  const detail = building.details.find((item) => item.next !== null);
+  const detail = building.details.find((item) => item.plan !== null);
   const gain = detail
     ? {
         label: detail.label,
         unit: detail.unit,
-        current: detail.current,
-        next: detail.next!,
-        diff: detail.next! - detail.current,
+        current: detail.plan!.current,
+        next: detail.plan!.next,
+        diff: detail.plan!.next - detail.plan!.current,
       }
     : null;
   const cost = { wood: building.cost.wood, stone: building.cost.stone, iron: building.cost.iron };
@@ -130,18 +131,20 @@ export function planObra(
     cost,
     costTotal,
     missing,
-    leftover: building.canBuild
-      ? {
-          wood: have.wood - cost.wood,
-          stone: have.stone - cost.stone,
-          iron: have.iron - cost.iron,
-        }
-      : null,
+    leftover:
+      Object.keys(missing).length === 0
+        ? {
+            wood: have.wood - cost.wood,
+            stone: have.stone - cost.stone,
+            iron: have.iron - cost.iron,
+          }
+        : null,
     durationSeconds: building.durationSeconds,
     resourcesAt,
     startsAt,
     endsAt: startsAt === null ? null : startsAt + building.durationSeconds * 1000,
     afterQueue: startsAt !== null && snapshot.queue.length > 0 && end > (resourcesAt ?? 0),
     blockedReason,
+    queueFull,
   };
 }

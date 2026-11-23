@@ -46,6 +46,8 @@ import {
 } from './map-legend.js';
 import { Icon } from '../../../components/icons.js';
 import { OrderPanel, emptyDraft, type OrderDraft } from './order-panel.js';
+import { useSavedDraft } from '../orders/use-order-flow.js';
+import { ownTarget } from '../rally/order-target.js';
 import { isNight } from '../shared/night.js';
 const commandLabel = {
   attack: 'Ataque seu a caminho',
@@ -74,7 +76,7 @@ export function WorldMap({ snapshot }: { snapshot: VillageSnapshot }) {
         </p>
       </div>
     );
-  return <MapCanvas snapshot={snapshot} options={options.data} />;
+  return <MapCanvas key={snapshot.village.id} snapshot={snapshot} options={options.data} />;
 }
 function MapCanvas({ snapshot, options }: { snapshot: VillageSnapshot; options: MapSnapshot }) {
   const client = useQueryClient();
@@ -118,13 +120,30 @@ function MapCanvas({ snapshot, options }: { snapshot: VillageSnapshot; options: 
   // O servidor só devolve aldeias dentro do raio pedido; informa quantos tiles estão visíveis.
   const span = Math.max(width, height);
 
-  const [params, setParams] = useSearchParams(),
-    [selectedId, setSelectedId] = useState<number | null>(null);
+  const [params, setParams] = useSearchParams();
   const [hover, setHover] = useState<{ village: PublicVillage; x: number; y: number } | null>(null);
-  const [order, setOrder] = useState<OrderDraft>(emptyDraft);
+  // Ordem em montagem e alvo: sair do mapa e voltar não obriga a escolher de novo.
+  const draftKey = `map:${snapshot.world.id}:${snapshot.village.id}`;
+  const [order, setOrder] = useSavedDraft<OrderDraft>(draftKey, emptyDraft);
+  const [chosen, setChosen] = useSavedDraft<PublicVillage | null>(`${draftKey}:target`, null);
+  const selectedId = chosen?.id ?? null;
   const panelRef = useRef<HTMLElement>(null);
-  const routeX = coordinate(params.get('x'), snapshot.village.x),
-    routeY = coordinate(params.get('y'), snapshot.village.y);
+  const focusPanel = useRef(false);
+  const building = chosen !== null && (order.step === 'troops' || order.step === 'review');
+  useEffect(() => {
+    // Só uma ordem em montagem é retomada; consulta encerrada ou ordem já enviada, não.
+    if (!building) {
+      setChosen(null);
+      setOrder((draft) => ({
+        ...draft,
+        step: 'target',
+        counts: draft.step === 'sent' ? {} : draft.counts,
+      }));
+    }
+    // Só ao abrir o mapa.
+  }, []);
+  const routeX = coordinate(params.get('x'), (building ? chosen : snapshot.village).x),
+    routeY = coordinate(params.get('y'), (building ? chosen : snapshot.village).y);
   const nav = useMapNavigation(
     routeX,
     routeY,
@@ -166,7 +185,8 @@ function MapCanvas({ snapshot, options }: { snapshot: VillageSnapshot; options: 
       : [],
   );
   const night = isNight();
-  const selected = map.data?.villages.find((row) => row.id === selectedId);
+  // Mover o mapa para longe tira o alvo do recorte carregado, mas não a ordem da tela.
+  const selected = map.data?.villages.find((row) => row.id === selectedId) ?? chosen;
   const left = Math.floor(position.x),
     top = Math.floor(position.y),
     miniLeft = position.x - Math.floor((minimapSize - width) / 2),
@@ -176,7 +196,7 @@ function MapCanvas({ snapshot, options }: { snapshot: VillageSnapshot; options: 
     setHover(null);
   }
   function closePanel() {
-    setSelectedId(null);
+    setChosen(null);
     setHover(null);
     setOrder((draft) => ({ ...draft, step: 'target' }));
   }
@@ -186,8 +206,9 @@ function MapCanvas({ snapshot, options }: { snapshot: VillageSnapshot; options: 
   function info(village: PublicVillage) {
     go('info_village', { id: village.id });
   }
-  function select(village?: PublicVillage) {
+  function select(village?: PublicVillage, keyboard = false) {
     setHover(null);
+    focusPanel.current = keyboard;
     if (!village) {
       // Clique no campo vazio não descarta uma ordem em montagem.
       if (order.step === 'target' || order.step === 'sent') closePanel();
@@ -198,10 +219,10 @@ function MapCanvas({ snapshot, options }: { snapshot: VillageSnapshot; options: 
       return;
     }
     if (village.id === selectedId) return;
-    setSelectedId(village.id);
+    setChosen(village);
     // Trocar de alvo mantém tipo e tropas; uma revisão pronta vale só para o alvo anterior.
     setOrder((draft) =>
-      village.id === snapshot.village.id
+      ownTarget(owner(village))
         ? { ...draft, step: 'target' }
         : draft.step === 'review'
           ? { ...draft, step: 'troops' }
@@ -258,6 +279,12 @@ function MapCanvas({ snapshot, options }: { snapshot: VillageSnapshot; options: 
     );
     // Só ao escolher o alvo ou mudar de etapa; mover o mapa depois é escolha do jogador.
   }, [selected?.id, order.step]);
+  // Alvo escolhido pelo teclado: o foco segue para a ordem, sem atravessar o mapa inteiro.
+  useEffect(() => {
+    if (!focusPanel.current || !panelRef.current) return;
+    focusPanel.current = false;
+    panelRef.current.querySelector<HTMLElement>('.order-panel-body')?.focus();
+  }, [selected?.id]);
   const route =
     selected && selected.id !== snapshot.village.id
       ? {
@@ -305,7 +332,6 @@ function MapCanvas({ snapshot, options }: { snapshot: VillageSnapshot; options: 
             }
             const village = villageAt(event);
             if (village && village.id !== selectedId) {
-              setSelectedId(null);
               setHover({ village, x: event.clientX, y: event.clientY });
             } else setHover(null);
           }}
@@ -348,7 +374,7 @@ function MapCanvas({ snapshot, options }: { snapshot: VillageSnapshot; options: 
                       data-owner={owner(village)}
                       aria-label={`${village.name} (${x}|${y})`}
                       onClick={(event) => {
-                        if (event.detail === 0) select(village);
+                        if (event.detail === 0) select(village, true);
                       }}
                       onFocus={(event) => {
                         const r = event.currentTarget.getBoundingClientRect();
