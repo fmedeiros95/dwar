@@ -1,9 +1,12 @@
+import { lazy, Suspense } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { api, type Account } from '@dwar/api-client';
 import { LegacyFrame } from './components/legacy-frame.js';
 import { WorldEntryPage } from './features/worlds/world-entry-page.js';
-import { VillagePage } from './features/village/village-page.js';
+const VillagePage = lazy(() =>
+  import('./features/village/village-page.js').then((m) => ({ default: m.VillagePage })),
+);
 
 export function WorldRoute({
   account,
@@ -40,6 +43,8 @@ export function WorldRoute({
   return page === 'enter' ? (
     <WorldEntryPage account={account} world={world.data} />
   ) : (
-    <VillagePage account={account} onLogout={onLogout} world={world.data} />
+    <Suspense fallback={null}>
+      <VillagePage account={account} onLogout={onLogout} world={world.data} />
+    </Suspense>
   );
 }
