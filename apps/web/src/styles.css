@@ -1119,9 +1119,6 @@ body:has(.village-foundation)::before {
 .mail-compose input {
   max-width: 100%;
 }
-.mail-list {
-  min-width: 540px;
-}
 .mail-list td:first-child,
 .mail-list th:first-child {
   width: 15px;
@@ -1137,9 +1134,6 @@ body:has(.village-foundation)::before {
 .mail-right {
   text-align: right !important;
 }
-.mail-conversation {
-  width: 80%;
-}
 .mail-conversation textarea {
   width: 100%;
 }
@@ -1152,9 +1146,6 @@ body:has(.village-foundation)::before {
   margin-bottom: 5px;
 }
 .mail-post-heading {
-  background: url('/legacy/layout/sel_bg.jpg');
-  padding-left: 4px;
-  border-bottom: 1px solid #fee47d;
   display: flex;
   justify-content: space-between;
   gap: 8px;

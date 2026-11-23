@@ -240,7 +240,17 @@ function QueueTimeline({
   onCancel,
   fresh,
   expanded,
+  planner,
 }: BuildPlannerProps & { fresh: Map<number, number>; expanded: boolean }) {
+  const [all, setAll] = useState(false);
+  // Comparando, a fila longa cede o lugar: fica a obra em andamento, o que acabou de entrar e o resumo.
+  const folds = expanded && planner.compared.length > 0 && snapshot.queue.length > 2;
+  const shown =
+    folds && !all
+      ? snapshot.queue.filter((item, index) => index === 0 || fresh.has(item.id))
+      : snapshot.queue;
+  const hidden = snapshot.queue.length - shown.length;
+  const last = snapshot.queue[snapshot.queue.length - 1];
   if (!snapshot.queue.length)
     return (
       <p className="planner-empty">
@@ -253,7 +263,7 @@ function QueueTimeline({
     );
   return (
     <ol className="planner-queue" aria-label="Fila de obras">
-      {snapshot.queue.map((item) => {
+      {shown.map((item) => {
         const start = new Date(item.startsAt).getTime();
         const end = new Date(item.endsAt).getTime();
         const running = start <= clock;
@@ -307,6 +317,18 @@ function QueueTimeline({
           </li>
         );
       })}
+      {folds && last ? (
+        <li className="planner-more">
+          <button type="button" aria-expanded={all} onClick={() => setAll(!all)}>
+            {all
+              ? 'Recolher a fila'
+              : hidden
+                ? `Mais ${hidden} na fila · última pronta ${completionDate(last.endsAt, clock)}`
+                : 'Fila completa'}
+            <ChevronDown size={14} aria-hidden="true" />
+          </button>
+        </li>
+      ) : null}
     </ol>
   );
 }

@@ -84,14 +84,9 @@ texturas legadas, então telas ainda não redesenhadas herdam cores e superfíci
    aldeias do mapa recortadas já foram produzidos. Falta ilustrar os retratos maiores, que hoje
    saem da tira de 24 px. O briefing está em `docs/direcao-de-arte.md`, seção 7.
 
-1. **Tabelas legadas restantes** (matrizes com ações ou muitas colunas): gestão de membros
-   (`tribe-sections.tsx`), histórico de guerras (`tribe-diplomacy.tsx`), unidades do relatório
-   (`report-parts.tsx`, `rally-units`) e opções/legenda do mapa. Reaproveitar `.rank-list`
-   quando fizer sentido; a grade de unidades pode continuar tabela.
-2. **Duas colunas: validar no navegador.** Implementado sem checagem visual; conferir com a
-   janela maximizada (lista à esquerda, leitura à direita, item aberto destacado, rolagem
-   independente da lista) e na janela padrão de 860 px (leitura no lugar da lista, como antes).
-   Ajustar o limiar de 940 px em `split.css` se ficar apertado.
+1. **Tabelas legadas restantes:** visão clássica da aldeia, configurações e atividades. Membros, guerras
+   e mapa saíram na rodada 6; a grade de unidades do relatório continua tabela.
+2. **Duas colunas:** conferidas no navegador na rodada 6, na janela padrão e maximizada.
 3. **Acessibilidade, o que sobra:** auditar com leitor de tela e só teclado (tab order das
    janelas, armadilha de foco no diálogo, restaurar foco ao fechar), e medir com Lighthouse.
 4. **Testes, o que sobra:** `packages/game-core` já tem 78 testes (`pnpm test`). Faltam

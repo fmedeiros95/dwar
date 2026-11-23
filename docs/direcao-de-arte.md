@@ -528,3 +528,23 @@ Testado em Chromium headless, 390×844 com toque e 1366×768, num banco isolado 
 Pendente: retrato de 64 px, Firefox, Safari e leitor de tela. Com vários itens na fila, a comparação
 de três obras ainda rola. O "×" das três colunas tem 30 px de largura no celular. Com ataque e duas
 batalhas ao mesmo tempo, a barra superior do celular ocupa 247 px por até três minutos.
+
+## Rodada 6: fila cheia, tribo, mapa e mensagens
+
+O "antes" é o commit `1f021ef`. Comparativos em `direcao-de-arte/rodada-6/`, antes à esquerda.
+
+- **Fila de obras.** Com comparação aberta e mais de duas obras, a fila mostra a obra em andamento e
+  um resumo que abre o resto. Com a fila cheia, as três obras cabem no notebook e, com a mesa
+  ampliada, no celular.
+- **Barra do celular.** Com ataque a caminho, as batalhas recentes viram um selo e "+N" na mesma linha.
+- **Tribo.** Membros e guerras encerradas viraram listas, sem rolagem lateral no celular. O cargo
+  abre sob o próprio membro.
+- **Mapa.** Legenda e opções sem tabelas; a legenda vazava do painel até no notebook.
+- **Mensagens.** Regras legadas cortavam a lista em duas colunas, estreitavam a leitura e deixavam o
+  cabeçalho ilegível. Foram removidas.
+- **Relatórios em duas colunas.** Ações em massa só aparecem com algo selecionado.
+
+Testado em Chromium headless, 390×844 e 1366×768, com cargo, expulsão, marca e opções salvas de verdade.
+
+Pendente: retrato de 64 px, Firefox, Safari e leitor de tela. No notebook, dois selos de batalha ao
+lado de um ataque ainda não mostram o horário. O "×" das três colunas segue com 30 px no celular.
