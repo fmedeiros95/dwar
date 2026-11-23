@@ -84,11 +84,12 @@ texturas legadas, então telas ainda não redesenhadas herdam cores e superfíci
    aldeias do mapa recortadas já foram produzidos. Falta ilustrar os retratos maiores, que hoje
    saem da tira de 24 px. O briefing está em `docs/direcao-de-arte.md`, seção 7.
 
-1. **Tabelas legadas restantes:** visão clássica da aldeia, configurações e atividades. Membros, guerras
-   e mapa saíram na rodada 6; a grade de unidades do relatório continua tabela.
+1. **Tabelas legadas:** concluído na rodada 7. A grade de unidades do relatório e a comparação de obras
+   continuam tabelas, porque são dados tabulares. A Atividade da aldeia não tem atalho na interface:
+   só abre pela URL. Falta decidir onde ele entra.
 2. **Duas colunas:** conferidas no navegador na rodada 6, na janela padrão e maximizada.
-3. **Acessibilidade, o que sobra:** auditar com leitor de tela e só teclado (tab order das
-   janelas, armadilha de foco no diálogo, restaurar foco ao fechar), e medir com Lighthouse.
+3. **Acessibilidade, o que sobra:** auditar com leitor de tela e medir com Lighthouse. Foco ao abrir e ao fechar
+   janelas e setas nas abas entraram na rodada 7. As janelas não são modais, então não prendem o foco.
 4. **Testes, o que sobra:** `packages/game-core` já tem 78 testes (`pnpm test`). Faltam
    `packages/game-server` (casos de uso, precisam de banco) e um fluxo E2E mínimo.
    Decisão: a Tesouraria nível 1 continua valendo 15 pontos (não 14), por arredondamento de

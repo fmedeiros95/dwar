@@ -1,11 +1,7 @@
-import { useRef, type KeyboardEvent, type PointerEvent, type ReactNode } from 'react';
+import { useEffect, useRef, type KeyboardEvent, type PointerEvent, type ReactNode } from 'react';
 import { Maximize2, Minimize2, Minus, X } from 'lucide-react';
 import { WindowScopeContext, serializeParams, type GameParams } from '../routing.js';
-import {
-  clampPosition,
-  type WindowManager,
-  type WindowState,
-} from './use-window-manager.js';
+import { clampPosition, type WindowManager, type WindowState } from './use-window-manager.js';
 
 const minSize = { w: 360, h: 240 };
 
@@ -26,6 +22,33 @@ function GameWindow({
   onNavigate: (search: string) => void;
   children: ReactNode;
 }) {
+  const root = useRef<HTMLDivElement>(null);
+  const opener = useRef<Element | null>(null);
+
+  // A janela que vem para a frente recebe o foco, para o teclado e o leitor de tela começarem
+  // nela. As janelas não são modais: o Tab sai delas normalmente.
+  useEffect(() => {
+    if (!focused || root.current?.contains(document.activeElement)) return;
+    opener.current = document.activeElement;
+    root.current?.focus({ preventScroll: true });
+  }, [focused, win.z]);
+
+  /** Ao fechar ou minimizar, o foco volta para onde estava, se esse lugar ainda existe. */
+  function leave(action: (id: number) => void) {
+    const back = opener.current;
+    const inside = root.current?.contains(document.activeElement);
+    action(win.id);
+    if (!inside) return;
+    requestAnimationFrame(() => {
+      if (
+        back instanceof HTMLElement &&
+        back !== document.body &&
+        back.isConnected &&
+        back.getClientRects().length
+      )
+        back.focus({ preventScroll: true });
+    });
+  }
   const drag = useRef<{ dx: number; dy: number } | null>(null);
   const resize = useRef<{ x: number; y: number; w: number; h: number } | null>(null);
 
@@ -60,8 +83,12 @@ function GameWindow({
   }
   function onKeyDown(event: KeyboardEvent<HTMLDivElement>) {
     const target = event.target as HTMLElement;
-    if (event.key === 'Escape' && !/^(INPUT|TEXTAREA|SELECT)$/.test(target.tagName))
-      manager.close(win.id);
+    if (
+      event.key === 'Escape' &&
+      !event.defaultPrevented &&
+      !/^(INPUT|TEXTAREA|SELECT)$/.test(target.tagName)
+    )
+      leave(manager.close);
   }
 
   const style = win.maximized
@@ -70,6 +97,8 @@ function GameWindow({
 
   return (
     <div
+      ref={root}
+      tabIndex={-1}
       className="game-window"
       role="dialog"
       aria-label={title}
@@ -92,7 +121,7 @@ function GameWindow({
       >
         <span className="gw-title">{title}</span>
         <div className="gw-actions" onPointerDown={(event) => event.stopPropagation()}>
-          <button type="button" aria-label="Minimizar" onClick={() => manager.minimize(win.id)}>
+          <button type="button" aria-label="Minimizar" onClick={() => leave(manager.minimize)}>
             <Minus size={15} aria-hidden="true" />
           </button>
           <button
@@ -111,7 +140,7 @@ function GameWindow({
             type="button"
             className="gw-close"
             aria-label="Fechar"
-            onClick={() => manager.close(win.id)}
+            onClick={() => leave(manager.close)}
           >
             <X size={16} aria-hidden="true" />
           </button>

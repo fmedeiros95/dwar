@@ -267,29 +267,6 @@ p {
 .scene-label {
   pointer-events: none;
 }
-.legacy-production {
-  position: absolute;
-  top: 5px;
-  right: 4px;
-  width: 175px;
-}
-.classic-view-link {
-  width: 100%;
-  display: block;
-  padding: 2px 5px;
-  border: 0;
-  border-radius: 0;
-  margin-bottom: 5px;
-  text-transform: none;
-  text-align: left;
-  color: #fee47d;
-  text-shadow: none;
-  background: #694111aa url('/legacy/layout/th.jpg') repeat-x;
-}
-.classic-view-link:hover:not(:disabled) {
-  background-position: top;
-  color: #d99647;
-}
 .table-scroll {
   overflow-x: auto;
 }
@@ -309,16 +286,6 @@ p {
   padding: 3px 4px;
   vertical-align: middle;
   background: #694111 url('/legacy/layout/vis_bg.jpg');
-}
-.legacy-production .legacy-table {
-  border-spacing: 1px;
-}
-.legacy-production .legacy-table th,
-.legacy-production .legacy-table td {
-  padding: 2px 3px;
-}
-.legacy-production .legacy-table td {
-  background-color: #694111ab;
 }
 .production-queue {
   margin-top: 5px;
@@ -396,17 +363,6 @@ p {
 }
 .building-back {
   margin: 8px 0;
-}
-.activity-table {
-  min-width: 530px;
-}
-.incoming-table {
-  min-width: 760px;
-}
-.activity-table th:last-child,
-.activity-table td:last-child {
-  width: 180px;
-  white-space: nowrap;
 }
 .error {
   color: #b40000;
@@ -533,9 +489,6 @@ p {
   .legacy-resources {
     flex-wrap: wrap;
   }
-  .legacy-production {
-    width: 170px;
-  }
   .legacy-topnav > span {
     display: none;
   }
@@ -591,21 +544,8 @@ p {
     padding-top: 123px;
     background: #694111 url('/legacy/layout/tbl_bg.jpg');
   }
-  .legacy-production {
-    top: 0;
-    left: 0;
-    right: 0;
-    width: auto;
-    padding: 3px;
-  }
-  .legacy-production .legacy-table {
-    width: 100%;
-  }
   .production-queue {
     display: none;
-  }
-  .classic-view-link {
-    margin-bottom: 2px;
   }
   .village-scene {
     min-width: 650px;
@@ -655,20 +595,6 @@ p {
 }
 
 /* Legacy overview.php, overview_nographic.php and individual building screens. */
-.legacy-classic-overview {
-  display: grid;
-  grid-template-columns: 230px minmax(0, 1fr);
-  gap: 2px;
-  margin-top: 2px;
-}
-.legacy-classic-overview > aside,
-.legacy-classic-overview > section {
-  background: #694111 url('/legacy/layout/tbl_bg.jpg');
-  padding: 5px;
-}
-.troops-summary {
-  margin-top: 10px;
-}
 .production-collapse {
   display: block;
   padding: 0;
@@ -683,9 +609,6 @@ p {
 }
 .production-collapse:hover:not(:disabled) {
   background: none;
-}
-.legacy-production:has(.production-collapse:only-child) {
-  width: 110px;
 }
 .unavailable-toggle {
   display: inline-flex;
@@ -731,15 +654,9 @@ p {
   flex-wrap: wrap;
 }
 @media (max-width: 680px) {
-  .legacy-classic-overview {
-    grid-template-columns: 1fr;
-  }
   .rename-village input {
     font-size: 16px;
     width: 170px;
-  }
-  .legacy-production .troops-summary {
-    display: none;
   }
 }
 

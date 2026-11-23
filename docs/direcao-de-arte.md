@@ -548,3 +548,26 @@ Testado em Chromium headless, 390×844 e 1366×768, com cargo, expulsão, marca 
 
 Pendente: retrato de 64 px, Firefox, Safari e leitor de tela. No notebook, dois selos de batalha ao
 lado de um ataque ainda não mostram o horário. O "×" das três colunas segue com 30 px no celular.
+
+## Rodada 7: visão clássica, ajustes, atividade e teclado
+
+O "antes" é o commit `0ec8bdb`. Comparativos em `direcao-de-arte/rodada-7/`, antes à esquerda.
+
+- **Visão clássica.** Produção e tropas são as mesmas peças do painel do cenário. Os edifícios viraram
+  cartões com arte, nível e o estado do brasão.
+- **Ajustes.** Formulários em cartões, sem rolar no notebook. No celular, o perfil vazava 72 px para o
+  lado. Os botões dizem o que fazem no lugar de "OK".
+- **Atividade.** Lista com data relativa, sem rolagem lateral, e estado vazio.
+- **Selos no notebook.** Duas batalhas ao lado de um ataque mostram o horário a partir de 1200 px. O
+  nome da marca some nesse momento para abrir espaço.
+- **Três obras no celular.** O "×" passou de 30 para 44 px de largura. O alvo avança sobre o nome, que
+  não é clicável.
+- **Teclado.** A janela que vem para a frente recebe o foco. Ao fechar ou minimizar, ele volta para onde
+  estava. As abas respondem às setas, Home e End.
+- **CSS.** Saíram as regras das tabelas removidas e do antigo painel de produção.
+
+Testado em Chromium headless, 390×844 e 1366×768, num banco isolado, com perfil, avatar e senha salvos
+de verdade. Os selos foram vistos com resposta simulada, e também a 920, 1024 e 1920 px.
+
+Pendente: retrato de 64 px, Firefox, Safari e leitor de tela. Entre 901 e 1199 px, os selos seguem sem
+horário, e a 920 px dois selos com "+N" deixam a barra apertada.
