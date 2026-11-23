@@ -571,3 +571,21 @@ de verdade. Os selos foram vistos com resposta simulada, e também a 920, 1024 e
 
 Pendente: retrato de 64 px, Firefox, Safari e leitor de tela. Entre 901 e 1199 px, os selos seguem sem
 horário. Até 1340 px os recursos quebram em duas linhas: antes a página vazava 107 px a 920.
+
+## Rodada 8: acessibilidade, Firefox e Atividade
+
+O "antes" é o commit `882dc66`.
+
+- **Atividade.** Ganhou botão no painel "Sua aldeia", no cenário e na visão clássica.
+- **Selos.** Entre 901 e 1199 px mostram o horário. O aviso de ataque fica só com a espada e o tempo.
+- **Auditoria.** axe-core (WCAG 2.2 AA e boas práticas) em 26 telas, no notebook e no celular: eram 6
+  tipos de falha, agora nenhum. Mudaram nomes acessíveis (brasões, marca, editor, Praça, recrutamento),
+  títulos de tela, e os alvos de cor e do minimapa, que têm 24 px.
+- **Rolagem por teclado.** O corpo da janela recebe foco, para rolar telas sem controles.
+- **Firefox.** 23 telas nos dois tamanhos, sem vazamento, imagem quebrada nem erro. Devolver o foco ao
+  fechar a janela deixou de esperar um quadro de desenho, que o Firefox headless atrasava.
+
+Testado em Chromium e Firefox 160 headless, num banco isolado. Os selos usaram resposta simulada.
+
+Pendente: retrato de 64 px, Safari e leitor de tela de verdade. O axe não mede contraste sobre a arte do
+cenário nem substitui o leitor.

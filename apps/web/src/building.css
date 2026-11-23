@@ -1002,7 +1002,7 @@ button.req-chip:hover:not(:disabled) {
   gap: 4px;
   min-width: 0;
 }
-.gw-body .unit-info h3 {
+.gw-body .unit-info h2 {
   margin: 0;
   font-size: 16px;
   font-weight: 750;

@@ -171,7 +171,7 @@ export function BuildPlanner(props: BuildPlannerProps) {
       data-variant={variant}
       data-expanded={expanded ? 'true' : undefined}
       data-tall={tall ? 'true' : undefined}
-      aria-label="Mesa de obras"
+      aria-label={variant === 'dock' ? 'Mesa de obras' : 'Obras do Edifício principal'}
       onPointerDown={(event) => event.stopPropagation()}
       onWheel={(event) => event.stopPropagation()}
     >

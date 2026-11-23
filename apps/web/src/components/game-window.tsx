@@ -41,7 +41,8 @@ function GameWindow({
     const inside = root.current?.contains(document.activeElement);
     action(win.id);
     if (!inside) return;
-    requestAnimationFrame(() => {
+    // Depois do React retirar a janela; um quadro de desenho pode demorar em segundo plano.
+    setTimeout(() => {
       if (
         back instanceof HTMLElement &&
         back !== document.body &&
@@ -148,7 +149,8 @@ function GameWindow({
           </button>
         </div>
       </div>
-      <div className="gw-body">
+      {/* O teclado também precisa rolar telas sem nenhum controle, como Medalhas. */}
+      <div className="gw-body" role="group" aria-label={`Conteúdo: ${title}`} tabIndex={0}>
         <WindowScopeContext.Provider
           value={{
             params: new URLSearchParams(win.search),

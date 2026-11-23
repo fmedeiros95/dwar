@@ -136,7 +136,7 @@ export function SendForm({
                   type="button"
                   className="troop-all"
                   disabled={pending || home === 0}
-                  aria-label={`Selecionar todos: ${name}`}
+                  aria-label={`Selecionar todos: ${numbers.format(home)} ${name}`}
                   title="Enviar todas desta unidade"
                   onClick={() => setCounts({ ...counts, [code]: home })}
                 >
@@ -226,11 +226,7 @@ export function SendForm({
           </label>
         ) : null}
         {error}
-        <button
-          className={`wide order-go ${kind}`}
-          disabled={pending || chosen === 0 || blocked}
-          aria-label={`Revisar ${kind === 'attack' ? 'ataque' : 'apoio'}`}
-        >
+        <button className={`wide order-go ${kind}`} disabled={pending || chosen === 0 || blocked}>
           {kind === 'attack' ? <Swords size={17} /> : <Shield size={17} />}
           {chosen === 0
             ? 'Escolha as tropas'
