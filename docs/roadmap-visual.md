@@ -84,13 +84,11 @@ texturas legadas, então telas ainda não redesenhadas herdam cores e superfíci
    aldeias do mapa recortadas já foram produzidos. Falta ilustrar os retratos maiores, que hoje
    saem da tira de 24 px. O briefing está em `docs/direcao-de-arte.md`, seção 7.
 
-1. **Tabelas legadas:** concluído na rodada 7. A grade de unidades do relatório e a comparação de obras
-   continuam tabelas, porque são dados tabulares. A Atividade da aldeia abre pelo painel "Sua aldeia".
-2. **Duas colunas:** conferidas no navegador na rodada 6, na janela padrão e maximizada.
-3. **Acessibilidade, o que sobra:** auditar com leitor de tela de verdade. O axe-core (rodadas 8 e 9) não
-   acusa violações nas telas do jogo, vazias ou com dados, nem nas telas antes do jogo. Foco ao abrir e ao fechar
-   janelas e setas nas abas entraram na rodada 7. As janelas não são modais, então não prendem o foco.
-4. **Testes, o que sobra:** `packages/game-core` já tem 78 testes (`pnpm test`). Faltam
+1. **Rodada 12 e o fim do redesign:** plano, pendências e como testar em
+   `docs/continuacao-redesign.md`.
+2. **Acessibilidade, o que sobra:** auditar com leitor de tela de verdade. O axe-core é o da rodada 11,
+   com uma exceção conhecida no mapa do celular.
+3. **Testes, o que sobra:** `packages/game-core` já tem 78 testes (`pnpm test`). Faltam
    `packages/game-server` (casos de uso, precisam de banco) e um fluxo E2E mínimo.
    Decisão: a Tesouraria nível 1 continua valendo 15 pontos (não 14), por arredondamento de
    ponto flutuante herdado do Speed Wars em `buildingPoints`; o teste documenta o quirk.
