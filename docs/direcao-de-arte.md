@@ -602,7 +602,7 @@ O "antes" é o commit `bb9f0f0`. Comparativos em `direcao-de-arte/rodada-9/`, an
 - **Ranking no celular.** A coluna de pontos saía da tela. Aldeias e data descem para a segunda linha.
 - **Abas no celular.** Uma linha que desliza, com a aba ativa à vista, no lugar de até três linhas.
 - **Antes do jogo.** Títulos na tipografia de exibição e estrutura da página para leitores de tela.
-- **Auditoria com dados.** axe-core em 42 telas e estados, em dois tamanhos: eram 9 tipos de falha, agora
+- **Auditoria com dados.** axe-core em 37 telas e estados, mais os relatórios, em dois tamanhos: eram 9 tipos de falha, agora
   nenhum. Inclui contraste de links, mercadores e avisos, e alvos do mapa e dos relatórios.
 
 Testado em Chromium, Firefox 160 e WebKitGTK 2.54 (motor do Safari), com batalhas, tribo, guerra e
