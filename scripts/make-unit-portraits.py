@@ -3,8 +3,8 @@ Retratos de unidade com moldura única (28 px e 56 px para telas 2x).
 
 Os bustos importados do Tribul têm 24×23 px e fundo transparente. Eles entram em 1:1 (sem
 ampliação, que os borrava) sobre um fundo de couro com luz vinda do alto à esquerda, a mesma da
-aldeia, e um filete bronze. Retratos novos em 64 px pintados ainda são um pedido de produção
-(ver docs/direcao-de-arte.md, seção 7).
+aldeia, e um filete bronze. Os retratos pintados dos cartões maiores ficam em
+`public/game/troops/painted/` (ver docs/direcao-de-arte.md, seção 7).
 
 Uso: python3 scripts/make-unit-portraits.py
 """

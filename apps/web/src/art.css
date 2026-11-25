@@ -478,8 +478,6 @@ button:disabled,
 .map-crest[data-kind='current'] .map-crest-sign {
   fill: #9b6a22;
 }
-/* As imagens das abandonadas são JPG com grama embutida: nada de filtro nelas (apareceriam
-   quadrados). A diferença vem do brasão, que só aldeias com dono têm. */
 .world-map-village::after {
   content: '';
   position: absolute;
@@ -677,10 +675,9 @@ img.resource-icon.painted {
   opacity: 0.85;
 }
 
-/* Mapa: com as aldeias recortadas (scripts/make-map-villages.py), as abandonadas recuam sem
-   formar quadrados; as de jogador ficam com cor plena. */
-.world-map-village[data-owner='barbarian'] img {
-  filter: saturate(0.5) brightness(0.9);
+/* As ruínas também perdem saturação para se distinguirem nos níveis iniciais. */
+.world-map-village[data-owner='barbarian'] .world-map-village-art {
+  filter: saturate(0.66) brightness(0.92);
 }
 /* O botão da aldeia é só área de clique: sem o brilho de relevo dos botões. */
 .world-map-village,

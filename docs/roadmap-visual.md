@@ -25,8 +25,10 @@ texturas legadas, então telas ainda não redesenhadas herdam cores e superfíci
 - Aldeia viva (`overview/scene-life.tsx`, `scene-life.css`): aldeões nas estradas, fumaça nas
   chaminés (brasas na forja), sombras de nuvem, pássaros, brilho na água, amanhecer/entardecer,
   tochas e vaga-lumes à noite, neve no inverno, névoa e morcegos no Halloween, poeira e martelo
-  nas obras, barra de progresso no selo e comemoração ao subir de nível. Só transform/opacity
-  numa camada própria; botão para desligar e `prefers-reduced-motion` respeitado.
+  nas obras, barra de progresso no selo e comemoração ao subir de nível. Os moradores têm
+  trajetos e passadas próprios. A Academia, o Quartel, o Estábulo e a Oficina têm atividades
+  animadas, assim como a forja e os canteiros de obra. O botão desliga a camada da aldeia viva.
+  Com movimento reduzido, os personagens aparecem em poses estáticas.
 - Sem madeira: barras e painéis escuros lisos com filete dourado, janelas em marfim liso (a
   textura em ladrilhos mostrava emendas), sem cantoneiras sobre o conteúdo.
 - HUD: painel da aldeia (produção com barra do armazém, tropas em grade com retrato) e obras
@@ -77,12 +79,16 @@ texturas legadas, então telas ainda não redesenhadas herdam cores e superfíci
   mostra custo faltante e prazo. Há retorno de gasto e ganho nos recursos e brasão de dono no
   mapa. As janelas ganharam título em Cinzel com selo e os avisos saíram de cima do cartão de
   Obras.
+- Retratos pintados de tropas em dois usos, com imagens de 128 px para os cartões e miniaturas
+  de 28 e 56 px para as telas compactas (`docs/direcao-de-arte.md`, seção 7).
+- Pinturas novas na entrada e no mapa mundial. Os 17 edifícios têm ilustrações próprias nos
+  painéis e na mesa de obras. Madeira, argila e ferro ganharam ícones em três tamanhos e duas
+  densidades.
+- Paisagem original da aldeia nas três estações, carregada direto dos JPEGs de origem. Edifícios
+  e estradas do cenário reexportados com maior fidelidade e com a fase de obra disponível em
+  cada estação.
 
 ## Próximos passos (ordem de impacto)
-
-0. **Retratos de unidade pintados em 64 px:** ícones de recurso, retratos com moldura única e
-   aldeias do mapa recortadas já foram produzidos. Falta ilustrar os retratos maiores, que hoje
-   saem da tira de 24 px. O briefing está em `docs/direcao-de-arte.md`, seção 7.
 
 1. **Rodada 12 e o fim do redesign:** plano, pendências e como testar em
    `docs/continuacao-redesign.md`.

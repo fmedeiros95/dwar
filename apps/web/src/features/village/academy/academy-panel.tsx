@@ -5,7 +5,7 @@ import { ResourceIcon } from '../../../components/legacy-frame.js';
 import { RecruitmentQueue, numbers } from '../shared/index.js';
 import { currentResources } from '../shared/current-resources.js';
 import { CostChips, WaitReason } from '../shared/cost-chips.js';
-import { unitIconSrc } from '../../../components/unit-icon.js';
+import { unitPortraitSrc } from '../../../components/unit-icon.js';
 
 /** Indicadores da academia para o cabeçalho. */
 export function AcademyStats({ snapshot }: { snapshot: VillageSnapshot }) {
@@ -95,7 +95,7 @@ export function AcademyPanel({
         </div>
         <article className="academy-card noble">
           <div className="academy-emblem portrait" aria-hidden="true">
-            <img src={unitIconSrc('noble')} alt="" />
+            <img src={unitPortraitSrc('noble')} alt="" />
           </div>
           <h2>Recrutar nobre</h2>
           <p className="panel-hint">

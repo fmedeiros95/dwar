@@ -144,69 +144,6 @@
   color: #ffd08a;
 }
 
-/* ---- Aldeões ---- */
-.life-walker {
-  width: 6px;
-  height: 11px;
-  offset-rotate: 0deg;
-  offset-anchor: 50% 100%;
-  animation: walk-route 24s linear infinite alternate;
-  will-change: offset-distance, opacity;
-}
-.life-walker i {
-  position: absolute;
-  inset: 0;
-  animation: walk-bob 0.42s ease-in-out infinite alternate;
-}
-.life-walker i::before {
-  /* cabeça */
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 1.5px;
-  width: 3.2px;
-  height: 3.2px;
-  border-radius: 50%;
-  background: #e7b98c;
-  box-shadow: 0 0 0 0.6px rgb(40 20 8 / 0.6);
-}
-.life-walker i::after {
-  /* túnica */
-  content: '';
-  position: absolute;
-  top: 3.4px;
-  left: 0.6px;
-  width: 4.8px;
-  height: 7px;
-  border-radius: 2px 2px 1px 1px;
-  background: var(--tunic, #8b2c22);
-  box-shadow:
-    0 0 0 0.6px rgb(30 15 5 / 0.65),
-    0 2px 2px rgb(0 0 0 / 0.35);
-}
-@keyframes walk-route {
-  0% {
-    offset-distance: 0%;
-    opacity: 0;
-  }
-  5%,
-  95% {
-    opacity: 1;
-  }
-  100% {
-    offset-distance: 100%;
-    opacity: 0;
-  }
-}
-@keyframes walk-bob {
-  to {
-    transform: translateY(-0.8px);
-  }
-}
-.phase-night .life-walker {
-  filter: brightness(0.55);
-}
-
 /* ---- Fumaça das chaminés ---- */
 .life-chimney i {
   position: absolute;
@@ -217,21 +154,21 @@
   border-radius: 50%;
   background: radial-gradient(
     circle,
-    rgb(245 242 235 / 0.95),
-    rgb(235 230 220 / 0.5) 40%,
+    rgb(245 242 235 / 0.75),
+    rgb(235 230 220 / 0.36) 40%,
     rgb(235 230 220 / 0) 70%
   );
   opacity: 0;
-  animation: smoke-rise 5.6s ease-out infinite;
+  animation: smoke-rise 6.4s ease-out infinite;
 }
 .life-chimney.forge i {
   background: radial-gradient(
     circle,
-    rgb(168 160 152 / 0.95),
-    rgb(150 142 135 / 0.55) 40%,
+    rgb(129 117 103 / 0.75),
+    rgb(122 113 108 / 0.4) 40%,
     rgb(150 142 135 / 0) 70%
   );
-  animation-duration: 4.2s;
+  animation-duration: 5.8s;
 }
 .life-chimney.night i {
   background: radial-gradient(circle, rgb(170 172 190 / 0.7), rgb(170 172 190 / 0) 70%);
@@ -239,40 +176,17 @@
 @keyframes smoke-rise {
   0% {
     opacity: 0;
-    transform: translate(0, 0) scale(0.35);
+    transform: translate(0, 0) scale(0.25);
   }
   12% {
-    opacity: 0.9;
+    opacity: 0.74;
   }
   60% {
-    opacity: 0.55;
+    opacity: 0.43;
   }
   100% {
     opacity: 0;
-    transform: translate(22px, -78px) scale(3);
-  }
-}
-.life-chimney b {
-  position: absolute;
-  width: 2px;
-  height: 2px;
-  border-radius: 50%;
-  background: #ffb347;
-  box-shadow: 0 0 4px 1px rgb(255 140 40 / 0.85);
-  opacity: 0;
-  animation: ember-rise 2.1s ease-out infinite;
-}
-@keyframes ember-rise {
-  0% {
-    opacity: 0;
-    transform: translate(0, 0);
-  }
-  12% {
-    opacity: 1;
-  }
-  100% {
-    opacity: 0;
-    transform: translate(-6px, -34px);
+    transform: translate(21px, -66px) scale(2.5);
   }
 }
 
@@ -467,53 +381,123 @@
   animation: cloud-drift 70s linear infinite;
 }
 
-/* ---- Obras ---- */
-.life-works i {
+/* ---- Trabalho na forja e nas obras ---- */
+.life-worker {
+  --work-cycle: 3.4s;
+  width: 26px;
+  height: 26px;
+  transform: translate(-50%, -93.75%);
+}
+.life-worker.forge {
+  --work-cycle: 2.8s;
+}
+.life-worker::before {
+  content: '';
   position: absolute;
-  left: -14px;
-  top: -14px;
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
-  background: radial-gradient(circle, rgb(214 186 140 / 0.8), rgb(214 186 140 / 0) 70%);
+  inset: auto 2px 0;
+  height: 4px;
+  background: radial-gradient(ellipse, rgb(29 22 11 / 0.58), transparent 72%);
+}
+.life-worker-sprite {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+}
+.life-worker-sprite::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 400%;
+  height: 200%;
+  background: url('/game/town/life/workers.webp') 0 0 / 100% 100% no-repeat;
+  animation: worker-hammer var(--work-cycle) steps(1) infinite;
+}
+.life-worker.carpenter .life-worker-sprite::before {
+  top: -100%;
+}
+.phase-night .life-worker-sprite {
+  filter: brightness(0.64) saturate(0.8);
+}
+@keyframes worker-hammer {
+  0%,
+  73% {
+    transform: translateX(0);
+  }
+  32% {
+    transform: translateX(-25%);
+  }
+  48% {
+    transform: translateX(-50%);
+  }
+  58% {
+    transform: translateX(-75%);
+  }
+}
+.life-worker-impact {
+  position: absolute;
+  top: 56%;
+  left: 60%;
+}
+.life-worker.carpenter .life-worker-impact {
+  top: 58%;
+  left: 64%;
+}
+.life-worker-impact::before,
+.life-worker-impact::after {
+  content: '';
+  position: absolute;
   opacity: 0;
-  animation: dust-puff 2.2s ease-out infinite;
 }
-@keyframes dust-puff {
-  0% {
-    opacity: 0;
-    transform: translate(var(--dx), 0) scale(0.3);
-  }
-  25% {
-    opacity: 0.85;
-  }
-  100% {
-    opacity: 0;
-    transform: translate(calc(var(--dx) * 1.4), -26px) scale(1.8);
-  }
+.life-worker.forge .life-worker-impact::before,
+.life-worker.forge .life-worker-impact::after {
+  --spark-end: translate(8px, -6px);
+  width: 2px;
+  height: 1px;
+  border-radius: 1px;
+  background: #ffcb73;
+  box-shadow: 0 0 2px #d9632a;
+  animation: worker-spark var(--work-cycle) ease-out infinite;
 }
-.life-works b {
-  position: absolute;
+.life-worker.forge .life-worker-impact::after {
+  --spark-end: translate(3px, -9px);
+  background: #ffdf9c;
+}
+.life-worker.carpenter .life-worker-impact::before {
   width: 3px;
   height: 3px;
   border-radius: 50%;
-  background: #fff1b0;
-  box-shadow: 0 0 5px 1px rgb(255 200 90 / 0.9);
-  opacity: 0;
-  animation: work-spark 1.2s ease-out infinite;
+  background: radial-gradient(circle, rgb(237 205 152 / 0.8), transparent 70%);
+  animation: worker-dust var(--work-cycle) ease-out infinite;
 }
-@keyframes work-spark {
+@keyframes worker-spark {
   0%,
-  40% {
+  47% {
     opacity: 0;
-    transform: translate(var(--dx), -30px);
+    transform: translate(0, 0);
   }
-  50% {
+  48% {
     opacity: 1;
   }
-  100% {
+  66%,
+  to {
     opacity: 0;
-    transform: translate(calc(var(--dx) * 1.8), -10px);
+    transform: var(--spark-end);
+  }
+}
+@keyframes worker-dust {
+  0%,
+  47% {
+    opacity: 0;
+    transform: translate(0, 0) scale(0.6);
+  }
+  51% {
+    opacity: 0.75;
+  }
+  72%,
+  to {
+    opacity: 0;
+    transform: translate(4px, -4px) scale(2.2);
   }
 }
 .life-hammer {
@@ -526,22 +510,6 @@
   border: 1.5px solid #3a2208;
   border-radius: 50%;
   box-shadow: 0 3px 6px rgb(0 0 0 / 0.5);
-}
-.life-hammer svg {
-  transform-origin: 80% 80%;
-  animation: hammer-swing 0.9s cubic-bezier(0.5, 0, 0.3, 1) infinite;
-}
-@keyframes hammer-swing {
-  0%,
-  100% {
-    transform: rotate(-38deg);
-  }
-  35% {
-    transform: rotate(18deg);
-  }
-  45% {
-    transform: rotate(10deg);
-  }
 }
 
 /* ---- Subiu de nível ---- */
@@ -657,12 +625,14 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .scene-life,
+  .scene-life > :not(.scene-villager, .life-worker, .life-building-activity),
+  .life-worker-impact,
   .scene-celebrations {
     display: none;
   }
   .scene-building,
-  .scene-label.working .scene-badge {
+  .scene-label.working .scene-badge,
+  .life-worker-sprite::before {
     transition: none;
     animation: none;
   }

@@ -1,7 +1,7 @@
 import type { CSSProperties } from 'react';
 import type { Recruitment } from '@dwar/api-client';
 import { completionDate, duration, numbers } from './format.js';
-import { unitIconSrc } from '../../../components/unit-icon.js';
+import { unitPortraitSrc } from '../../../components/unit-icon.js';
 
 export function RecruitmentQueue({
   queue,
@@ -53,7 +53,7 @@ export function RecruitmentQueue({
             >
               <img
                 className="queue-portrait"
-                src={unitIconSrc(academy ? 'noble' : event.unitCode)}
+                src={unitPortraitSrc(academy ? 'noble' : event.unitCode)}
                 alt=""
               />
               <div className="queue-info">

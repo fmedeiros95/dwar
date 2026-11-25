@@ -1,0 +1,58 @@
+.life-building-activity {
+  position: absolute;
+  width: var(--activity-size);
+  height: var(--activity-size);
+  transform: translate(-50%, -93.75%);
+  pointer-events: none;
+}
+
+.life-building-activity::before {
+  position: absolute;
+  inset: 85% 12% auto;
+  height: 16%;
+  background: radial-gradient(ellipse, rgb(29 22 16 / 0.58), transparent 72%);
+  content: '';
+}
+
+.life-building-activity-window {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+}
+
+.life-building-activity-window img {
+  position: absolute;
+  top: var(--activity-row);
+  left: 0;
+  display: block;
+  width: 400%;
+  height: 400%;
+  max-width: none;
+  animation: life-building-action var(--activity-duration) step-end var(--activity-delay) infinite;
+}
+
+.phase-night .life-building-activity-window {
+  filter: brightness(0.65) saturate(0.83);
+}
+
+@keyframes life-building-action {
+  0% {
+    transform: translateX(0);
+  }
+  30% {
+    transform: translateX(-25%);
+  }
+  47% {
+    transform: translateX(-50%);
+  }
+  62%,
+  100% {
+    transform: translateX(-75%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .life-building-activity-window img {
+    animation: none;
+  }
+}

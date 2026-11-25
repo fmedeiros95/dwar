@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 import type { BuildingView } from '@dwar/api-client';
-import { buildingArt } from '../overview/scene-model.js';
+import { buildingIllustration } from '../overview/scene-model.js';
 
 /** Cabeçalho das telas de edifício com abas: arte, nome, nível e os indicadores da tela. */
 export function PanelHead({
@@ -13,7 +13,7 @@ export function PanelHead({
   return (
     <header className="panel-head">
       <img
-        src={buildingArt(building.code, building.level, building.maxLevel)}
+        src={buildingIllustration(building.code, building.level, building.maxLevel)}
         alt=""
         decoding="async"
       />

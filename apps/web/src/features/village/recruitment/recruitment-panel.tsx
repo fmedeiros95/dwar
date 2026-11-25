@@ -4,7 +4,7 @@ import type { RecruitmentOrder, Resources, UnitView, VillageSnapshot } from '@dw
 import { RecruitmentQueue, numbers, resources } from '../shared/index.js';
 import { currentResources } from '../shared/current-resources.js';
 import { CostChips } from '../shared/cost-chips.js';
-import { unitIconSrc } from '../../../components/unit-icon.js';
+import { unitPortraitSrc } from '../../../components/unit-icon.js';
 
 export function RecruitmentPanel({
   snapshot,
@@ -72,7 +72,7 @@ export function RecruitmentPanel({
               >
                 <img
                   className="unit-portrait"
-                  src={unitIconSrc(unit.code)}
+                  src={unitPortraitSrc(unit.code)}
                   alt=""
                   loading="lazy"
                   decoding="async"

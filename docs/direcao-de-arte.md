@@ -178,11 +178,14 @@ Os três scripts regeneram as peças a partir das fontes do Tribul que já estã
   de contato curta vem da mesma luz. As aldeias de jogador perdem o círculo de dono antigo, que o
   brasão substitui. Nos dois níveis menores, parte da terra batida esmaeceu junto com a grama.
 
-### Ainda a produzir: retrato pintado de 64 px
+### Retratos pintados de 64 px
 
-O único retrato existente tem 24 px, e ampliar não cria detalhe. Nas telas que mostram o retrato
-grande, como os cartões do quartel com cerca de 64 px, ele continua borrado. Briefing para
-ilustração:
+Os cartões e a fila de recrutamento, o Ferreiro e a Academia usam dez ilustrações originais em
+WebP de 128×128 px, com a moldura de couro e o filete bronze incorporados. Os arquivos ficam em
+`public/game/troops/painted/`. O HUD, a Praça e os relatórios usam as versões de 28 e 56 px em
+`public/game/troops/miniatures/`.
+
+Briefing original de ilustração:
 
 - **Peças.** São 10, uma por unidade: lanceiro, espadachim, bárbaro, arqueiro, explorador,
   cavalaria leve, cavalaria pesada, aríete, catapulta e nobre.
@@ -199,14 +202,25 @@ ilustração:
   - Metal tem brilho contido e couro e madeira saem foscos.
   - A paleta é a mesma dos edifícios: madeira mel, pedra cinza-azulada e telhados ocre.
 - **Silhueta.** Cada unidade precisa ser reconhecível a 28 px só pelo contorno. Lança vertical,
-  espada curta, machado de lâmina larga, arco, capuz, elmo com crina, elmo fechado, viga do
-  aríete, braço da catapulta e chapéu de nobre.
-- **Moldura.** Não vai na arte. O script `make-unit-portraits.py` aplica a moldura de couro e
-  filete bronze, então basta trocar a fonte e rodar o script.
+  espada curta, machado de lâmina larga, arco, explorador de capuz a cavalo, elmo com crina,
+  elmo fechado, viga do aríete, braço da catapulta e chapéu de nobre.
+- **Moldura.** A ilustração parte de um recorte transparente. A moldura de couro e o filete
+  bronze entram na exportação para o jogo.
 
-**Situação na rodada 3: pendente.** A sessão não tinha ferramenta de ilustração. Desenhar os bustos
-em código não atenderia ao briefing de pintura com luz e material, então a peça de 24 px continua
-em uso e não há comparativo em tamanho real. O briefing acima segue válido.
+### Cenários, mapa, construções e recursos pintados
+
+| Peça | Arquivos | Onde aparece |
+| --- | --- | --- |
+| Paisagem original da aldeia em Verão, Inverno e Halloween | `public/game/town/backing*.jpg` | Terreno alinhado aos edifícios, estradas e efeitos |
+| Vale habitado | `public/game/ui/valley-entrance.webp` | Entrada, seleção de mundo e fundação |
+| Aldeias habitadas e abandonadas, seis estágios de cada sobre terreno contínuo | `public/game/map/*-painted.webp` | Mapa mundial |
+| Dezessete edifícios | `src/assets/buildings/` | Cabeçalhos, cartões e mesa de obras |
+| Madeira, argila e ferro, em 16, 20 e 24 px para telas 1x e 2x | `public/game/resources/painted/` | Barra de recursos, custos e painéis |
+
+As pinturas dos painéis compartilham luz quente vinda do alto à esquerda, sombra fria e materiais
+naturais. O cenário da aldeia usa os JPEGs de origem, com os sprites dos edifícios, estradas e
+fases de obra exportados em WebP de alta qualidade a partir dos PNGs de origem. No mapa, as ruínas
+esmaecidas e os telhados acobreados ajudam a distinguir aldeias abandonadas e habitadas.
 
 ## 8. Retorno e movimento
 

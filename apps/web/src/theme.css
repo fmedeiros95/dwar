@@ -1041,9 +1041,8 @@ p {
   position: absolute;
   inset: 0;
   background:
-    linear-gradient(90deg, rgb(10 7 4 / 0.92) 0%, rgb(10 7 4 / 0.55) 55%, rgb(10 7 4 / 0.8) 100%),
-    url('/game/ui/landing.webp') center / cover no-repeat;
-  filter: saturate(1.15);
+    linear-gradient(90deg, rgb(10 7 4 / 0.86) 0%, rgb(10 7 4 / 0.22) 55%, rgb(10 7 4 / 0.62) 100%),
+    url('/game/ui/valley-entrance.webp') center / cover no-repeat;
 }
 .landing-bg::after {
   content: '';
@@ -1203,6 +1202,14 @@ p {
     grid-template-columns: minmax(0, 1fr);
     align-content: center;
     gap: 28px;
+  }
+  .landing-bg {
+    background-image:
+      linear-gradient(180deg, rgb(10 7 4 / 0.8), rgb(10 7 4 / 0.26) 64%, rgb(10 7 4 / 0.62)),
+      url('/game/ui/valley-entrance.webp');
+    background-position:
+      center,
+      57% center;
   }
   .landing-features {
     display: none;
@@ -1825,12 +1832,10 @@ p {
 }
 
 /* ---- Recrutamento: cartões de unidade ---- */
-.queue-portrait {
+img.queue-portrait {
   width: 56px;
   height: 56px;
   object-fit: cover;
-  border: 1px solid var(--line-strong);
-  border-radius: 8px;
 }
 .unit-queue {
   grid-template-columns: 56px minmax(0, 1fr) auto auto;
@@ -1880,6 +1885,10 @@ p {
 @media (max-width: 680px) {
   .unit-queue {
     grid-template-columns: 48px minmax(0, 1fr) auto;
+  }
+  img.queue-portrait {
+    width: 48px;
+    height: 48px;
   }
   .recruit-bar {
     flex-direction: column;

@@ -12,7 +12,7 @@ const resourceIcon: Record<string, IconName> = {
   storage: 'storage',
 };
 
-/** Recursos com ícone pintado, produzido em cada tamanho (scripts/make-resource-icons.py). */
+/** Recursos com ilustrações pintadas exportadas para cada tamanho e densidade. */
 const paintedResources = ['wood', 'stone', 'iron'];
 
 export function ResourceIcon({
@@ -26,12 +26,12 @@ export function ResourceIcon({
   size?: 16 | 20 | 24;
 }) {
   if (paintedResources.includes(code)) {
-    const file = `/game/resources/icons/${code}-${size}`;
+    const file = `/game/resources/painted/${code}-${size}`;
     return (
       <img
         className={`resource-icon ri-${code} painted`}
-        src={`${file}.png`}
-        srcSet={`${file}.png 1x, ${file}@2x.png 2x`}
+        src={`${file}.webp`}
+        srcSet={`${file}.webp 1x, ${file}@2x.webp 2x`}
         width={size}
         height={size}
         style={{ width: size, height: size }}

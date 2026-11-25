@@ -16,7 +16,7 @@ import {
 } from 'lucide-react';
 import { ResourceIcon } from '../../../components/legacy-frame.js';
 import { completionDate, duration, numbers, resources } from '../shared/index.js';
-import { buildingArt } from '../overview/scene-model.js';
+import { buildingArt, buildingIllustration } from '../overview/scene-model.js';
 import { planObra, type ObraPlan } from './plan.js';
 
 /** Até três obras lado a lado: cabe no painel do notebook e em duas colunas no celular. */
@@ -527,7 +527,7 @@ function Comparison({
                       onClick={() => onOpen(plan.building.code)}
                     >
                       <img
-                        src={buildingArt(
+                        src={buildingIllustration(
                           plan.building.code,
                           Math.max(1, plan.building.level),
                           plan.building.maxLevel,
@@ -774,7 +774,7 @@ function Candidates({
                   <li key={plan.building.code} data-compared={on ? 'true' : undefined}>
                     <img
                       className="planner-thumb"
-                      src={buildingArt(
+                      src={buildingIllustration(
                         plan.building.code,
                         Math.max(1, plan.building.level),
                         plan.building.maxLevel,

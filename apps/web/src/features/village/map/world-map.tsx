@@ -361,21 +361,15 @@ function MapCanvas({ snapshot, options }: { snapshot: VillageSnapshot; options: 
               height: (height + 1) * 60,
               left: (left - position.x) * 60,
               top: (top - position.y) * 60,
+              backgroundPosition: `${-left * 60}px ${-top * 60}px`,
             }}
           >
             {Array.from({ length: (width + 1) * (height + 1) }, (_, index) => {
               const x = left + (index % (width + 1)),
                 y = top + Math.floor(index / (width + 1)),
-                village = known.get(`${x}|${y}`),
-                grass = (Math.abs((x * 73856093) ^ (y * 19349663)) % 8) + 1;
+                village = known.get(`${x}|${y}`);
               return (
-                <div
-                  className="world-map-tile"
-                  key={`${x}|${y}`}
-                  style={{
-                    backgroundImage: `url(/legacy/map/new/grass${grass}.png)`,
-                  }}
-                >
+                <div className="world-map-tile" key={`${x}|${y}`}>
                   {village ? (
                     <button
                       className="world-map-village"
@@ -392,14 +386,13 @@ function MapCanvas({ snapshot, options }: { snapshot: VillageSnapshot; options: 
                       }}
                       onBlur={() => setHover(null)}
                     >
-                      <img
-                        src={
-                          village.playerId === null
-                            ? `/legacy/map/cut/left_${villageGraphic(village.points)}.png`
-                            : `/legacy/map/cut/vil_${villageGraphic(village.points)}.png`
-                        }
-                        alt=""
-                        draggable={false}
+                      <span
+                        className="world-map-village-art"
+                        style={{
+                          backgroundPositionX: (1 - villageGraphic(village.points)) * 60,
+                          backgroundPositionY: village.playerId === null ? -60 : 0,
+                        }}
+                        aria-hidden="true"
                       />
                       <MapCrest kind={owner(village)} color={ownerTint(village)} />
                     </button>

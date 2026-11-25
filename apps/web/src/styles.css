@@ -717,6 +717,8 @@ body:has(.village-foundation)::before {
   position: absolute;
   width: 840px;
   height: 600px;
+  background: #586648 url('/game/map/grass-painted.webp') repeat;
+  background-size: 240px;
 }
 .world-map-tile {
   position: relative;
@@ -734,10 +736,12 @@ body:has(.village-foundation)::before {
   border-radius: 0;
   background-image: none;
 }
-.world-map-village img {
+.world-map-village-art {
   display: block;
   width: 60px;
   height: 60px;
+  background: url('/game/map/settlements-painted.webp') no-repeat;
+  background-size: 360px 120px;
   pointer-events: none;
 }
 .map-sector-line {

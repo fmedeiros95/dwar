@@ -8,7 +8,7 @@ export const sceneThemes: { code: SceneTheme; label: string }[] = [
 ];
 
 export function backingUrl(theme: SceneTheme): string {
-  return `/game/town/backing${theme === 'summer' ? '' : `-${theme}`}.webp`;
+  return `/game/town/backing${theme === 'summer' ? '' : `-${theme}`}.jpg`;
 }
 
 /** Começa a baixar o cenário antes da resposta da aldeia, com prioridade. */

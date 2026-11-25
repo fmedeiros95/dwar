@@ -4,7 +4,7 @@ import type { TechnologyView, VillageSnapshot } from '@dwar/api-client';
 import { duration, resources } from '../shared/index.js';
 import { currentResources, type Have } from '../shared/current-resources.js';
 import { CostChips } from '../shared/cost-chips.js';
-import { unitIconSrc } from '../../../components/unit-icon.js';
+import { unitPortraitSrc } from '../../../components/unit-icon.js';
 
 const groups = [
   { title: 'Infantaria', codes: ['spear', 'sword', 'axe', 'archer'] },
@@ -42,7 +42,7 @@ function Technology({
   return (
     <li className="tech-tile" data-state={status}>
       <div className="tech-portrait">
-        <img src={unitIconSrc(technology.code)} alt="" loading="lazy" decoding="async" />
+        <img src={unitPortraitSrc(technology.code)} alt="" loading="lazy" decoding="async" />
         {status === 'researched' ? (
           <span className="tech-badge done" aria-hidden="true">
             <Check size={13} strokeWidth={3} />

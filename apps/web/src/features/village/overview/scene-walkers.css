@@ -1,0 +1,105 @@
+.scene-villager {
+  height: var(--villager-height);
+  aspect-ratio: 7 / 8;
+  offset-rotate: 0deg;
+  offset-anchor: 50% 94%;
+  animation: scene-villager-route var(--villager-route-duration) linear var(--villager-route-delay)
+    infinite;
+}
+
+.scene-villager::before {
+  position: absolute;
+  top: 94%;
+  left: 50%;
+  width: 62%;
+  height: 19%;
+  transform: translate(-50%, -50%) rotate(-12deg);
+  background: radial-gradient(ellipse, rgb(32 24 14 / 0.64), transparent 72%);
+  content: '';
+}
+
+.scene-villager-gait {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  transform: scaleX(var(--villager-facing));
+  animation: scene-villager-turn var(--villager-route-duration) steps(1, end)
+    var(--villager-route-delay) infinite;
+}
+
+.scene-villager-atlas {
+  position: absolute;
+  top: var(--villager-atlas-row);
+  left: 0;
+  display: block;
+  width: 400%;
+  max-width: none;
+  height: 400%;
+  animation: scene-villager-steps var(--villager-stride, 0.88s) steps(1, end)
+    var(--villager-route-delay) infinite;
+}
+
+.scene-villager[data-role='guard'] {
+  --villager-stride: 0.78s;
+}
+
+.scene-villager[data-role='farmer'],
+.scene-villager[data-role='woodcutter'] {
+  --villager-stride: 0.98s;
+}
+
+.phase-night .scene-villager-gait {
+  filter: brightness(0.68) saturate(0.8);
+}
+
+@keyframes scene-villager-route {
+  0%,
+  100% {
+    offset-distance: 0%;
+  }
+  50% {
+    offset-distance: 100%;
+  }
+}
+
+@keyframes scene-villager-turn {
+  0% {
+    transform: scaleX(var(--villager-facing));
+  }
+  50%,
+  100% {
+    transform: scaleX(calc(-1 * var(--villager-facing)));
+  }
+}
+
+@keyframes scene-villager-steps {
+  0% {
+    transform: translateX(0);
+  }
+  25% {
+    transform: translateX(-25%);
+  }
+  50% {
+    transform: translateX(-50%);
+  }
+  75%,
+  100% {
+    transform: translateX(-75%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .scene-villager {
+    offset-distance: var(--villager-resting-point);
+  }
+
+  .scene-villager,
+  .scene-villager-gait,
+  .scene-villager-atlas {
+    animation: none;
+  }
+
+  .scene-villager-atlas {
+    transform: translateX(-25%);
+  }
+}

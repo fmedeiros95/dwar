@@ -3,7 +3,7 @@ import type { BuildingView, VillageSnapshot } from '@dwar/api-client';
 import { ChevronDown, History, List, Mountain, MousePointerClick, X } from 'lucide-react';
 import { ResourceIcon } from '../../../components/legacy-frame.js';
 import { VillageScene, crestLabels, crestState, type SceneTarget } from './village-scene.js';
-import { buildingArt, sceneThemes, type SceneTheme } from './scene-model.js';
+import { buildingArt, buildingIllustration, sceneThemes, type SceneTheme } from './scene-model.js';
 import { BuildPlanner, type PlannerState } from '../planner/build-planner.js';
 import { duration, numbers, resources } from '../shared/index.js';
 import { currentResources } from '../shared/current-resources.js';
@@ -240,7 +240,7 @@ function ClassicOverview({
                     onClick={() => onSelect(building.code)}
                   >
                     <img
-                      src={buildingArt(building.code, building.level, building.maxLevel)}
+                      src={buildingIllustration(building.code, building.level, building.maxLevel)}
                       alt=""
                       loading="lazy"
                       decoding="async"

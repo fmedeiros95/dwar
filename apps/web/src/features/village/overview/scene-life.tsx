@@ -2,7 +2,9 @@ import { useEffect, useRef, useState, type CSSProperties } from 'react';
 import { Hammer } from 'lucide-react';
 import type { BuildingView, Construction } from '@dwar/api-client';
 import type { DayPhase } from '../shared/index.js';
+import { SceneBuildingLife } from './scene-building-life.js';
 import type { PlacedBuilding, SceneTheme } from './scene-model.js';
+import { SceneWalkers } from './scene-walkers.js';
 
 /*
  * Vida do cenário: aldeões, fumaça, nuvens, pássaros, brilho na água, luzes da noite, neve,
@@ -37,66 +39,13 @@ function px(value: number) {
   return `${Math.round(value * 10) / 10}px`;
 }
 
-/* ---- Aldeões nas estradas (coordenadas da arte de verão; as outras estações usam o mesmo traçado) ---- */
-const routes: { d: string; people: number; seconds: number }[] = [
-  // Praça -> portão sul
-  { d: 'M838 524 C815 548 792 576 774 610 S750 666 734 694', people: 2, seconds: 26 },
-  // Praça -> portão do edifício principal
-  { d: 'M846 506 C856 482 868 458 878 440', people: 1, seconds: 14 },
-  // Praça -> estrada norte
-  { d: 'M832 506 C818 472 798 432 778 388', people: 1, seconds: 22 },
-  // Praça -> oeste
-  { d: 'M826 518 C790 518 722 512 650 516 S582 522 566 524', people: 2, seconds: 30 },
-  // Praça -> sudoeste
-  { d: 'M808 532 C780 540 742 544 700 552 S628 566 604 576', people: 1, seconds: 24 },
-  // Praça -> leste
-  { d: 'M858 510 C900 504 950 502 1008 504', people: 1, seconds: 20 },
-  // Praça -> sudeste (quartel)
-  { d: 'M856 530 C884 548 912 570 940 594', people: 1, seconds: 18 },
-  // Fora dos muros: ponte sul -> estrada
-  { d: 'M676 784 C664 810 650 842 646 882 S640 960 648 1010', people: 2, seconds: 34 },
-  // Fora dos muros: estrada nordeste
-  { d: 'M1004 262 C1060 250 1104 236 1152 222 S1242 198 1292 186', people: 1, seconds: 30 },
-];
-const tunics = ['#8b2c22', '#2f4f7a', '#5d7a2a', '#7a5a2a', '#6b3a6b', '#a07a2a', '#3d6b66'];
-
-function Walkers() {
-  let index = 0;
-  return (
-    <>
-      {routes.flatMap((route) =>
-        Array.from({ length: route.people }, (_, person) => {
-          const i = index++;
-          const seconds = route.seconds * (0.85 + seeded(i, 1) * 0.35);
-          return (
-            <span
-              key={`${route.d}-${person}`}
-              className="life-walker"
-              style={
-                {
-                  offsetPath: `path('${route.d}')`,
-                  animationDuration: `${seconds}s`,
-                  animationDelay: `${-seeded(i, 2) * seconds * 2}s`,
-                  '--tunic': tunics[i % tunics.length],
-                } as CSSProperties
-              }
-            >
-              <i />
-            </span>
-          );
-        }),
-      )}
-    </>
-  );
-}
-
 /*
  * Chaminés: fração da caixa do sprite, por arte e por nível de arte (a casa muda de forma
  * conforme cresce). Medidas sobre as próprias imagens em public/game/buildings.
  */
 type Chimney = { tiers: Record<number, [number, number][]>; forge?: boolean };
 const chimneys: Record<number, Chimney> = {
-  // ferreiro: a forja solta fumaça escura e brasas
+  // ferreiro: a chaminé da forja solta fumaça mais escura
   11: {
     forge: true,
     tiers: { 1: [[0.52, 0.46]], 2: [[0.53, 0.44]], 3: [[0.52, 0.4]], 4: [[0.52, 0.4]] },
@@ -164,31 +113,36 @@ const chimneys: Record<number, Chimney> = {
   18: { tiers: { 1: [[0.82, 0.18]] } },
 };
 
-function Smoke({ layers, phase }: { layers: SceneLayer[]; phase: DayPhase }) {
+function Smoke({
+  layers,
+  phase,
+  workSites,
+}: {
+  layers: SceneLayer[];
+  phase: DayPhase;
+  workSites: Set<string>;
+}) {
   return (
     <>
       {layers.flatMap(({ building, placed }) => {
         const chimney = chimneys[placed.artId];
         const points = chimney?.tiers[placed.tier];
         const box = spriteBox(placed);
-        if (!chimney || !points || !box || building.level === 0) return [];
+        if (!chimney || !points || !box || building.level === 0 || workSites.has(building.code))
+          return [];
         return points.map(([fx, fy], c) => {
           const x = box.x + box.w * fx;
           const y = box.y + box.h * fy;
+          const offset = seeded(placed.artId * 4 + c, 19) * 5;
           return (
             <span
               key={`${building.code}-${c}`}
               className={`life-chimney${chimney.forge ? ' forge' : ''}${phase === 'night' ? ' night' : ''}`}
               style={{ left: px(x), top: px(y) }}
             >
-              {[0, 1, 2, 3].map((puff) => (
-                <i key={puff} style={{ animationDelay: `${-puff * 1.4}s` }} />
+              {[0, 1, 2].map((puff) => (
+                <i key={puff} style={{ animationDelay: `${-offset - puff * 1.9}s` }} />
               ))}
-              {chimney.forge
-                ? [0, 1, 2].map((ember) => (
-                    <b key={ember} style={{ animationDelay: `${-ember * 0.7}s` }} />
-                  ))
-                : null}
             </span>
           );
         });
@@ -375,60 +329,40 @@ function Weather({ theme }: { theme: SceneTheme }) {
   return null;
 }
 
-/* ---- Obras: poeira e faíscas na base do edifício ---- */
-function activeConstructions(layers: SceneLayer[], queue: Construction[], clock: number) {
-  return layers.flatMap((layer) => {
-    const event = queue.find((item) => item.buildingCode === layer.building.code);
-    if (!event) return [];
-    const start = new Date(event.startsAt).getTime();
-    if (start > clock) return [];
-    const box = spriteBox(layer.placed);
-    return box ? [{ layer, box }] : [];
-  });
+/* Áreas livres nas entradas, conferidas contra os estágios dos edifícios e da muralha. */
+const workSiteAnchors: Partial<Record<string, readonly [number, number]>> = {
+  main: [897, 527],
+  storage: [800, 574],
+  wood: [1060, 280],
+  iron: [992, 267],
+  farm: [547, 859],
+  mill: [1200, 770],
+  treasury: [756, 417],
+  smith: [663, 616],
+  barracks: [919, 582],
+  stable: [806, 624],
+  workshop: [627, 525],
+  noble: [931, 532],
+};
+
+function activeConstructionCodes(queue: Construction[], clock: number) {
+  return new Set(
+    queue
+      .filter((event) => Date.parse(event.startsAt) <= clock && clock < Date.parse(event.endsAt))
+      .map((event) => event.buildingCode),
+  );
 }
 
-function ConstructionDust({
-  layers,
-  queue,
-  clock,
-}: {
-  layers: SceneLayer[];
-  queue: Construction[];
-  clock: number;
-}) {
+function SiteWorker({ anchor, forge }: { anchor: readonly [number, number]; forge: boolean }) {
+  const [x, y] = anchor;
   return (
-    <>
-      {activeConstructions(layers, queue, clock).map(({ layer, box }) => (
-        <span
-          key={layer.building.code}
-          className="life-works"
-          style={{ left: px(box.x + box.w / 2), top: px(box.y + box.h * 0.78) }}
-        >
-          {[0, 1, 2, 3].map((puff) => (
-            <i
-              key={puff}
-              style={
-                {
-                  '--dx': `${(puff - 1.5) * Math.min(40, box.w / 6)}px`,
-                  animationDelay: `${-puff * 0.55}s`,
-                } as CSSProperties
-              }
-            />
-          ))}
-          {[0, 1, 2].map((spark) => (
-            <b
-              key={spark}
-              style={
-                {
-                  '--dx': `${(spark - 1) * 18}px`,
-                  animationDelay: `${-spark * 0.4}s`,
-                } as CSSProperties
-              }
-            />
-          ))}
-        </span>
-      ))}
-    </>
+    <span
+      className={`life-worker${forge ? ' forge' : ' carpenter'}`}
+      style={{ left: px(x), top: px(y) }}
+    >
+      <span className="life-worker-sprite" />
+      <span className="life-worker-impact" />
+    </span>
   );
 }
 
@@ -445,11 +379,20 @@ export function SceneLife({
   theme: SceneTheme;
   phase: DayPhase;
 }) {
+  const workSites = activeConstructionCodes(queue, clock);
   return (
     <div className={`scene-life phase-${phase}`} aria-hidden="true">
-      <Walkers />
-      <Smoke layers={layers} phase={phase} />
-      <ConstructionDust layers={layers} queue={queue} clock={clock} />
+      <SceneWalkers layers={layers} phase={phase} />
+      <SceneBuildingLife layers={layers} workSites={workSites} />
+      <Smoke layers={layers} phase={phase} workSites={workSites} />
+      {layers.map(({ building }) => {
+        const anchor = workSiteAnchors[building.code];
+        const buildingWork = workSites.has(building.code);
+        const forge = building.code === 'smith' && building.level > 0 && phase !== 'night';
+        return anchor && (buildingWork || forge) ? (
+          <SiteWorker key={building.code} anchor={anchor} forge={forge && !buildingWork} />
+        ) : null;
+      })}
       {phase === 'night' ? <NightLights theme={theme} /> : null}
       <Sky theme={theme} phase={phase} />
       <Weather theme={theme} />
@@ -513,21 +456,22 @@ export function SceneCelebrations({
     timers.current.add(timer);
   }, [layers, villageId]);
 
+  const workSites = activeConstructionCodes(queue, clock);
   return (
     <div className="scene-celebrations" aria-hidden="true">
-      {activeConstructions(layers, queue, clock).flatMap(({ layer }) => {
-        const label = layer.placed.label;
-        if (!label || layer.building.code === 'main') return [];
-        return [
+      {layers.map(({ building, placed }) => {
+        const label = placed.label;
+        if (!label || building.code === 'main' || !workSites.has(building.code)) return null;
+        return (
           <span
-            key={`hammer-${layer.building.code}`}
+            key={`hammer-${building.code}`}
             className="life-hammer"
             // À esquerda do brasão: à direita fica o tempo da obra, que o martelo cobria.
             style={{ left: px(label.left - 22), top: px(label.top - 6) }}
           >
             <Hammer size={14} strokeWidth={2.4} />
-          </span>,
-        ];
+          </span>
+        );
       })}
       {bursts.map((burst) => (
         <span key={burst.id} className="life-burst" style={{ left: px(burst.x), top: px(burst.y) }}>

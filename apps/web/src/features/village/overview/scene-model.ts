@@ -33,7 +33,7 @@ type ManifestEntry = {
   road: boolean;
   roadWinter: boolean;
   phases: number[];
-  winter: boolean;
+  winterSprites: string[];
   halloween: boolean;
 };
 
@@ -43,6 +43,11 @@ const labels = positions.labels as unknown as Record<
   { left?: number; top?: number } | undefined
 >;
 const art = manifest.buildings as Record<string, ManifestEntry>;
+const illustrations = import.meta.glob<string>('../../../assets/buildings/*.webp', {
+  query: '?url',
+  import: 'default',
+  eager: true,
+});
 
 /** Escolhe o nível de arte (1..N) distribuindo os níveis do jogo entre as artes disponíveis. */
 export function artTier(artId: number, level: number, maxLevel: number): number {
@@ -59,13 +64,6 @@ export function phaseFor(artId: number, progress: number): number | null {
   return phases.includes(wanted) ? wanted : (phases.at(-1) ?? null);
 }
 
-function suffix(theme: SceneTheme, artId: number, kind: 'sprite' | 'road'): string {
-  const entry = art[artId];
-  if (!entry) return '';
-  if (theme === 'winter' && (kind === 'sprite' ? entry.winter : entry.roadWinter)) return '-winter';
-  return '';
-}
-
 export function spriteUrl(
   artId: number,
   tier: number,
@@ -75,14 +73,16 @@ export function spriteUrl(
   const entry = art[artId];
   if (theme === 'halloween' && entry?.halloween && tier === 1 && phase === null)
     return `/game/buildings/${artId}/${artId}_1-halloween-theme.webp`;
-  const phasePart = phase ? `-${phase}` : '';
-  return `/game/buildings/${artId}/${artId}_${tier}${phasePart}${suffix(theme, artId, 'sprite')}.webp`;
+  const sprite = phase ? `${tier}-${phase}` : String(tier);
+  const winter = theme === 'winter' && entry?.winterSprites.includes(sprite) ? '-winter' : '';
+  return `/game/buildings/${artId}/${artId}_${sprite}${winter}.webp`;
 }
 
 export function roadUrl(artId: number, theme: SceneTheme): string | null {
   const entry = art[artId];
   if (!entry?.road) return null;
-  return `/game/buildings/${artId}/${artId}_road${suffix(theme, artId, 'road')}.webp`;
+  const winter = theme === 'winter' && entry.roadWinter ? '-winter' : '';
+  return `/game/buildings/${artId}/${artId}_road${winter}.webp`;
 }
 
 export type PlacedBuilding = {
@@ -132,6 +132,13 @@ export function buildingArt(code: string, level?: number, maxLevel?: number): st
       ? entry.tiers.length
       : artTier(artId, Math.max(1, level), maxLevel);
   return `/game/buildings/${artId}/${artId}_${tier}.webp`;
+}
+
+/** Ilustração dos painéis e das listas de obras. */
+export function buildingIllustration(code: string, level?: number, maxLevel?: number): string {
+  return (
+    illustrations[`../../../assets/buildings/${code}.webp`] ?? buildingArt(code, level, maxLevel)
+  );
 }
 
 export { backingUrl, sceneThemes, type SceneTheme };

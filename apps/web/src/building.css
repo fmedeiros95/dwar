@@ -773,8 +773,6 @@ button.req-chip:hover:not(:disabled) {
   width: 56px;
   height: 56px;
   object-fit: cover;
-  border-radius: 10px;
-  box-shadow: 0 0 0 1px rgb(0 0 0 / 0.35);
 }
 .tech-tile[data-state='unavailable'] .tech-portrait img {
   filter: grayscale(0.9) brightness(0.9);
@@ -905,11 +903,15 @@ button.req-chip:hover:not(:disabled) {
   width: 42px;
   height: 42px;
 }
+.academy-emblem.portrait {
+  background: none;
+  border: 0;
+  box-shadow: none;
+}
 .academy-emblem.portrait img {
   width: 64px;
   height: 64px;
   object-fit: cover;
-  border-radius: 50%;
 }
 .academy-link {
   display: grid;
@@ -994,8 +996,6 @@ button.req-chip:hover:not(:disabled) {
   width: 64px;
   height: 64px;
   object-fit: cover;
-  border-radius: 12px;
-  box-shadow: 0 0 0 1px rgb(0 0 0 / 0.35);
 }
 .unit-info {
   display: grid;
@@ -1046,6 +1046,10 @@ button.req-chip:hover:not(:disabled) {
 @container (max-width: 640px) {
   .unit-card {
     grid-template-columns: 56px minmax(0, 1fr);
+  }
+  .unit-portrait {
+    width: 56px;
+    height: 56px;
   }
   .unit-qty {
     grid-column: 1 / -1;

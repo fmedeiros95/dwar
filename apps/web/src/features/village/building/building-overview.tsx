@@ -5,7 +5,7 @@ import { ResourceIcon } from '../../../components/legacy-frame.js';
 import { completionDate, duration, numbers, resources } from '../shared/index.js';
 import { currentResources } from '../shared/current-resources.js';
 import { CostChips, WaitReason } from '../shared/cost-chips.js';
-import { buildingArt } from '../overview/scene-model.js';
+import { buildingIllustration } from '../overview/scene-model.js';
 
 const formatStat = (value: number, unit: string) =>
   unit === '%' ? `${numbers.format(value)}%` : numbers.format(value);
@@ -291,7 +291,7 @@ export function BuildingOverview({
       <section className="bview-hero">
         <div className="bview-art">
           <img
-            src={buildingArt(building.code, building.level, building.maxLevel)}
+            src={buildingIllustration(building.code, building.level, building.maxLevel)}
             alt=""
             decoding="async"
           />
