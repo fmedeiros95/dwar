@@ -8,7 +8,13 @@ import { numbers } from '../shared/index.js';
 import { PanelCard } from '../shared/panel-head.js';
 import { NoteBox } from '../notes/index.js';
 
-export function PublicVillageScreen({ snapshot }: { snapshot: VillageSnapshot }) {
+export function PublicVillageScreen({
+  snapshot,
+  pollForChanges,
+}: {
+  snapshot: VillageSnapshot;
+  pollForChanges: boolean;
+}) {
   const [params, setParams] = useSearchParams(),
     targetId = Number(params.get('id'));
   const target = useQuery({
@@ -17,10 +23,10 @@ export function PublicVillageScreen({ snapshot }: { snapshot: VillageSnapshot })
     enabled: !!targetId,
   });
   const reports = useQuery({
-    queryKey: ['village-reports', snapshot.world.id, targetId],
+    queryKey: ['reports', snapshot.world.id, 1, 'all', targetId],
     queryFn: () => api.reports(snapshot.world.id, 1, targetId),
     enabled: !!targetId,
-    refetchInterval: 5000,
+    refetchInterval: pollForChanges ? 5000 : false,
   });
   const data = target.data;
   if (!data)

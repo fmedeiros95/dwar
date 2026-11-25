@@ -7,7 +7,12 @@ import {
   type BuildingLevels,
   type TechnologyCode,
 } from '@dwar/game-config';
-import type { TechnologyView, Resources, VillageSnapshot } from '@dwar/api-client';
+import {
+  insufficientResources,
+  type TechnologyView,
+  type Resources,
+  type VillageSnapshot,
+} from '@dwar/api-client';
 import { db, researchEvents, villages } from '@dwar/database';
 import { GameError } from './errors.js';
 import { lockWorld, ownedVillage, settleVillage, snapshot } from './village-engine.js';
@@ -37,7 +42,7 @@ export function technologyViews(
             : (['wood', 'stone', 'iron'] as const).some(
                   (resource) => definition.cost[resource] > resources[resource],
                 )
-              ? 'Recursos insuficientes.'
+              ? insufficientResources
               : null;
     return {
       code,

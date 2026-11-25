@@ -18,9 +18,11 @@ import { preloadBacking } from './overview/scene-theme.js';
 import { Overview } from './overview/index.js';
 import { ThreatAlert } from './incomings/threat.js';
 import { useVillageActions } from './use-village-actions.js';
+import { useWorldEvents } from './use-world-events.js';
 import { usePlannerState } from './planner/build-planner.js';
 import { completionDate, duration, numbers, resources, timeFormat } from './shared/index.js';
 import { currentResources } from './shared/current-resources.js';
+import { projectVillage } from './shared/project-village.js';
 import { useResourceDeltas } from './shared/resource-delta.js';
 
 // O mapa e as janelas saem do pacote inicial; baixam ao abrir ou logo depois da aldeia.
@@ -98,6 +100,7 @@ export function VillagePage({
   const worldId = world.id;
   const client = useQueryClient(),
     navigate = useNavigate();
+  const pollForChanges = useWorldEvents(worldId, account.id);
   const [params, setParams] = useSearchParams();
   const rawScreen = params.get('screen') ?? 'overview';
   const isBackground = backgroundScreens.includes(rawScreen);
@@ -115,7 +118,7 @@ export function VillagePage({
   const village = useQuery({
     queryKey: villageKey,
     queryFn: () => api.village(worldId, selectedVillageId),
-    refetchInterval: 3000,
+    refetchInterval: pollForChanges ? 3000 : false,
   });
   const profile = useQuery({
     queryKey: ['profile', worldId],
@@ -128,15 +131,15 @@ export function VillagePage({
       navigate(worldEntryPath(world.slug), { replace: true });
     }
   }, [village.error, client, navigate, worldId, world.slug]);
-  const data = village.data;
-  const ready = data !== undefined;
+  const snapshot = village.data;
+  const ready = snapshot !== undefined;
   useEffect(() => {
     if (!ready) return;
     // Depois da aldeia e de sua arte, para não disputar a rede com elas.
     const timer = setTimeout(() => void preloadScreens(), 4000);
     return () => clearTimeout(timer);
   }, [ready]);
-  const canonicalVillageId = data?.village.id;
+  const canonicalVillageId = snapshot?.village.id;
   useEffect(() => {
     if (canonicalVillageId === undefined) return;
     // Telas de janela são tratadas pelo efeito seguinte, que também corrige a URL.
@@ -173,28 +176,28 @@ export function VillagePage({
   }, [canonicalVillageId, isBackground, rawScreen, params, openWindow, setParams]);
   const planner = usePlannerState(canonicalVillageId ?? 0);
   const reports = useQuery({
-    queryKey: ['reports', worldId, 1],
+    queryKey: ['reports', worldId, 1, 'all', 0],
     queryFn: () => api.reports(worldId, 1),
-    enabled: !!data,
-    refetchInterval: 5000,
+    enabled: ready,
+    refetchInterval: pollForChanges ? 5000 : false,
   });
   const tribes = useQuery({
     queryKey: ['tribes', worldId],
     queryFn: () => api.tribes(worldId),
-    enabled: !!data,
+    enabled: ready,
     refetchInterval: 30000,
   });
   const mail = useQuery({
     queryKey: ['mailbox', worldId, 1],
     queryFn: () => api.mailbox(worldId, 1),
-    enabled: !!data,
-    refetchInterval: 5000,
+    enabled: ready,
+    refetchInterval: pollForChanges ? 5000 : false,
   });
   const incomings = useQuery({
     queryKey: ['incomings', worldId],
     queryFn: () => api.incomings(worldId),
-    enabled: !!data,
-    refetchInterval: 3000,
+    enabled: ready,
+    refetchInterval: pollForChanges ? 3000 : false,
   });
   const {
     build,
@@ -216,7 +219,7 @@ export function VillagePage({
     cancelledConstructions,
   } = useVillageActions({
     worldId,
-    villageId: data?.village.id,
+    villageId: canonicalVillageId,
     onLogout,
     onRenameSuccess: () => setEditingName(false),
   });
@@ -227,20 +230,20 @@ export function VillagePage({
     items: Map<number, { name: string; level: number }>;
   } | null>(null);
   useEffect(() => {
-    if (!data) return;
+    if (!snapshot) return;
     const items = new Map(
-      data.queue.map((item) => [item.id, { name: item.name, level: item.targetLevel }]),
+      snapshot.queue.map((item) => [item.id, { name: item.name, level: item.targetLevel }]),
     );
     const previous = queueMemory.current;
-    if (previous && previous.villageId === data.village.id) {
+    if (previous && previous.villageId === snapshot.village.id) {
       for (const [id, info] of previous.items) {
         if (items.has(id)) continue;
         if (cancelledConstructions.current.delete(id)) continue;
         toast.success('Obra concluída', `${info.name}, nível ${info.level}`);
       }
     }
-    queueMemory.current = { villageId: data.village.id, items };
-  }, [data, cancelledConstructions, toast]);
+    queueMemory.current = { villageId: snapshot.village.id, items };
+  }, [snapshot, cancelledConstructions, toast]);
   useEffect(() => {
     const timer = setInterval(() => setNow(Date.now()), 1000);
     return () => clearInterval(timer);
@@ -294,29 +297,27 @@ export function VillagePage({
     event.preventDefault();
     rename.mutate(name);
   }
+  const clock = snapshot
+    ? Date.parse(snapshot.serverTime) + Math.max(0, now - village.dataUpdatedAt)
+    : now;
+  const have = snapshot ? currentResources(snapshot, clock) : idleResources;
   const deltas = useResourceDeltas(
-    data?.village.id ?? 0,
-    data
-      ? currentResources(
-          data,
-          new Date(data.serverTime).getTime() + Math.max(0, now - village.dataUpdatedAt),
-        )
-      : idleResources,
-    data?.village.productionPerHour ?? idleResources,
-    data?.village.capacity ?? 0,
+    canonicalVillageId ?? 0,
+    have,
+    snapshot?.village.productionPerHour ?? idleResources,
+    snapshot?.village.capacity ?? 0,
   );
   // Espera também os comandos a caminho: o aviso de ataque entra junto com a barra, sem empurrá-la.
-  if (!data || incomings.isPending)
+  if (!snapshot || incomings.isPending)
     return (
       <StatusPage
-        title={village.error && !data ? 'Aldeia indisponível' : 'Carregando aldeia…'}
-        error={data ? undefined : village.error?.message}
+        title={village.error && !snapshot ? 'Aldeia indisponível' : 'Carregando aldeia…'}
+        error={snapshot ? undefined : village.error?.message}
         onRetry={() => void village.refetch()}
         retrying={village.isFetching}
       />
     );
-  const clock = new Date(data.serverTime).getTime() + Math.max(0, now - village.dataUpdatedAt);
-  const have = currentResources(data, clock);
+  const data = projectVillage(snapshot, have, clock);
   const buildingFor = (code: string) => data.buildings.find((building) => building.code === code);
   const focusedWindow = windows.windows.find((item) => item.id === windows.focusedId);
   const focusedScreen = focusedWindow
@@ -744,10 +745,13 @@ export function VillagePage({
                 }
               />
             );
-          if (code === 'info_village') return <PublicVillageScreen snapshot={data} />;
+          if (code === 'info_village')
+            return <PublicVillageScreen snapshot={data} pollForChanges={pollForChanges} />;
           if (code === 'info_player') return <PublicPlayerScreen snapshot={data} />;
-          if (code === 'reports') return <ReportsPanel snapshot={data} clock={clock} />;
-          if (code === 'mail') return <MailPanel snapshot={data} clock={clock} />;
+          if (code === 'reports')
+            return <ReportsPanel snapshot={data} clock={clock} pollForChanges={pollForChanges} />;
+          if (code === 'mail')
+            return <MailPanel snapshot={data} clock={clock} pollForChanges={pollForChanges} />;
           if (code === 'notes') return <NotesPanel snapshot={data} />;
           if (code === 'medals') return <MedalsPanel snapshot={data} />;
           if (code === 'tribe') return <TribePanel snapshot={data} />;

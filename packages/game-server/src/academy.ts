@@ -20,7 +20,12 @@ import {
   troopCost,
   coinMintCost,
 } from '@dwar/game-core';
-import type { AcademyView, VillageSnapshot } from '@dwar/api-client';
+import {
+  insufficientCoins,
+  insufficientResources,
+  type AcademyView,
+  type VillageSnapshot,
+} from '@dwar/api-client';
 import { GameError } from './errors.js';
 import { lockWorld, ownedVillage, settleVillage, snapshot } from './village-engine.js';
 
@@ -106,9 +111,9 @@ export async function academyView(
         : resourceCodes.some((code) => cost[code] > capacity(village.buildings))
           ? 'Amplie o armazém para comportar o custo.'
           : resourceCodes.some((code) => cost[code] > village[code])
-            ? 'Recursos insuficientes.'
+            ? insufficientResources
             : coinsMissing > 0
-              ? 'Moedas insuficientes.'
+              ? insufficientCoins
               : null;
   const mintUnavailableReason =
     village.buildings.noble === 0
@@ -116,7 +121,7 @@ export async function academyView(
       : resourceCodes.some((code) => coinCost[code] > capacity(village.buildings))
         ? 'Amplie o armazém para comportar o custo.'
         : resourceCodes.some((code) => coinCost[code] > village[code])
-          ? 'Recursos insuficientes.'
+          ? insufficientResources
           : null;
   return {
     coins,
@@ -127,14 +132,14 @@ export async function academyView(
     canRecruit: recruitUnavailableReason === null,
     recruitUnavailableReason,
     recruitResourcesAvailableAt:
-      recruitUnavailableReason === 'Recursos insuficientes.'
+      recruitUnavailableReason === insufficientResources
         ? resourcesAvailableAt(village, world, cost, now)
         : null,
     coinCost,
     canMint: mintUnavailableReason === null,
     mintUnavailableReason,
     mintResourcesAvailableAt:
-      mintUnavailableReason === 'Recursos insuficientes.'
+      mintUnavailableReason === insufficientResources
         ? resourcesAvailableAt(village, world, coinCost, now)
         : null,
   };

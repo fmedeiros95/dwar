@@ -64,6 +64,8 @@ pnpm start:worker
 
 O executor usa o banco como fonte de verdade. Construções continuam agendadas quando ele para e são retomadas ao reiniciar. Ao abrir a aldeia, a API também resolve construções vencidas antes de devolver o estado.
 
+A aldeia recebe avisos, relatórios e mensagens por uma conexão SSE autenticada. Rode `pnpm db:migrate` para ativar as notificações no PostgreSQL. Se a conexão cair, a interface volta temporariamente às consultas periódicas e sincroniza os dados assim que se reconectar. Se houver um proxy na frente da API, deixe o fluxo `/api/worlds/:worldId/events` passar sem buffering.
+
 ## Mundos e aldeias abandonadas
 
 Para adicionar aldeias abandonadas em um mundo já existente, após compilar os pacotes: `pnpm db:barbarians br1 100`. O primeiro argumento é o slug do mundo e o segundo é a quantidade a criar. O comando usa as regras de fundação, posiciona cada aldeia no raio crescente do mapa e não reutiliza coordenadas ocupadas. Sem a quantidade, cria apenas a diferença entre fundações e abandonadas existentes.

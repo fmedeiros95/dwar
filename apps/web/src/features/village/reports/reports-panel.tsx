@@ -15,7 +15,15 @@ import { BattleDetail, NoticeDetail } from './report-detail.js';
 import { refKey, tabs } from './report-parts.js';
 import { targetScreen } from '../shared/index.js';
 
-export function ReportsPanel({ snapshot, clock }: { snapshot: VillageSnapshot; clock: number }) {
+export function ReportsPanel({
+  snapshot,
+  clock,
+  pollForChanges,
+}: {
+  snapshot: VillageSnapshot;
+  clock: number;
+  pollForChanges: boolean;
+}) {
   const [params, setParams] = useGameSearchParams(),
     client = useQueryClient();
   const worldId = snapshot.world.id;
@@ -32,7 +40,7 @@ export function ReportsPanel({ snapshot, clock }: { snapshot: VillageSnapshot; c
   const list = useQuery({
     queryKey: ['reports', worldId, page, group, villageFilter ?? 0],
     queryFn: () => api.reports(worldId, page, villageFilter, group),
-    refetchInterval: 5000,
+    refetchInterval: pollForChanges ? 5000 : false,
     placeholderData: (previous) => previous,
   });
   const detail = useQuery({

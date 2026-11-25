@@ -19,6 +19,8 @@ import {
   units,
   type UnitCode,
   type BuildingCode,
+  combatRules,
+  worldSpeedMultiplier,
 } from '@dwar/game-config';
 import {
   accrueResources,
@@ -34,7 +36,7 @@ import {
   productionRates,
   resourceCodes,
 } from '@dwar/game-core';
-import type { VillageSnapshot } from '@dwar/api-client';
+import { insufficientResources, type VillageSnapshot } from '@dwar/api-client';
 import { buildingDetails } from './building-details.js';
 import { technologyViews } from './research.js';
 import { academyView } from './academy.js';
@@ -286,6 +288,7 @@ export async function snapshot(
     )
     .orderBy(asc(recruitmentEvents.startsAt), asc(recruitmentEvents.id));
   const academy = await academyView(tx, village, world, now);
+  const loyalty = loyaltyAt(village.loyalty, village.loyaltyUpdatedAt, now, world.buildSpeed);
   return {
     player: await playerStanding(tx, world.id, ownerOf(village)),
     academy,
@@ -321,11 +324,23 @@ export async function snapshot(
       x: village.x,
       y: village.y,
       points: village.points,
-      loyalty: loyaltyAt(village.loyalty, village.loyaltyUpdatedAt, now, world.buildSpeed),
+      loyalty,
+      ...(loyalty < 100 && {
+        loyaltyRecovery: {
+          base: village.loyalty,
+          since: village.loyaltyUpdatedAt.toISOString(),
+          perHour: combatRules.loyaltyPerHour * worldSpeedMultiplier(world.buildSpeed),
+        },
+      }),
       resources: {
         wood: Math.floor(village.wood),
         stone: Math.floor(village.stone),
         iron: Math.floor(village.iron),
+      },
+      resourceRemainders: {
+        wood: village.wood % 1,
+        stone: village.stone % 1,
+        iron: village.iron % 1,
       },
       productionPerHour: productionRates(village.buildings, world.productionSpeed),
       capacity: capacity(village.buildings),
@@ -357,7 +372,7 @@ export async function snapshot(
                 : resourceCodes.some((resource) => cost[resource] > capacity(village.buildings))
                   ? 'Amplie o armazém para comportar o custo.'
                   : resourceCodes.some((resource) => village[resource] < cost[resource])
-                    ? 'Recursos insuficientes.'
+                    ? insufficientResources
                     : null;
       return {
         code,
@@ -383,7 +398,7 @@ export async function snapshot(
           met: village.buildings[required as BuildingCode] >= requiredLevel,
         })),
         resourcesAvailableAt:
-          reason === 'Recursos insuficientes.' && Number.isFinite(waitingSeconds)
+          reason === insufficientResources && Number.isFinite(waitingSeconds)
             ? new Date(now.getTime() + Math.ceil(waitingSeconds) * 1000).toISOString()
             : null,
         details: buildingDetails(

@@ -1,6 +1,8 @@
 // This initial contract will be generated from OpenAPI when the API surface grows.
 export type ResourceCode = 'wood' | 'stone' | 'iron';
 export type Resources = Record<ResourceCode, number>;
+export const insufficientResources = 'Recursos insuficientes.';
+export const insufficientCoins = 'Moedas insuficientes.';
 export type Account = { id: number; username: string; email: string; graphicalOverview: boolean };
 export type RegistrationChallenge = {
   token: string;
@@ -129,7 +131,9 @@ export type VillageSnapshot = {
     y: number;
     points: number;
     loyalty: number;
+    loyaltyRecovery?: { base: number; since: string; perHour: number };
     resources: Resources;
+    resourceRemainders?: Resources;
     productionPerHour: Resources;
     capacity: number;
     populationUsed: number;
@@ -432,6 +436,7 @@ export type ResolvedAttack = {
   movementId: number;
   reportId: number;
   occurredAt: string;
+  expiresAt?: string;
   target: { id: number; name: string; x: number; y: number };
   attacker: string;
   outcome: 'won' | 'lost' | 'draw';
@@ -876,6 +881,7 @@ export const api = {
     }),
   worlds: () => request<World[]>('/worlds'),
   worldBySlug: (slug: string) => request<World>(`/worlds/by-slug/${encodeURIComponent(slug)}`),
+  worldEventsUrl: (worldId: number) => `/api/worlds/${worldId}/events`,
   mailbox: (worldId: number, page = 1) =>
     request<MailboxSnapshot>(`/worlds/${worldId}/mail?page=${page}`),
   mailThread: (worldId: number, threadId: number) =>

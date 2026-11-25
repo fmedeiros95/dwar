@@ -26,7 +26,12 @@ import {
   troopCost,
   scaleCost,
 } from '@dwar/game-core';
-import type { UnitView, AcademyView, VillageSnapshot } from '@dwar/api-client';
+import {
+  insufficientResources,
+  type UnitView,
+  type AcademyView,
+  type VillageSnapshot,
+} from '@dwar/api-client';
 import { GameError } from './errors.js';
 import { lockWorld, ownedVillage, settleVillage, snapshot } from './village-engine.js';
 
@@ -61,7 +66,7 @@ export function unitViews(
               : resourceCodes.some((resource) => cost[resource] > capacity(village.buildings))
                 ? 'Amplie o armazém para comportar o custo.'
                 : resourceCodes.some((resource) => cost[resource] > village[resource])
-                  ? 'Recursos insuficientes.'
+                  ? insufficientResources
                   : null;
     const counts = placements.filter((placement) => placement.unitCode === code);
     return {
@@ -228,7 +233,7 @@ export async function recruit(
   if (village.populationUsed + population > populationCapacity(village.buildings))
     throw new GameError('Amplie a fazenda para liberar população.');
   if (resourceCodes.some((resource) => village[resource] < cost[resource]))
-    throw new GameError('Recursos insuficientes.');
+    throw new GameError(insufficientResources);
   const [last] = await tx
     .select()
     .from(recruitmentEvents)

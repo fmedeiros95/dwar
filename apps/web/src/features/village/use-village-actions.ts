@@ -122,12 +122,17 @@ export function useVillageActions({
   });
   const cancel = useMutation({
     mutationFn: (id: number) => api.cancelConstruction(worldId, villageId!, id),
-    onSuccess: (result, id) => {
+    onMutate: (id) => {
       cancelledConstructions.current.add(id);
+    },
+    onSuccess: (result) => {
       applySnapshot(result);
       toast.info('Obra cancelada', 'Os recursos foram devolvidos.');
     },
-    onError: failure('Não foi possível cancelar a obra'),
+    onError: (error, id) => {
+      cancelledConstructions.current.delete(id);
+      failure('Não foi possível cancelar a obra')(error);
+    },
   });
   const rename = useMutation({
     mutationFn: (value: string) => api.renameVillage(worldId, villageId!, value),

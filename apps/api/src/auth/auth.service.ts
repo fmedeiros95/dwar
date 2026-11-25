@@ -151,16 +151,17 @@ export class AuthService {
     return publicAccount(account);
   }
 
-  async accountForSession(token: unknown): Promise<Account> {
+  async readSession(token: unknown): Promise<{ account: Account; tokenHash: string }> {
     if (typeof token !== 'string' || !/^[\w-]{43}$/.test(token))
       throw new GameError('Entre na sua conta para continuar.', 401);
+    const tokenHash = digest(token);
     const [result] = await db
       .select({ account: accounts })
       .from(sessions)
       .innerJoin(accounts, eq(accounts.id, sessions.accountId))
-      .where(and(eq(sessions.tokenHash, digest(token)), gt(sessions.expiresAt, new Date())));
+      .where(and(eq(sessions.tokenHash, tokenHash), gt(sessions.expiresAt, new Date())));
     if (!result) throw new GameError('Sua sessão expirou. Entre novamente.', 401);
-    return publicAccount(result.account);
+    return { account: publicAccount(result.account), tokenHash };
   }
 
   async logout(token: unknown): Promise<void> {

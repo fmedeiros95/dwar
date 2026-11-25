@@ -12,7 +12,11 @@ export function currentResources(snapshot: VillageSnapshot, clock: number): Have
       code,
       Math.min(
         village.capacity,
-        Math.floor(village.resources[code] + village.productionPerHour[code] * elapsedHours),
+        Math.floor(
+          village.resources[code] +
+            (village.resourceRemainders?.[code] ?? 0) +
+            village.productionPerHour[code] * elapsedHours,
+        ),
       ),
     ]),
   ) as Have;

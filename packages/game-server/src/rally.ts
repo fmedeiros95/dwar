@@ -738,6 +738,7 @@ async function resolvedAttacks(
     movementId,
     reportId,
     occurredAt: occurredAt.toISOString(),
+    expiresAt: new Date(occurredAt.getTime() + resolvedWindowMs).toISOString(),
     target: { id: result.to.villageId, name: result.to.name, x: result.to.x, y: result.to.y },
     attacker: result.from.username,
     outcome:

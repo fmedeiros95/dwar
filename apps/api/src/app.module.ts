@@ -16,6 +16,7 @@ import { MedalsModule } from './medals/medals.module.js';
 import { TribesModule } from './tribes/tribes.module.js';
 import { ResearchModule } from './research/research.module.js';
 import { VillagesModule } from './villages/villages.module.js';
+import { WorldEventsModule } from './world-events/world-events.module.js';
 import { WorldsModule } from './worlds/worlds.module.js';
 
 @Module({
@@ -23,6 +24,7 @@ import { WorldsModule } from './worlds/worlds.module.js';
     HealthModule,
     AuthModule,
     WorldsModule,
+    WorldEventsModule,
     VillagesModule,
     ConstructionModule,
     ResearchModule,

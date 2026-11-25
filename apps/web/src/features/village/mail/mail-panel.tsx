@@ -26,7 +26,15 @@ const modes = [
   { code: 'block', label: 'Bloqueios' },
 ];
 
-export function MailPanel({ snapshot, clock }: { snapshot: VillageSnapshot; clock: number }) {
+export function MailPanel({
+  snapshot,
+  clock,
+  pollForChanges,
+}: {
+  snapshot: VillageSnapshot;
+  clock: number;
+  pollForChanges: boolean;
+}) {
   const worldId = snapshot.world.id,
     villageId = snapshot.village.id;
   const client = useQueryClient(),
@@ -50,7 +58,7 @@ export function MailPanel({ snapshot, clock }: { snapshot: VillageSnapshot; cloc
   const mailbox = useQuery({
     queryKey: ['mailbox', worldId, page],
     queryFn: () => api.mailbox(worldId, page),
-    refetchInterval: 5000,
+    refetchInterval: pollForChanges ? 5000 : false,
   });
   const target = useQuery({
     queryKey: ['mail-recipient', worldId, villageId, recipientId],
@@ -60,7 +68,7 @@ export function MailPanel({ snapshot, clock }: { snapshot: VillageSnapshot; cloc
   const thread = useQuery({
     queryKey: ['mail-thread', worldId, threadId],
     enabled: !!threadId,
-    refetchInterval: 5000,
+    refetchInterval: pollForChanges ? 5000 : false,
     queryFn: async () => {
       const result = await api.mailThread(worldId, threadId);
       if (result.status === 'new') {

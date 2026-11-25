@@ -37,7 +37,10 @@ function AftermathSeals({
   /** Há ataque a caminho: o selo dele divide a barra com estes. */
   attacking: boolean;
 }) {
-  const resolved = data?.resolved ?? [];
+  const resolved = (data?.resolved ?? []).filter(
+    (item) =>
+      clock < (item.expiresAt ? Date.parse(item.expiresAt) : Date.parse(item.occurredAt) + 180_000),
+  );
   const fighting = (data?.commands ?? []).filter(
     (item) => item.kind === 'attack' && new Date(item.endsAt).getTime() <= clock,
   );
